@@ -1,9 +1,10 @@
-// src/components/layout/Layout.jsx
-import Navbar from './Navbar';
-import Sidebar from './Sidebar';
-import { useSidebar } from '../../hooks/useSidebar';
 
-const Layout = ({ children }) => {
+import { Outlet } from "react-router-dom";
+import Navbar from "./Navbar";
+import Sidebar from "./Sidebar";
+import { useSidebar } from "../../hooks/useSidebar";
+
+const Layout = () => {
   const { isOpen, toggle, close, isCollapsed } = useSidebar();
 
   return (
@@ -15,11 +16,13 @@ const Layout = ({ children }) => {
 
         <main
           className={[
-            'flex-1 transition-all duration-300',
-            isCollapsed ? 'lg:pl-20' : 'lg:pl-64',
-          ].join(' ')}
+            "flex-1 transition-all duration-300",
+            isCollapsed ? "lg:pl-20" : "lg:pl-64",
+          ].join(" ")}
         >
-          <div className="p-4 md:p-6 lg:p-8">{children}</div>
+          <div className="p-4 md:p-6 lg:p-8">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
