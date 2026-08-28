@@ -1,27 +1,26 @@
-export const formatCurrency = (value) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(value) || 0);
-
-export const formatDate = (dateStr) => {
-  if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+// format.ts
+export const formatCurrency = (amount) => {
+  if (!amount && amount !== 0) return '—';
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
 };
 
-export const formatShortDate = (dateStr) => {
-  if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleDateString('en-US', {
+export const formatShortDate = (date) => {
+  if (!date) return '—';
+  const d = new Date(date);
+  return d.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
   });
 };
 
-export const formatDateTime = (dateStr) => {
-  if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleString('en-US', {
+export const formatDateTime = (date) => {
+  if (!date) return '—';
+  const d = new Date(date);
+  return d.toLocaleString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -41,25 +40,37 @@ export const CONTRACT_STATUS_LABEL = {
 export const DEPOSIT_STATUS_LABEL = {
   PENDING: 'Pending',
   PAID: 'Paid',
-  PARTIALLY_REFUNDED: 'Partially refunded',
   REFUNDED: 'Refunded',
+  FORFEITED: 'Forfeited',
 };
 
-export const GENDER_LABEL = {
-  MALE: 'Male',
-  FEMALE: 'Female',
-  OTHER: 'Other',
+export const genderLabel = (gender) => {
+  if (!gender) return '—';
+  const labels = {
+    MALE: 'ប្រុស',
+    FEMALE: 'ស្រី',
+  };
+  return labels[gender] || gender;
 };
 
-export const OCCUPATION_LABEL = {
-  STUDENT: 'Student',
-  EMPLOYEE: 'Employee',
-  OTHER: 'Other',
+export const occupationLabel = (occupation) => {
+  if (!occupation) return '—';
+  const labels = {
+    STUDENT: 'សិស្ស',
+    BUSINESS: 'អាជីវករ',
+    EMPLOYEE: 'បុគ្គលិក',
+    TEACHER: 'គ្រូបង្រៀន',
+    OTHER: 'ផ្សេងៗ',
+  };
+  return labels[occupation] || occupation;
 };
 
-export const fullName = (t) => `${t?.firstName || ''} ${t?.lastName || ''}`.trim() || `Tenant #${t?.id}`;
+export const fullName = (tenant) => {
+  if (!tenant) return '—';
+  return `${tenant.firstName || ''} ${tenant.lastName || ''}`.trim() || '—';
+};
 
-export const roomLabel = (r) => (r?.name ? `${r.name} (${r.roomNumber})` : r?.roomNumber ? `Room ${r.roomNumber}` : r?.name || '—');
-
-export const genderLabel = (g) => GENDER_LABEL[g] || g || '—';
-export const occupationLabel = (o) => OCCUPATION_LABEL[o] || o || '—';
+export const roomLabel = (room) => {
+  if (!room) return '—';
+  return room.name || `Room ${room.roomNumber || room.id}`;
+};
