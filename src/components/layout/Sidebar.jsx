@@ -14,6 +14,10 @@ import {
   LogOut,
   X,
   Home,
+  UserCircle,
+  Shield,
+  DoorOpen,
+  Sparkles,
 } from 'lucide-react';
 
 const NAV_GROUPS = [
@@ -22,6 +26,8 @@ const NAV_GROUPS = [
     items: [
       { to: '/', label: 'Dashboard', icon: LayoutDashboard },
       { to: '/properties', label: 'Properties', icon: Building2 },
+      { to: '/rooms', label: 'Rooms', icon: DoorOpen },
+      { to: '/amenities', label: 'Amenities', icon: Sparkles },
       { to: '/tenants', label: 'Tenants', icon: Users },
       { to: '/contracts', label: 'Contracts', icon: FileText },
     ],
@@ -29,6 +35,9 @@ const NAV_GROUPS = [
   {
     label: 'Management',
     items: [
+      { to: '/users', label: 'Users', icon: UserCircle },
+      { to: '/roles', label: 'Roles', icon: Shield },
+      { to: '/profile', label: 'My Profile', icon: UserCircle },
       { to: '/finance', label: 'Finance', icon: Wallet },
       { to: '/utilities', label: 'Utilities', icon: Zap },
       { to: '/maintenance', label: 'Maintenance', icon: Wrench },
@@ -115,7 +124,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
 
       <aside
         className={[
-          'fixed bottom-0 left-0 top-16 z-40 flex flex-col border-r border-slate-200 bg-white transition-all duration-300 dark:border-gray-800 dark:bg-gray-900',
+          'fixed bottom-0 left-0 top-16 z-40 flex flex-col border-r border-slate-200 bg-white transition-all duration-300 print:hidden dark:border-gray-800 dark:bg-gray-900',
           isCollapsed ? 'lg:w-20' : 'lg:w-64',
           'w-64 lg:translate-x-0 lg:shadow-none',
           isOpen ? 'translate-x-0 shadow-2xl shadow-slate-900/10 dark:shadow-black/30' : '-translate-x-full',

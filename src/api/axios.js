@@ -12,7 +12,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().accessToken;
-    if (token && !config.url?.includes("/auth/login")) {
+    if (token && !config.url?.includes("/v1/auth/login")) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -52,8 +52,8 @@ api.interceptors.response.use(
     if (
       error.response?.status !== 401 ||
       originalRequest._retry ||
-      originalRequest.url?.includes("/auth/login") ||
-      originalRequest.url?.includes("/auth/refresh")
+      originalRequest.url?.includes("/v1/auth/login") ||
+      originalRequest.url?.includes("/v1/auth/refresh")
     ) {
       return Promise.reject(error);
     }
@@ -73,7 +73,7 @@ api.interceptors.response.use(
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/refresh`,
+        `${import.meta.env.VITE_API_URL}/v1/auth/refresh`,
         {},
         { withCredentials: true }
       );

@@ -17,5 +17,11 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
+    rules: {
+      // The fetch-on-mount pattern `useEffect(() => { fetchX() }, [fetchX])`
+      // (where fetchX asynchronously updates state) is idiomatic here; this
+      // rule flags it as a false positive.
+      'react-hooks/set-state-in-effect': 'off',
+    },
   },
 ])

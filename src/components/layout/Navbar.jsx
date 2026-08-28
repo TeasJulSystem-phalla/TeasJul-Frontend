@@ -1,5 +1,6 @@
 // src/components/layout/Navbar.jsx
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Menu, PanelLeft, Search, Bell, X, ChevronDown, User, Settings, LogOut, HelpCircle, Home } from 'lucide-react';
 import ThemeToggle from '../common/ThemeToggle';
 
@@ -39,6 +40,7 @@ const dropdownPanelClass =
   'absolute right-0 mt-2 origin-top-right rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-900/5 dark:border-gray-700 dark:bg-gray-900 dark:shadow-black/20';
 
 const Navbar = ({ toggleSidebar, isCollapsed }) => {
+  const navigate = useNavigate();
   const [isMobileSearch, setIsMobileSearch] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -51,7 +53,7 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
   const unreadCount = NOTIFICATIONS.filter((n) => n.unread).length;
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 flex h-16 items-center border-b border-slate-200 bg-white transition-colors dark:border-gray-800 dark:bg-gray-900">
+    <header className="fixed inset-x-0 top-0 z-50 flex h-16 items-center border-b border-slate-200 bg-white transition-colors print:hidden dark:border-gray-800 dark:bg-gray-900">
       <div className="flex w-full items-center gap-3 px-4 lg:px-6">
         {/* Toggle + mobile brand */}
         <div className="flex items-center gap-3">
@@ -179,12 +181,15 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
               </div>
               <ul className="p-1.5">
                 {[
-                  { icon: User, label: 'My profile' },
+                  { icon: User, label: 'My profile', onClick: () => navigate('/profile') },
                   { icon: Settings, label: 'Account settings' },
                   { icon: HelpCircle, label: 'Help center' },
-                ].map(({ icon: Icon, label }) => (
+                ].map(({ icon: Icon, label, onClick }) => (
                   <li key={label}>
-                    <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-gray-800 dark:hover:text-white">
+                    <button
+                      onClick={onClick}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-gray-800 dark:hover:text-white"
+                    >
                       <Icon className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                       {label}
                     </button>

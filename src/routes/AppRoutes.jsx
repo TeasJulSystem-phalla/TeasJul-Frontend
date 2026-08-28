@@ -3,8 +3,19 @@ import Layout from '../components/layout/Layout';
 import ProtectedRoute from '../components/ProtectedRoute';
 import Dashboard from '../page/Dashboard';
 import Placeholder from '../page/Placeholder';
+import Properties from '../page/Room/Properties';
+import Users from '../page/user/Users';
+import Profile from '../page/user/Profile';
 import LoginPage from '../page/auth/LoginPage';
 import UiShowcase from '../components/ui/UiShowcase';
+import RoomTypesPage from '../page/Room/RoomTypePage';
+import RolesPage from '../page/user/Roles';
+import RoomsPage from '../page/Room/Rooms';
+import AmenitiesPage from '../page/Room/Amenities';
+import TenantsPage from '../page/user/Tenants';
+import ContractsPage from '../page/ContractDetail/Contracts';
+import ContractEditorPage from '../page/ContractDetail/ContractEditorPage';
+import ContractDetailPage from '../page/ContractDetail/ContractDetailPage';
 
 const AppRoutes = () => {
   return (
@@ -15,9 +26,18 @@ const AppRoutes = () => {
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/properties" element={<Placeholder title="Properties" />} />
-            <Route path="/tenants" element={<Placeholder title="Tenants" />} />
-            <Route path="/contracts" element={<Placeholder title="Contracts" />} />
+            <Route path="/properties" element={<Properties />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/roomtype" element={<RoomTypesPage />} />
+            <Route path="/roles" element={<RolesPage />} />
+            <Route path="/rooms" element={<RoomsPage />} />
+            <Route path="/amenities" element={<AmenitiesPage />} />
+            <Route path="/tenants" element={<TenantsPage />} />
+            <Route path="/contracts" element={<ContractsPage />} />
+            <Route path="/contracts/new" element={<ContractEditorPage />} />
+            <Route path="/contracts/:id/edit" element={<ContractEditorPage />} />
+            <Route path="/contracts/:id" element={<ContractDetailPage />} />
             <Route path="/finance" element={<Placeholder title="Finance" />} />
             <Route path="/utilities" element={<Placeholder title="Utilities" />} />
             <Route path="/maintenance" element={<Placeholder title="Maintenance" />} />

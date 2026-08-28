@@ -14,3 +14,36 @@
   color-scheme: dark;
 }
 
+@media print {
+  @page {
+    size: A4;
+    margin: 8mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  /* Print only the contract document, isolating it from the app layout
+     so the output is a clean, paginated A4 invoice. */
+  body * {
+    visibility: hidden;
+  }
+
+  #contract-document,
+  #contract-document * {
+    visibility: visible;
+  }
+
+  #contract-document {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    box-shadow: none;
+  }
+}
+
