@@ -50,28 +50,39 @@ src/
 │   ├── user.api.js
 │   ├── role.api.js
 │   ├── permission.api.js
-│   └── roomType.api.js
+│   ├── roomType.api.js
+│   ├── room.api.js
+│   ├── tenant.api.js
+│   ├── contract.api.js
+│   ├── utilityType.api.js
+│   ├── utilityMeter.api.js
+│   ├── utilityReading.api.js
+│   ├── utilityRate.api.js
+│   ├── maintenanceRequest.api.js
+│   ├── maintenanceCategory.api.js
+│   ├── maintenanceAssignment.api.js
+│   ├── maintenanceCost.api.js
+│   └── maintenanceComment.api.js
 ├── components/
 │   ├── layout/                   # Layout.jsx, Navbar.jsx, Sidebar.jsx
 │   ├── ui/                       # reusable UI primitives (see below)
 │   ├── ProtectedRoute.jsx        # guards routes behind an access token
 │   └── ui/UiShowcase.jsx         # storybook-style showcase of all UI components
 ├── hooks/                        # per-resource data hooks (useX.js)
-│   ├── useAuth.js
-│   ├── useHouses.js
-│   ├── useUsers.js
-│   ├── useRoles.js
-│   ├── usePermissions.js
-│   ├── useRoomType.js
-│   ├── useSidebar.js
-│   └── useTheme.js
+│   ├── useAuth.js, useHouses.js, useUsers.js, useRoles.js, usePermissions.js
+│   ├── useRoomType.js, useRooms.js, useTenants.js, useContracts.js, useAmenities.js
+│   ├── useUtilityTypes.js, useUtilityMeters.js, useUtilityReadings.js, useUtilityRates.js
+│   ├── useMaintenanceRequests.js, useMaintenanceCategories.js
+│   ├── useMaintenanceAssignments.js, useMaintenanceCosts.js, useMaintenanceComments.js
+│   ├── useSidebar.js, useTheme.js, useRoomOccupants.js
 ├── page/                         # route-level pages (PascalCase)
 │   ├── auth/LoginPage.jsx
-│   ├── Dashboard.jsx
-│   ├── Properties.jsx
-│   ├── Users.jsx
-│   ├── Profile.jsx
-│   └── Placeholder.jsx           # stub used for unimplemented routes
+│   ├── Dashboard.jsx, Placeholder.jsx
+│   ├── Room/                     # Properties, Rooms, RoomTypePage, Amenities
+│   ├── user/                     # Users, Profile, Roles, Tenants
+│   ├── ContractDetail/           # Contracts, ContractEditorPage, ContractDetailPage, ...
+│   ├── Utility/                  # UtilityTypes, UtilityMeters, UtilityReadings, UtilityRates
+│   └── Maintenance/              # MaintenanceRequests, MaintenanceCategories
 ├── routes/
 │   └── AppRoutes.jsx             # all <Route> definitions
 ├── store/                        # Zustand stores (global state)
@@ -122,9 +133,18 @@ export function useHouses() {
   `getMyHouses: () => api.get("/houses").then((res) => res.data)`.
 - Prefer returning `res.data` at the call site of the api module so hooks/pages get the payload
   directly.
-- Paginated backend responses wrap data in a `PageResponse` shape:
-  `{ content: [...], page, size, totalElements, totalPages }` — read/paginate via `content` and
-  `totalPages`.
+- **Response shapes vary by endpoint — check the backend controller before coding:**
+  - Paginated endpoints (e.g. `utility-types`, `utility-meters`, `utility-readings`,
+    `utility-rates`, `houses`, `rooms`, `amenities`, `roles`, `permissions`, `tenants`,
+    `contracts`) wrap data in a `PageResponse` shape:
+    `{ content: [...], page, size, totalElements, totalPages }` — read/paginate via `content`
+    and `totalPages`.
+  - Plain-list endpoints (e.g. `maintenance-requests`, `maintenance-categories`,
+    `maintenance-assignments`, `maintenance-costs`, `maintenance-comments`) return the array
+    directly.
+- Nested/child resources (maintenance comments, costs, assignments) take the parent id as a
+  path segment or base path (e.g. `/maintenance/requests/{id}/comments`); the corresponding
+  hooks accept the parent id so the detail page can lazy-load per selected request.
 
 ## Auth
 
@@ -220,18 +240,26 @@ Styling uses Tailwind utility classes throughout with explicit light/dark varian
 
 ## Adding a new feature/resource
 
-To wire up a new backend resource (e.g. one already exposed by the backend, like the
-`utility-*` endpoints):
+To wire up a new backend resource (one already exposed by the backend that the UI doesn't use
+yet):
 
 1. Add `src/api/<name>.api.js` exporting a `<name>Api` object of methods that call the shared
    `api` (match existing modules; return `res.data`).
 2. Add `src/hooks/use<Name>.js` exposing `{ data, loading, error, fetch<Name>, create<Name>,
-   update<Name>, delete<Name> }` following `useHouses.js`.
+   update<Name>, delete<Name> }` following `useHouses.js` or
+   `useUtilityTypes.js`/`useMaintenanceRequests.js`.
 3. Add a page in `src/page/<Name>.jsx` following the page conventions above.
 4. Register the route in `src/routes/AppRoutes.jsx` (inside the protected `<Layout>` block) and
    add a nav entry + icon in `src/components/layout/Sidebar.jsx` (`NAV_GROUPS`, lucide icon).
 5. Never call `api` from components directly, never import `Config.js` — use the axios modules
    and `.env`.
+
+The utility modules (`src/api/utility*.api.js` + `src/hooks/useUtility*.js` +
+`src/page/Utility/*`) and maintenance modules (`src/api/maintenance*.api.js` +
+`src/hooks/useMaintenance*.js` + `src/page/Maintenance/*`) are the most complete worked
+examples — mirror them when adding a similar resource group. Note that the maintenance claims
+pages use a master-detail pattern: the list page renders a detail `<Modal>` whose tabs
+(Comments / Costs / Assignments) each lazy-load from a per-parent-id hook.
 
 ## Notes for agents
 

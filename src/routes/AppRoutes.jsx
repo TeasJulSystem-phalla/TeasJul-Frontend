@@ -16,6 +16,12 @@ import TenantsPage from '../page/user/Tenants';
 import ContractsPage from '../page/ContractDetail/Contracts';
 import ContractEditorPage from '../page/ContractDetail/ContractEditorPage';
 import ContractDetailPage from '../page/ContractDetail/ContractDetailPage';
+import UtilityTypesPage from '../page/Utility/UtilityTypes';
+import UtilityMetersPage from '../page/Utility/UtilityMeters';
+import UtilityReadingsPage from '../page/Utility/UtilityReadings';
+import UtilityRatesPage from '../page/Utility/UtilityRates';
+import MaintenanceRequestsPage from '../page/Maintenance/MaintenanceRequests';
+import MaintenanceCategoriesPage from '../page/Maintenance/MaintenanceCategories';
 
 const AppRoutes = () => {
   return (
@@ -39,8 +45,12 @@ const AppRoutes = () => {
             <Route path="/contracts/:id/edit" element={<ContractEditorPage />} />
             <Route path="/contracts/:id" element={<ContractDetailPage />} />
             <Route path="/finance" element={<Placeholder title="Finance" />} />
-            <Route path="/utilities" element={<Placeholder title="Utilities" />} />
-            <Route path="/maintenance" element={<Placeholder title="Maintenance" />} />
+            <Route path="/utilities" element={<UtilityTypesPage />} />
+            <Route path="/utilities/meters" element={<UtilityMetersPage />} />
+            <Route path="/utilities/readings" element={<UtilityReadingsPage />} />
+            <Route path="/utilities/rates" element={<UtilityRatesPage />} />
+            <Route path="/maintenance" element={<MaintenanceRequestsPage />} />
+            <Route path="/maintenance/categories" element={<MaintenanceCategoriesPage />} />
             <Route path="/assistant" element={<Placeholder title="AI Assistant" />} />
             <Route path="/settings" element={<Placeholder title="Settings" />} />
             <Route path="/help" element={<Placeholder title="Help & Support" />} />

@@ -18,6 +18,7 @@ import {
   Shield,
   DoorOpen,
   Sparkles,
+  Layers,
 } from 'lucide-react';
 
 const NAV_GROUPS = [
@@ -27,6 +28,7 @@ const NAV_GROUPS = [
       { to: '/', label: 'Dashboard', icon: LayoutDashboard },
       { to: '/properties', label: 'Properties', icon: Building2 },
       { to: '/rooms', label: 'Rooms', icon: DoorOpen },
+      { to: '/roomtype', label: 'Room Types', icon: Layers },
       { to: '/amenities', label: 'Amenities', icon: Sparkles },
       { to: '/tenants', label: 'Tenants', icon: Users },
       { to: '/contracts', label: 'Contracts', icon: FileText },
@@ -40,7 +42,11 @@ const NAV_GROUPS = [
       { to: '/profile', label: 'My Profile', icon: UserCircle },
       { to: '/finance', label: 'Finance', icon: Wallet },
       { to: '/utilities', label: 'Utilities', icon: Zap },
+      { to: '/utilities/meters', label: 'Utility Meters', icon: Zap },
+      { to: '/utilities/readings', label: 'Utility Readings', icon: Zap },
+      { to: '/utilities/rates', label: 'Utility Rates', icon: Zap },
       { to: '/maintenance', label: 'Maintenance', icon: Wrench },
+      { to: '/maintenance/categories', label: 'Maintenance Categories', icon: Wrench },
     ],
   },
   {

@@ -79,6 +79,38 @@ export function useRooms() {
   };
 }
 
+export function useRoomsByHouse(houseId) {
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchRooms = useCallback(async () => {
+    if (!houseId) {
+      setRooms([]);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      setRooms(await roomApi.getRoomsByHouse(houseId));
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          "Failed to load rooms for this house."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [houseId]);
+
+  useEffect(() => {
+    fetchRooms();
+  }, [fetchRooms]);
+
+  return { rooms, loading, error, refetch: fetchRooms };
+}
+
 export function useRoomAmenities(roomId) {
   const [amenities, setAmenities] = useState([]);
   const [loading, setLoading] = useState(false);
