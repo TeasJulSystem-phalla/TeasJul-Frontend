@@ -47,6 +47,7 @@ import {
 
 const STATUS_VARIANT = {
   ACTIVE: 'success',
+  RENTING: 'info',
   INACTIVE: 'neutral',
 };
 
@@ -64,7 +65,8 @@ const OCCUPATION_OPTIONS = [
 
 const STATUS_OPTIONS = [
   { value: '', label: 'All Statuses' },
-  { value: 'ACTIVE', label: 'Active' },
+  { value: 'ACTIVE', label: 'Active (Available)' },
+  { value: 'RENTING', label: 'Renting House' },
   { value: 'INACTIVE', label: 'Inactive' },
 ];
 
@@ -137,7 +139,9 @@ export default function Tenants() {
   const stats = useMemo(() => {
     const total = tenants.length;
     const active = tenants.filter((t) => t.status === 'ACTIVE').length;
-    return { total, active, inactive: total - active };
+    const renting = tenants.filter((t) => t.status === 'RENTING').length;
+    const inactive = tenants.filter((t) => t.status === 'INACTIVE').length;
+    return { total, active, renting, inactive };
   }, [tenants]);
 
   const filtered = useMemo(() => {
