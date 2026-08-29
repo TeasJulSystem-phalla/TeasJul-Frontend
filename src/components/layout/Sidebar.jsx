@@ -23,38 +23,38 @@ import {
 
 const NAV_GROUPS = [
   {
-    label: 'Main',
+    label: 'មេ',
     items: [
-      { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-      { to: '/properties', label: 'Properties', icon: Building2 },
-      { to: '/rooms', label: 'Rooms', icon: DoorOpen },
-      { to: '/roomtype', label: 'Room Types', icon: Layers },
-      { to: '/amenities', label: 'Amenities', icon: Sparkles },
-      { to: '/tenants', label: 'Tenants', icon: Users },
-      { to: '/contracts', label: 'Contracts', icon: FileText },
+      { to: '/', label: 'ផ្ទាំងគ្រប់គ្រង', icon: LayoutDashboard },
+      { to: '/properties', label: 'អចលនទ្រព្យ', icon: Building2 },
+      { to: '/rooms', label: 'បន្ទប់', icon: DoorOpen },
+      { to: '/roomtype', label: 'ប្រភេទបន្ទប់', icon: Layers },
+      { to: '/amenities', label: 'គ្រឿងបរិក្ខារ', icon: Sparkles },
+      { to: '/tenants', label: 'អ្នកជួល', icon: Users },
+      { to: '/contracts', label: 'កិច្ចសន្យា', icon: FileText },
     ],
   },
   {
-    label: 'Management',
+    label: 'ការគ្រប់គ្រង',
     items: [
-      { to: '/users', label: 'Users', icon: UserCircle },
-      { to: '/roles', label: 'Roles', icon: Shield },
-      { to: '/profile', label: 'My Profile', icon: UserCircle },
-      { to: '/finance', label: 'Finance', icon: Wallet },
-      { to: '/utilities', label: 'Utilities', icon: Zap },
-      { to: '/utilities/meters', label: 'Utility Meters', icon: Zap },
-      { to: '/utilities/readings', label: 'Utility Readings', icon: Zap },
-      { to: '/utilities/rates', label: 'Utility Rates', icon: Zap },
-      { to: '/maintenance', label: 'Maintenance', icon: Wrench },
-      { to: '/maintenance/categories', label: 'Maintenance Categories', icon: Wrench },
+      { to: '/users', label: 'អ្នកប្រើប្រាស់', icon: UserCircle },
+      { to: '/roles', label: 'តួនាទី', icon: Shield },
+      { to: '/profile', label: 'ប្រវត្តិរបស់ខ្ញុំ', icon: UserCircle },
+      { to: '/finance', label: 'ហិរញ្ញវត្ថុ', icon: Wallet },
+      { to: '/utilities', label: 'ប្រើប្រាស់ទឹកភ្លើង', icon: Zap },
+      { to: '/utilities/meters', label: 'ម៉ែត្រប្រើប្រាស់', icon: Zap },
+      { to: '/utilities/readings', label: 'ការអានម៉ែត្រ', icon: Zap },
+      { to: '/utilities/rates', label: 'តម្លៃប្រើប្រាស់', icon: Zap },
+      { to: '/maintenance', label: 'ការជួសជុល', icon: Wrench },
+      { to: '/maintenance/categories', label: 'ប្រភេទការជួសជុល', icon: Wrench },
     ],
   },
   {
-    label: 'Support',
+    label: 'ជំនួយ',
     items: [
-      { to: '/assistant', label: 'AI Assistant', icon: Bot },
-      { to: '/settings', label: 'Settings', icon: Settings },
-      { to: '/help', label: 'Help & Support', icon: HelpCircle },
+      { to: '/assistant', label: 'ជំនួយការ AI', icon: Bot },
+      { to: '/settings', label: 'ការកំណត់', icon: Settings },
+      { to: '/help', label: 'ជំនួយ និងការគាំទ្រ', icon: HelpCircle },
     ],
   },
 ];
@@ -67,7 +67,7 @@ const Brand = ({ isCollapsed }) => (
     {!isCollapsed && (
       <div className="min-w-0">
         <p className="truncate text-[15px] font-semibold text-slate-800 dark:text-white">RentalHub</p>
-        <p className="truncate text-[11px] font-medium text-slate-400 dark:text-slate-500">Property Manager</p>
+        <p className="truncate text-[11px] font-medium text-slate-400 dark:text-slate-500">អ្នកគ្រប់គ្រងអចលនទ្រព្យ</p>
       </div>
     )}
   </div>
@@ -84,7 +84,7 @@ const SidebarLink = ({ item, isCollapsed, onNavigate }) => {
       title={isCollapsed ? item.label : undefined}
       className={({ isActive }) =>
         [
-          'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13.5px] font-medium transition-colors',
+          'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors',
           isActive
             ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-white'
             : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-gray-800 dark:hover:text-slate-100',
@@ -142,7 +142,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
         <button
           onClick={onClose}
           className="absolute right-3 top-4 rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 lg:hidden dark:hover:bg-gray-800 dark:hover:text-slate-300"
-          aria-label="Close sidebar"
+          aria-label="បិទរបារចំហៀង"
         >
           <X className="h-5 w-5" />
         </button>
@@ -174,13 +174,13 @@ const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
         <div className="border-t border-slate-100 p-3 dark:border-gray-800">
           <button
             className={[
-              'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13.5px] font-medium text-red-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10',
+              'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-red-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10',
               isCollapsed && 'justify-center px-2',
             ].join(' ')}
-            title={isCollapsed ? 'Sign out' : undefined}
+            title={isCollapsed ? 'ចេញពីប្រព័ន្ធ' : undefined}
           >
             <LogOut className="h-5 w-5 shrink-0" />
-            {!isCollapsed && <span>Sign out</span>}
+            {!isCollapsed && <span>ចេញពីប្រព័ន្ធ</span>}
           </button>
         </div>
       </aside>

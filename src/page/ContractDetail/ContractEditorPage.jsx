@@ -28,11 +28,11 @@ import { useToast } from '../../components/ui/Toast.jsx';
 import { Button, IconButton, Input, Textarea, Select, Badge, Alert, Modal, EmptyState, Skeleton } from '../../components/ui/index.js';
 
 const STATUS_OPTIONS = [
-  { value: 'DRAFT', label: 'Draft' },
-  { value: 'ACTIVE', label: 'Active' },
-  { value: 'TERMINATED', label: 'Terminated' },
-  { value: 'EXPIRED', label: 'Expired' },
-  { value: 'CANCELLED', label: 'Cancelled' },
+  { value: 'DRAFT', label: 'សេចក្តីព្រាង' },
+  { value: 'ACTIVE', label: 'សកម្ម' },
+  { value: 'TERMINATED', label: 'បានបញ្ចប់' },
+  { value: 'EXPIRED', label: 'ផុតកំណត់' },
+  { value: 'CANCELLED', label: 'បានលុបចោល' },
 ];
 
 const DEPOSIT_STATUS_VARIANT = {
@@ -40,6 +40,14 @@ const DEPOSIT_STATUS_VARIANT = {
   PAID: 'success',
   PARTIALLY_REFUNDED: 'info',
   REFUNDED: 'neutral',
+};
+
+const DEPOSIT_STATUS_LABEL = {
+  PENDING: 'កំពុងរង់ចាំ',
+  PAID: 'បានបង់',
+  PARTIALLY_REFUNDED: 'បានសងមួយផ្នែក',
+  REFUNDED: 'បានសងវិញ',
+  FORFEITED: 'បានបាត់បង់',
 };
 
 const formatCurrency = (value) =>
@@ -67,7 +75,7 @@ const EMPTY_FORM = {
   notes: '',
 };
 
-const fullName = (t) => `${t.firstName || ''} ${t.lastName || ''}`.trim() || `Tenant #${t.id}`;
+const fullName = (t) => `${t.firstName || ''} ${t.lastName || ''}`.trim() || `អ្នកជួល #${t.id}`;
 
 export default function ContractEditorPage() {
   const { id } = useParams();
@@ -109,12 +117,12 @@ export default function ContractEditorPage() {
   );
 
   const houseName = useCallback(
-    (houseId) => houses.find((h) => h.id === houseId)?.name || `House #${houseId}`,
+    (houseId) => houses.find((h) => h.id === houseId)?.name || `ផ្ទះ #${houseId}`,
     [houses]
   );
 
   const roomTypeName = useCallback(
-    (typeId) => roomTypes.find((rt) => rt.id === typeId)?.name || `Type #${typeId}`,
+    (typeId) => roomTypes.find((rt) => rt.id === typeId)?.name || `ប្រភេទ #${typeId}`,
     [roomTypes]
   );
 
@@ -151,7 +159,7 @@ export default function ContractEditorPage() {
         notes: data.notes || '',
       });
     } catch (err) {
-      setLoadError(err.response?.data?.message || err.response?.data?.error || 'Failed to load contract.');
+      setLoadError(err.response?.data?.message || err.response?.data?.error || 'មិនអាចផ្ទុកកិច្ចសន្យាបានទេ។');
     } finally {
       setLoading(false);
     }
@@ -181,10 +189,10 @@ export default function ContractEditorPage() {
 
   const validate = () => {
     const errs = {};
-    if (!form.contractNo.trim()) errs.contractNo = 'Contract number is required';
-    if (!form.roomId) errs.roomId = 'Room selection is required';
-    if (!form.startDate) errs.startDate = 'Start date is required';
-    if (!form.monthlyRent || Number(form.monthlyRent) <= 0) errs.monthlyRent = 'Monthly rent must be greater than 0';
+    if (!form.contractNo.trim()) errs.contractNo = 'តម្រូវឱ្យបញ្ចូលលេខកិច្ចសន្យា';
+    if (!form.roomId) errs.roomId = 'តម្រូវឱ្យជ្រើសរើសបន្ទប់';
+    if (!form.startDate) errs.startDate = 'តម្រូវឱ្យបញ្ចូលថ្ងៃចាប់ផ្តើម';
+    if (!form.monthlyRent || Number(form.monthlyRent) <= 0) errs.monthlyRent = 'ថ្លៃជួលប្រចាំខែត្រូវតែធំជាង 0';
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -210,16 +218,16 @@ export default function ContractEditorPage() {
       if (isEdit) {
         const updated = await updateContract(Number(id), buildPayload());
         setContract(updated);
-        toast.success('Contract updated', `Contract "${form.contractNo}" updated.`);
+        toast.success('បានកែប្រែកិច្ចសន្យា', `កិច្ចសន្យា "${form.contractNo}" ត្រូវបានកែប្រែ។`);
       } else {
         const created = await createContract(buildPayload());
-        toast.success('Contract created', `Contract "${form.contractNo}" created.`);
+        toast.success('បានបង្កើតកិច្ចសន្យា', `កិច្ចសន្យា "${form.contractNo}" ត្រូវបានបង្កើត។`);
         navigate(`/contracts/${created.id}`, { replace: true });
       }
     } catch (err) {
-      const message = err.response?.data?.message || err.response?.data?.error || 'Failed to save contract.';
+      const message = err.response?.data?.message || err.response?.data?.error || 'មិនអាចរក្សាទុកកិច្ចសន្យាបានទេ។';
       setSaveError(message);
-      toast.error('Error', message);
+      toast.error('កំហុស', message);
     } finally {
       setSubmitting(false);
     }
@@ -266,28 +274,28 @@ export default function ContractEditorPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Link to="/contracts" className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400">
-            <ArrowLeft className="h-4 w-4" /> Back to Contracts
+            <ArrowLeft className="h-4 w-4" /> ត្រឡប់ទៅកិច្ចសន្យា
           </Link>
           <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">
-            {isEdit ? `Edit Contract ${form.contractNo ? `#${contract?.id} · ${form.contractNo}` : ''}` : 'Create Contract'}
+            {isEdit ? `កែប្រែកិច្ចសន្យា ${form.contractNo ? `#${contract?.id} · ${form.contractNo}` : ''}` : 'បង្កើតកិច្ចសន្យា'}
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {isEdit ? 'Manage contract details, tenants, deposits, and renewals.' : 'Select a room directly below and fill in contract terms on this page.'}
+            {isEdit ? 'គ្រប់គ្រងព័ត៌មានលម្អិតកិច្ចសន្យា អ្នកជួល ប្រាក់កក់ និងការបន្តកិច្ចសន្យា។' : 'ជ្រើសរើសបន្ទប់ខាងក្រោមដោយផ្ទាល់ និងបំពេញលក្ខខណ្ឌកិច្ចសន្យាក្នុងទំព័រនេះ។'}
           </p>
         </div>
         <Button type="submit" form="editorForm" leftIcon={<Save className="h-4 w-4" />} loading={submitting} onClick={() => document.getElementById('editorForm')?.requestSubmit()}>
-          Save Contract
+          រក្សាទុកកិច្ចសន្យា
         </Button>
       </div>
 
-      {loadError && <Alert variant="danger" title="Error" description={loadError} dismissible />}
-      {saveError && <Alert variant="danger" title="Save failed" description={saveError} dismissible />}
+      {loadError && <Alert variant="danger" title="កំហុស" description={loadError} dismissible />}
+      {saveError && <Alert variant="danger" title="ការរក្សាទុកបរាជ័យ" description={saveError} dismissible />}
 
       {/* Inline Visual Room Selection Section */}
       <SectionCard
         icon={<DoorOpen className="h-5 w-5" />}
-        title="1. Select Room"
-        subtitle="Click any unit below to select it and auto-fill monthly pricing."
+        title="1. ជ្រើសរើសបន្ទប់"
+        subtitle="ចុចលើបន្ទប់ណាមួយខាងក្រោម ដើម្បីជ្រើសរើស និងបំពេញតម្លៃប្រចាំខែដោយស្វ័យប្រវត្តិ។"
         headerAction={
           <Button
             variant="ghost"
@@ -296,7 +304,7 @@ export default function ContractEditorPage() {
             className="text-slate-500 hover:text-slate-700"
           >
             {showRoomGrid ? <ChevronUp className="h-4 w-4 mr-1 inline" /> : <ChevronDown className="h-4 w-4 mr-1 inline" />}
-            {showRoomGrid ? 'Collapse Units' : 'Expand Units'}
+            {showRoomGrid ? 'បត់បន្ទប់' : 'ពង្រីកបន្ទប់'}
           </Button>
         }
       >
@@ -310,14 +318,14 @@ export default function ContractEditorPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-slate-800 dark:text-white text-sm">
-                    Selected Unit #{selectedRoom.roomNumber} ({selectedRoom.name || `Room ${selectedRoom.roomNumber}`})
+                    បានជ្រើសរើសបន្ទប់ #{selectedRoom.roomNumber} ({selectedRoom.name || `បន្ទប់ ${selectedRoom.roomNumber}`})
                   </span>
                   <Badge variant={selectedRoom.status === 'AVAILABLE' ? 'success' : 'neutral'}>
                     {selectedRoom.status}
                   </Badge>
                 </div>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  {houseName(selectedRoom.houseId)} · {roomTypeName(selectedRoom.roomTypeId)} · Rent: <span className="font-bold text-emerald-700 dark:text-emerald-400">{formatCurrency(selectedRoom.monthlyRent)}/mo</span>
+                  {houseName(selectedRoom.houseId)} · {roomTypeName(selectedRoom.roomTypeId)} · ថ្លៃជួល: <span className="font-bold text-emerald-700 dark:text-emerald-400">{formatCurrency(selectedRoom.monthlyRent)}/ខែ</span>
                 </p>
               </div>
             </div>
@@ -327,7 +335,7 @@ export default function ContractEditorPage() {
               onClick={() => setShowRoomGrid(true)}
               className="text-xs"
             >
-              Change Unit
+              ផ្លាស់ប្តូរបន្ទប់
             </Button>
           </div>
         )}
@@ -341,7 +349,7 @@ export default function ContractEditorPage() {
               <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="w-full sm:w-56">
                   <Input
-                    placeholder="Search unit #..."
+                    placeholder="ស្វែងរកបន្ទប់ #..."
                     leftIcon={<Search className="h-4 w-4 text-slate-400" />}
                     value={roomSearchTerm}
                     onChange={(e) => setRoomSearchTerm(e.target.value)}
@@ -350,7 +358,7 @@ export default function ContractEditorPage() {
                 <div className="w-full sm:w-44">
                   <Select
                     options={[
-                      { value: '', label: 'All Houses' },
+                      { value: '', label: 'ផ្ទះទាំងអស់' },
                       ...houses.map((h) => ({ value: String(h.id), label: h.name })),
                     ]}
                     value={houseFilter}
@@ -365,21 +373,21 @@ export default function ContractEditorPage() {
                   size="xs"
                   onClick={() => setRoomFilterStatus('AVAILABLE')}
                 >
-                  Available Only
+                  មានទំនេរតែប៉ុណ្ណោះ
                 </Button>
                 <Button
                   variant={roomFilterStatus === '' ? 'primary' : 'outline'}
                   size="xs"
                   onClick={() => setRoomFilterStatus('')}
                 >
-                  All Rooms
+                  បន្ទប់ទាំងអស់
                 </Button>
               </div>
             </div>
 
             {/* Inline Room Cards */}
             {inlineFilteredRooms.length === 0 ? (
-              <EmptyState icon={DoorOpen} title="No units found" description="Try switching filter to 'All Rooms' or clearing search." />
+              <EmptyState icon={DoorOpen} title="រកមិនឃើញបន្ទប់" description="សូមព្យាយាមប្តូរតម្រងទៅ 'បន្ទប់ទាំងអស់' ឬសម្អាតការស្វែងរក។" />
             ) : (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {inlineFilteredRooms.map((room) => {
@@ -394,7 +402,7 @@ export default function ContractEditorPage() {
                         if (canSelect) {
                           handleSelectRoom(room);
                         } else {
-                          toast.error('Occupied Unit', `Unit #${room.roomNumber} is currently occupied and cannot be assigned to a new contract.`);
+                          toast.error('បន្ទប់មានអ្នកស្នាក់នៅ', `បន្ទប់ #${room.roomNumber} កំពុងមានអ្នកស្នាក់នៅ ហើយមិនអាចផ្តល់ឲ្យកិច្ចសន្យាថ្មីបានទេ។`);
                         }
                       }}
                       className={`flex flex-col justify-between rounded-xl border p-3.5 transition-all ${
@@ -413,9 +421,9 @@ export default function ContractEditorPage() {
                             </span>
                             <div>
                               <p className="font-bold text-slate-800 dark:text-white text-sm">
-                                {room.name || `Room ${room.roomNumber}`}
+                                {room.name || `បន្ទប់ ${room.roomNumber}`}
                               </p>
-                              <p className="font-mono text-xs text-slate-400">Unit #{room.roomNumber}</p>
+                              <p className="font-mono text-xs text-slate-400">បន្ទប់ #{room.roomNumber}</p>
                             </div>
                           </div>
                           <Badge variant={isAvailable ? 'success' : 'neutral'}>
@@ -425,13 +433,13 @@ export default function ContractEditorPage() {
 
                         <div className="mt-2.5 text-xs text-slate-500 dark:text-slate-400 space-y-0.5">
                           <p className="truncate">{houseName(room.houseId)} · {roomTypeName(room.roomTypeId)}</p>
-                          {room.floorNumber != null && <p>Floor {room.floorNumber} · Capacity: {room.capacity} Person(s)</p>}
+                          {room.floorNumber != null && <p>ជាន់ {room.floorNumber} · សមត្ថភាព: {room.capacity} នាក់</p>}
                         </div>
                       </div>
 
                       <div className="mt-3 border-t border-slate-100 pt-2 dark:border-gray-800 flex items-center justify-between">
                         <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">
-                          {formatCurrency(room.monthlyRent)} <span className="text-xs font-normal text-slate-400">/mo</span>
+                          {formatCurrency(room.monthlyRent)} <span className="text-xs font-normal text-slate-400">/ខែ</span>
                         </span>
 
                         <Button
@@ -440,7 +448,7 @@ export default function ContractEditorPage() {
                           disabled={!canSelect}
                           leftIcon={isSelected ? <Check className="h-3.5 w-3.5" /> : null}
                         >
-                          {isSelected ? 'Selected' : canSelect ? 'Select' : 'Occupied'}
+                          {isSelected ? 'បានជ្រើសរើស' : canSelect ? 'ជ្រើសរើស' : 'មានអ្នកស្នាក់នៅ'}
                         </Button>
                       </div>
                     </div>
@@ -455,28 +463,28 @@ export default function ContractEditorPage() {
       {/* Contract Terms & Dates */}
       <SectionCard
         icon={<FileText className="h-5 w-5" />}
-        title="2. Contract Terms"
-        subtitle="Configure contract period, rent payment, and status."
+        title="2. លក្ខខណ្ឌកិច្ចសន្យា"
+        subtitle="កំណត់រយៈពេលកិច្ចសន្យា ការបង់ថ្លៃជួល និងស្ថានភាព។"
       >
         <form id="editorForm" onSubmit={handleSave} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Contract No." required name="contractNo" value={form.contractNo} onChange={handleFormChange} placeholder="e.g., CT-2026-001" error={formErrors.contractNo} />
-            <Select label="Status" name="status" options={STATUS_OPTIONS} value={form.status} onChange={handleFormChange} />
+            <Input label="លេខកិច្ចសន្យា" required name="contractNo" value={form.contractNo} onChange={handleFormChange} placeholder="ឧ. CT-2026-001" error={formErrors.contractNo} />
+            <Select label="ស្ថានភាព" name="status" options={STATUS_OPTIONS} value={form.status} onChange={handleFormChange} />
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Input label="Start Date" required type="date" name="startDate" value={form.startDate} onChange={handleFormChange} error={formErrors.startDate} />
-            <Input label="End Date" type="date" name="endDate" value={form.endDate} onChange={handleFormChange} />
-            <Input label="Monthly Rent ($)" required type="number" step="0.01" min="0" name="monthlyRent" value={form.monthlyRent} onChange={handleFormChange} error={formErrors.monthlyRent} />
-            <Input label="Security Deposit ($)" type="number" step="0.01" min="0" name="securityDeposit" value={form.securityDeposit} onChange={handleFormChange} />
+            <Input label="ថ្ងៃចាប់ផ្តើម" required type="date" name="startDate" value={form.startDate} onChange={handleFormChange} error={formErrors.startDate} />
+            <Input label="ថ្ងៃបញ្ចប់" type="date" name="endDate" value={form.endDate} onChange={handleFormChange} />
+            <Input label="ថ្លៃជួលប្រចាំខែ ($)" required type="number" step="0.01" min="0" name="monthlyRent" value={form.monthlyRent} onChange={handleFormChange} error={formErrors.monthlyRent} />
+            <Input label="ប្រាក់កក់ ($)" type="number" step="0.01" min="0" name="securityDeposit" value={form.securityDeposit} onChange={handleFormChange} />
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
             <div className="sm:col-span-1">
-              <Input label="Due Day" type="number" min="1" max="31" name="dueDay" value={form.dueDay} onChange={handleFormChange} />
+              <Input label="ថ្ងៃកំណត់បង់" type="number" min="1" max="31" name="dueDay" value={form.dueDay} onChange={handleFormChange} />
             </div>
             <div className="sm:col-span-3">
-              <Textarea label="Notes" name="notes" value={form.notes} onChange={handleFormChange} rows={2} placeholder="Optional contract notes..." />
+              <Textarea label="កំណត់ចំណាំ" name="notes" value={form.notes} onChange={handleFormChange} rows={2} placeholder="កំណត់ចំណាំកិច្ចសន្យាស្រេចចិត្ត..." />
             </div>
           </div>
         </form>
@@ -580,7 +588,7 @@ const TenantSection = ({ contractId }) => {
   const handleAdd = async (e) => {
     e.preventDefault();
     if (!form.tenantId) {
-      setFormErrors({ tenantId: 'Tenant selection is required' });
+      setFormErrors({ tenantId: 'តម្រូវឱ្យជ្រើសរើសអ្នកជួល' });
       return;
     }
     setSubmitting(true);
@@ -592,12 +600,12 @@ const TenantSection = ({ contractId }) => {
         joinedAt: form.joinedAt || new Date().toISOString().split('T')[0],
         leftAt: form.leftAt || null,
       });
-      toast.success('Tenant assigned');
+      toast.success('បានចាត់តាំងអ្នកជួល');
       setAddOpen(false);
       setForm({ tenantId: '', isPrimary: false, joinedAt: '', leftAt: '' });
       fetchContractTenants();
     } catch (err) {
-      toast.error('Error', err.response?.data?.message || 'Failed to add tenant.');
+      toast.error('កំហុស', err.response?.data?.message || 'មិនអាចបន្ថែមអ្នកជួលបានទេ។');
     } finally {
       setSubmitting(false);
     }
@@ -606,19 +614,19 @@ const TenantSection = ({ contractId }) => {
   const handleRemove = async (ctId) => {
     try {
       await removeTenant(ctId);
-      toast.success('Tenant removed');
+      toast.success('បានដកអ្នកជួលចេញ');
       fetchContractTenants();
     } catch (err) {
-      toast.error('Failed to remove tenant');
+      toast.error('មិនអាចដកអ្នកជួលចេញបានទេ');
     }
   };
 
   return (
-    <SectionCard icon={<UsersIcon className="h-5 w-5" />} title="Assigned Tenants" subtitle="Tenants associated with this contract.">
+    <SectionCard icon={<UsersIcon className="h-5 w-5" />} title="អ្នកជួលដែលបានចាត់តាំង" subtitle="អ្នកជួលដែលទាក់ទងនឹងកិច្ចសន្យានេះ។">
       <div className="space-y-3">
         <div className="flex justify-end">
           <Button variant="outline" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setAddOpen(true)}>
-            Add Tenant
+            បន្ថែមអ្នកជួល
           </Button>
         </div>
 
@@ -633,11 +641,11 @@ const TenantSection = ({ contractId }) => {
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                        {t ? fullName(t) : `Tenant #${ct.tenantId}`}
+                        {t ? fullName(t) : `អ្នកជួល #${ct.tenantId}`}
                       </p>
-                      {ct.isPrimary && <Badge variant="info">Primary</Badge>}
+                      {ct.isPrimary && <Badge variant="info">ចម្បង</Badge>}
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">Joined: {formatDate(ct.joinedAt)}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">ចូលរួម: {formatDate(ct.joinedAt)}</p>
                   </div>
                   <IconButton variant="ghost" size="sm" icon={<Trash2 className="h-4 w-4 text-red-500" />} onClick={() => handleRemove(ct.id)} />
                 </div>
@@ -645,30 +653,30 @@ const TenantSection = ({ contractId }) => {
             })}
           </div>
         ) : (
-          <EmptyState icon={UsersIcon} title="No tenants assigned" description="Add an unassigned tenant to activate this contract." />
+          <EmptyState icon={UsersIcon} title="មិនទាន់មានអ្នកជួលដែលបានចាត់តាំងទេ" description="បន្ថែមអ្នកជួលដែលមិនទាន់ត្រូវបានចាត់តាំង ដើម្បីធ្វើឱ្យកិច្ចសន្យានេះសកម្ម។" />
         )}
       </div>
 
-      <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Assign Tenant to Contract">
+      <Modal open={addOpen} onClose={() => setAddOpen(false)} title="ចាត់តាំងអ្នកជួលឲ្យកិច្ចសន្យា">
         <form onSubmit={handleAdd} className="space-y-4">
           {availableTenants.length === 0 ? (
             <div className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-              No available unassigned tenants. All active tenants are currently renting another house or unit.
+              មិនមានអ្នកជួលដែលមិនទាន់ត្រូវបានចាត់តាំងទេ។ អ្នកជួលសកម្មទាំងអស់កំពុងជួលផ្ទះ ឬបន្ទប់ផ្សេងទៀត។
             </div>
           ) : (
             <Select
-              label="Select Available Tenant"
+              label="ជ្រើសរើសអ្នកជួលដែលនៅទំនេរ"
               required
               name="tenantId"
               options={tenantOptions}
               value={form.tenantId}
               onChange={handleChange}
               error={formErrors.tenantId}
-              placeholder="Choose tenant (unassigned only)"
+              placeholder="ជ្រើសរើសអ្នកជួល (ដែលមិនទាន់ត្រូវបានចាត់តាំង)"
             />
           )}
 
-          <Input label="Joined Date" type="date" name="joinedAt" value={form.joinedAt} onChange={handleChange} />
+          <Input label="ថ្ងៃចូលរួម" type="date" name="joinedAt" value={form.joinedAt} onChange={handleChange} />
 
           <div className="flex items-center gap-2 pt-1">
             <input
@@ -680,16 +688,16 @@ const TenantSection = ({ contractId }) => {
               className="h-4 w-4 rounded border-slate-300"
             />
             <label htmlFor="isPrimary" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              Set as Primary Tenant
+              កំណត់ជាអ្នកជួលចម្បង
             </label>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setAddOpen(false)}>
-              Cancel
+              បោះបង់
             </Button>
             <Button type="submit" loading={submitting} disabled={availableTenants.length === 0}>
-              Assign
+              ចាត់តាំង
             </Button>
           </div>
         </form>
@@ -717,22 +725,22 @@ const DepositSection = ({ contractId }) => {
         paidAt: form.paidAt || new Date().toISOString().split('T')[0],
         notes: form.notes || null,
       });
-      toast.success('Deposit recorded');
+      toast.success('បានកត់ត្រាប្រាក់កក់');
       setAddOpen(false);
       setForm({ amount: '', status: 'PAID', paidAt: '', notes: '' });
     } catch (err) {
-      toast.error('Failed to add deposit');
+      toast.error('មិនអាចបន្ថែមប្រាក់កក់បានទេ');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <SectionCard icon={<PiggyBank className="h-5 w-5" />} title="Security Deposits" subtitle="Deposit records and payment statuses.">
+    <SectionCard icon={<PiggyBank className="h-5 w-5" />} title="ប្រាក់កក់" subtitle="កំណត់ត្រាប្រាក់កក់ និងស្ថានភាពទូទាត់។">
       <div className="space-y-3">
         <div className="flex justify-end">
           <Button variant="outline" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setAddOpen(true)}>
-            Record Deposit
+            កត់ត្រាប្រាក់កក់
           </Button>
         </div>
         {loading ? (
@@ -743,35 +751,35 @@ const DepositSection = ({ contractId }) => {
               <div key={d.id} className="flex items-center justify-between rounded-lg border border-slate-200/80 bg-slate-50/60 p-3 dark:border-gray-800 dark:bg-gray-800/40">
                 <div>
                   <p className="text-sm font-bold text-slate-800 dark:text-white">{formatCurrency(d.amount)}</p>
-                  <p className="text-xs text-slate-400">Paid: {formatDate(d.paidAt)}</p>
+                  <p className="text-xs text-slate-400">បានបង់: {formatDate(d.paidAt)}</p>
                 </div>
-                <Badge variant={DEPOSIT_STATUS_VARIANT[d.status] || 'neutral'}>{d.status}</Badge>
+                <Badge variant={DEPOSIT_STATUS_VARIANT[d.status] || 'neutral'}>{DEPOSIT_STATUS_LABEL[d.status] || d.status}</Badge>
               </div>
             ))}
           </div>
         ) : (
-          <EmptyState icon={PiggyBank} title="No deposits recorded" description="Record security deposits for this contract." />
+          <EmptyState icon={PiggyBank} title="មិនទាន់មានកំណត់ត្រាប្រាក់កក់ទេ" description="កត់ត្រាប្រាក់កក់សម្រាប់កិច្ចសន្យានេះ។" />
         )}
       </div>
 
-      <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Record Deposit">
+      <Modal open={addOpen} onClose={() => setAddOpen(false)} title="កត់ត្រាប្រាក់កក់">
         <form onSubmit={handleCreate} className="space-y-4">
-          <Input label="Amount ($)" required type="number" step="0.01" name="amount" value={form.amount} onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))} />
+          <Input label="ចំនួនទឹកប្រាក់ ($)" required type="number" step="0.01" name="amount" value={form.amount} onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))} />
           <Select
-            label="Status"
+            label="ស្ថានភាព"
             name="status"
             options={[
-              { value: 'PENDING', label: 'Pending' },
-              { value: 'PAID', label: 'Paid' },
-              { value: 'REFUNDED', label: 'Refunded' },
+              { value: 'PENDING', label: 'កំពុងរង់ចាំ' },
+              { value: 'PAID', label: 'បានបង់' },
+              { value: 'REFUNDED', label: 'បានសងវិញ' },
             ]}
             value={form.status}
             onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}
           />
-          <Input label="Paid Date" type="date" name="paidAt" value={form.paidAt} onChange={(e) => setForm((p) => ({ ...p, paidAt: e.target.value }))} />
+          <Input label="ថ្ងៃបានបង់" type="date" name="paidAt" value={form.paidAt} onChange={(e) => setForm((p) => ({ ...p, paidAt: e.target.value }))} />
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button>
-            <Button type="submit" loading={submitting}>Record</Button>
+            <Button variant="outline" onClick={() => setAddOpen(false)}>បោះបង់</Button>
+            <Button type="submit" loading={submitting}>កត់ត្រា</Button>
           </div>
         </form>
       </Modal>
@@ -798,22 +806,22 @@ const RenewalSection = ({ contractId }) => {
         newRent: Number(form.newRent),
         notes: form.notes || null,
       });
-      toast.success('Renewal recorded');
+      toast.success('បានកត់ត្រាការបន្ត');
       setAddOpen(false);
       setForm({ previousEndDate: '', newEndDate: '', previousRent: '', newRent: '', notes: '' });
     } catch (err) {
-      toast.error('Failed to add renewal');
+      toast.error('មិនអាចបន្ថែមការបន្តបានទេ');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <SectionCard icon={<Repeat className="h-5 w-5" />} title="Renewals" subtitle="Contract extension history.">
+    <SectionCard icon={<Repeat className="h-5 w-5" />} title="ការបន្តកិច្ចសន្យា" subtitle="ប្រវត្តិនៃការបន្តកិច្ចសន្យា។">
       <div className="space-y-3">
         <div className="flex justify-end">
           <Button variant="outline" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setAddOpen(true)}>
-            Add Renewal
+            បន្ថែមការបន្ត
           </Button>
         </div>
         {renewals.length > 0 ? (
@@ -826,20 +834,20 @@ const RenewalSection = ({ contractId }) => {
             </div>
           ))
         ) : (
-          <EmptyState icon={Repeat} title="No renewals" description="Record contract renewals." />
+          <EmptyState icon={Repeat} title="មិនទាន់មានការបន្តទេ" description="កត់ត្រាការបន្តកិច្ចសន្យា។" />
         )}
       </div>
 
-      <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add Contract Renewal">
+      <Modal open={addOpen} onClose={() => setAddOpen(false)} title="បន្ថែមការបន្តកិច្ចសន្យា">
         <form onSubmit={handleCreate} className="space-y-4">
-          <Input label="New End Date" required type="date" name="newEndDate" value={form.newEndDate} onChange={(e) => setForm((p) => ({ ...p, newEndDate: e.target.value }))} />
+          <Input label="ថ្ងៃបញ្ចប់ថ្មី" required type="date" name="newEndDate" value={form.newEndDate} onChange={(e) => setForm((p) => ({ ...p, newEndDate: e.target.value }))} />
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Previous Rent" type="number" step="0.01" name="previousRent" value={form.previousRent} onChange={(e) => setForm((p) => ({ ...p, previousRent: e.target.value }))} />
-            <Input label="New Rent" required type="number" step="0.01" name="newRent" value={form.newRent} onChange={(e) => setForm((p) => ({ ...p, newRent: e.target.value }))} />
+            <Input label="ថ្លៃជួលមុន" type="number" step="0.01" name="previousRent" value={form.previousRent} onChange={(e) => setForm((p) => ({ ...p, previousRent: e.target.value }))} />
+            <Input label="ថ្លៃជួលថ្មី" required type="number" step="0.01" name="newRent" value={form.newRent} onChange={(e) => setForm((p) => ({ ...p, newRent: e.target.value }))} />
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button>
-            <Button type="submit" loading={submitting}>Add Renewal</Button>
+            <Button variant="outline" onClick={() => setAddOpen(false)}>បោះបង់</Button>
+            <Button type="submit" loading={submitting}>បន្ថែមការបន្ត</Button>
           </div>
         </form>
       </Modal>

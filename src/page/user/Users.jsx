@@ -32,10 +32,10 @@ import Modal from "../../components/ui/Modal";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 
 const STATUS_OPTIONS = [
-  { value: "", label: "All Statuses" },
-  { value: "ACTIVE", label: "Active" },
-  { value: "INACTIVE", label: "Inactive" },
-  { value: "LOCKED", label: "Locked" },
+  { value: "", label: "ស្ថានភាពទាំងអស់" },
+  { value: "ACTIVE", label: "សកម្ម" },
+  { value: "INACTIVE", label: "អសកម្ម" },
+  { value: "LOCKED", label: "ចាក់សោ" },
 ];
 
 const STATUS_VARIANT = {
@@ -76,12 +76,12 @@ const formatRelativeTime = (dateStr) => {
   const diffWeeks = Math.floor(diffDays / 7);
   const diffMonths = Math.floor(diffDays / 30);
 
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  if (diffWeeks < 4) return `${diffWeeks}w ago`;
-  return `${diffMonths}mo ago`;
+  if (diffMins < 1) return "ទើបតែឥឡូវនេះ";
+  if (diffMins < 60) return `${diffMins} នាទីមុន`;
+  if (diffHours < 24) return `${diffHours} ម៉ោងមុន`;
+  if (diffDays < 7) return `${diffDays} ថ្ងៃមុន`;
+  if (diffWeeks < 4) return `${diffWeeks} សប្តាហ៍មុន`;
+  return `${diffMonths} ខែមុន`;
 };
 
 const Users = () => {
@@ -188,14 +188,14 @@ const Users = () => {
     setDeleting(true);
     try {
       await deleteUser(deleteTarget.id);
-      toast.success("User deleted", `"${getFullName(deleteTarget)}" has been removed.`);
+      toast.success("បានលុបអ្នកប្រើប្រាស់", `"${getFullName(deleteTarget)}" ត្រូវបានដកចេញ។`);
       setDeleteTarget(null);
     } catch (err) {
       const message =
         err.response?.data?.message ||
         err.response?.data?.error ||
-        "Failed to delete user.";
-      toast.error("Delete failed", message);
+        "ការលុបអ្នកប្រើប្រាស់បានបរាជ័យ។";
+      toast.error("ការលុបបានបរាជ័យ", message);
     } finally {
       setDeleting(false);
     }
@@ -223,8 +223,8 @@ const Users = () => {
 
   const validateEdit = () => {
     const errs = {};
-    if (!editForm.firstName.trim()) errs.firstName = "First name is required";
-    if (!editForm.lastName.trim()) errs.lastName = "Last name is required";
+    if (!editForm.firstName.trim()) errs.firstName = "តម្រូវឱ្យបញ្ចូលនាមត្រកូល";
+    if (!editForm.lastName.trim()) errs.lastName = "តម្រូវឱ្យបញ្ចូលគោត្តនាម";
     setEditErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -240,15 +240,15 @@ const Users = () => {
         avatar: editForm.avatar.trim() || null,
       };
       await userApi.updateUser(editTarget.id, payload);
-      toast.success("User updated", `"${payload.firstName} ${payload.lastName}" has been updated.`);
+      toast.success("បានកែប្រែអ្នកប្រើប្រាស់", `"${payload.firstName} ${payload.lastName}" ត្រូវបានធ្វើបច្ចុប្បន្នភាព។`);
       setEditTarget(null);
       fetchUsers();
     } catch (err) {
       const message =
         err.response?.data?.message ||
         err.response?.data?.error ||
-        "Failed to update user.";
-      toast.error("Update failed", message);
+        "ការកែប្រែអ្នកប្រើប្រាស់បានបរាជ័យ។";
+      toast.error("ការធ្វើបច្ចុប្បន្នភាពបានបរាជ័យ", message);
     } finally {
       setEditLoading(false);
     }
@@ -317,10 +317,10 @@ const Users = () => {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">
-            Users
+            អ្នកប្រើប្រាស់
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Manage all registered users in the system.
+            គ្រប់គ្រងអ្នកប្រើប្រាស់ដែលបានចុះឈ្មោះទាំងអស់ក្នុងប្រព័ន្ធ។
           </p>
         </div>
         <Button
@@ -329,12 +329,12 @@ const Users = () => {
           leftIcon={<RefreshCw className="h-4 w-4" />}
           onClick={fetchUsers}
         >
-          Refresh
+          ផ្ទុកឡើងវិញ
         </Button>
       </div>
 
       {error && (
-        <Alert variant="danger" title="Error" description={error} dismissible />
+        <Alert variant="danger" title="កំហុស" description={error} dismissible />
       )}
 
       {/* Stats */}
@@ -346,7 +346,7 @@ const Users = () => {
                 <UsersIcon className="h-5 w-5 text-slate-600 dark:text-slate-400" />
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Total</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">សរុប</p>
                 <p className="text-xl font-bold text-slate-800 dark:text-white">{stats.total}</p>
               </div>
             </div>
@@ -357,7 +357,7 @@ const Users = () => {
                 <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Active</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">សកម្ម</p>
                 <p className="text-xl font-bold text-green-700 dark:text-green-400">{stats.active}</p>
               </div>
             </div>
@@ -368,7 +368,7 @@ const Users = () => {
                 <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Inactive</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">អសកម្ម</p>
                 <p className="text-xl font-bold text-red-700 dark:text-red-400">{stats.inactive}</p>
               </div>
             </div>
@@ -379,7 +379,7 @@ const Users = () => {
                 <Lock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Locked</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">ចាក់សោ</p>
                 <p className="text-xl font-bold text-amber-700 dark:text-amber-400">{stats.locked}</p>
               </div>
             </div>
@@ -392,7 +392,7 @@ const Users = () => {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex-1">
             <Input
-              placeholder="Search by name, username, or email..."
+              placeholder="ស្វែងរកតាមឈ្មោះ ឈ្មោះអ្នកប្រើប្រាស់ ឬអ៊ីមែល..."
               leftIcon={<Search className="h-4 w-4" />}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -412,14 +412,14 @@ const Users = () => {
       {!loading && users.length === 0 ? (
         <EmptyState
           icon={UserCircle}
-          title="No users yet"
-          description="There are no registered users in the system."
+          title="មិនទាន់មានអ្នកប្រើប្រាស់"
+          description="មិនមានអ្នកប្រើប្រាស់ដែលបានចុះឈ្មោះក្នុងប្រព័ន្ធទេ។"
         />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Filter}
-          title="No matches found"
-          description="Try adjusting your search or filter criteria."
+          title="រកមិនឃើញលទ្ធផល"
+          description="សូមព្យាយាមកែតម្រូវលក្ខណៈវិនិច្ឆ័យស្វែងរក ឬតម្រងរបស់អ្នក។"
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -480,13 +480,13 @@ const Users = () => {
                               }}
                               className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
                             >
-                              <Eye className="h-4 w-4" /> View details
+                              <Eye className="h-4 w-4" /> មើលព័ត៌មានលម្អិត
                             </button>
                             <button
                               onClick={() => openEdit(user)}
                               className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
                             >
-                              <Edit3 className="h-4 w-4" /> Edit
+                              <Edit3 className="h-4 w-4" /> កែប្រែ
                             </button>
                             <button
                               onClick={() => {
@@ -495,7 +495,7 @@ const Users = () => {
                               }}
                               className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
                             >
-                              <Trash2 className="h-4 w-4" /> Delete
+                              <Trash2 className="h-4 w-4" /> លុប
                             </button>
                           </div>
                         </>
@@ -525,7 +525,7 @@ const Users = () => {
                     {user.createdAt && (
                       <span className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
                         <Calendar className="h-3 w-3" />
-                        Joined {new Date(user.createdAt).toLocaleDateString()}
+                        បានចូលរួម {new Date(user.createdAt).toLocaleDateString()}
                       </span>
                     )}
                   </div>
@@ -535,7 +535,7 @@ const Users = () => {
                   <div className="border-t border-slate-100 px-5 py-2.5 dark:border-gray-800">
                     <p className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
                       <Clock className="h-3 w-3" />
-                      Last login {formatRelativeTime(user.lastLoginAt)}
+                      ការចូលចុងក្រោយ {formatRelativeTime(user.lastLoginAt)}
                     </p>
                   </div>
                 )}
@@ -548,10 +548,10 @@ const Users = () => {
       {/* Delete confirmation */}
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Delete User"
-        description={`Are you sure you want to delete "${deleteTarget ? getFullName(deleteTarget) : ""}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="លុបអ្នកប្រើប្រាស់"
+        description={`តើអ្នកប្រាកដទេថាចង់លុប "${deleteTarget ? getFullName(deleteTarget) : ""}"? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។`}
+        confirmText="លុប"
+        cancelText="បោះបង់"
         danger
         loading={deleting}
         onConfirm={handleDelete}
@@ -562,15 +562,15 @@ const Users = () => {
       <Modal
         open={!!editTarget}
         onClose={() => setEditTarget(null)}
-        title="Edit User"
+        title="កែប្រែអ្នកប្រើប្រាស់"
         size="md"
         footer={
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={() => setEditTarget(null)} disabled={editLoading}>
-              Cancel
+              បោះបង់
             </Button>
             <Button onClick={handleEditSubmit} loading={editLoading}>
-              Save Changes
+              រក្សាទុកការផ្លាស់ប្តូរ
             </Button>
           </div>
         }
@@ -604,30 +604,30 @@ const Users = () => {
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Input
-                label="First Name"
+                label="នាមត្រកូល"
                 required
-                placeholder="First name"
+                placeholder="នាមត្រកូល"
                 value={editForm.firstName}
                 onChange={(e) => handleEditChange("firstName", e.target.value)}
                 error={editErrors.firstName}
               />
               <Input
-                label="Last Name"
+                label="គោត្តនាម"
                 required
-                placeholder="Last name"
+                placeholder="គោត្តនាម"
                 value={editForm.lastName}
                 onChange={(e) => handleEditChange("lastName", e.target.value)}
                 error={editErrors.lastName}
               />
             </div>
             <Input
-              label="Phone"
-              placeholder="Phone number"
+              label="លេខទូរស័ព្ទ"
+              placeholder="លេខទូរស័ព្ទ"
               value={editForm.phone}
               onChange={(e) => handleEditChange("phone", e.target.value)}
             />
             <Input
-              label="Avatar URL"
+              label="URL រូបភាពតំណាង"
               placeholder="https://example.com/avatar.jpg"
               value={editForm.avatar}
               onChange={(e) => handleEditChange("avatar", e.target.value)}
@@ -640,7 +640,7 @@ const Users = () => {
       <Modal
         open={!!viewTarget}
         onClose={() => setViewTarget(null)}
-        title="User Details"
+        title="ព័ត៌មានលម្អិតអ្នកប្រើប្រាស់"
         size="lg"
       >
         {viewLoading ? (
@@ -692,7 +692,7 @@ const Users = () => {
             {/* Contact info */}
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
               <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                Contact Information
+                ព័ត៌មានទំនាក់ទំនង
               </p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="flex items-center gap-2.5">
@@ -700,7 +700,7 @@ const Users = () => {
                     <Mail className="h-4 w-4 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500">Email</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500">អ៊ីមែល</p>
                     <p className="text-sm text-slate-700 dark:text-slate-200">{viewData.email || "—"}</p>
                   </div>
                 </div>
@@ -709,7 +709,7 @@ const Users = () => {
                     <Phone className="h-4 w-4 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500">Phone</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500">លេខទូរស័ព្ទ</p>
                     <p className="text-sm text-slate-700 dark:text-slate-200">{viewData.phone || "—"}</p>
                   </div>
                 </div>
@@ -719,7 +719,7 @@ const Users = () => {
             {/* Roles */}
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
               <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                Assigned Roles
+                តួនាទីដែលបានកំណត់
               </p>
               {rolesLoading ? (
                 <div className="flex gap-2">
@@ -739,14 +739,14 @@ const Users = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-slate-400 dark:text-slate-500">No roles assigned</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500">មិនមានតួនាទីដែលបានកំណត់</p>
               )}
             </div>
 
             {/* Activity */}
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
               <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                Activity
+                សកម្មភាព
               </p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="flex items-center gap-2.5">
@@ -754,7 +754,7 @@ const Users = () => {
                     <Calendar className="h-4 w-4 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500">Joined</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500">បានចូលរួម</p>
                     <p className="text-sm text-slate-700 dark:text-slate-200">
                       {viewData.createdAt ? new Date(viewData.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "—"}
                     </p>
@@ -765,7 +765,7 @@ const Users = () => {
                     <Clock className="h-4 w-4 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500">Last Login</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500">ការចូលចុងក្រោយ</p>
                     <p className="text-sm text-slate-700 dark:text-slate-200">
                       {viewData.lastLoginAt ? formatRelativeTime(viewData.lastLoginAt) : "—"}
                     </p>
@@ -776,7 +776,7 @@ const Users = () => {
                     <RefreshCw className="h-4 w-4 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500">Last Updated</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500">ការធ្វើបច្ចុប្បន្នភាពចុងក្រោយ</p>
                     <p className="text-sm text-slate-700 dark:text-slate-200">
                       {viewData.updatedAt ? formatRelativeTime(viewData.updatedAt) : "—"}
                     </p>
@@ -786,7 +786,7 @@ const Users = () => {
             </div>
           </div>
         ) : (
-          <EmptyState icon={UserCircle} title="User not found" description="Could not load user details." />
+          <EmptyState icon={UserCircle} title="រកមិនឃើញអ្នកប្រើប្រាស់" description="មិនអាចផ្ទុកព័ត៌មានលម្អិតរបស់អ្នកប្រើប្រាស់បានទេ។" />
         )}
       </Modal>
     </div>

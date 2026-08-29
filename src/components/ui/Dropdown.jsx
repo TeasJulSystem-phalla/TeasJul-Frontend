@@ -22,7 +22,7 @@ const Dropdown = ({ trigger, items = [], disabled = false, className = '' }) => 
             disabled={disabled}
             className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 disabled:opacity-50"
           >
-            Options
+            ជម្រើស
             <ChevronDown className="h-4 w-4" />
           </button>
         )}

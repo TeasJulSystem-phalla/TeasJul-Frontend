@@ -16,13 +16,13 @@ const Pagination = ({ currentPage, totalPages, onPageChange, disabled = false })
   };
 
   return (
-    <nav className="flex items-center gap-1" aria-label="Pagination">
+    <nav className="flex items-center gap-1" aria-label="ការបែងចែកទំព័រ">
       <button
         type="button"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={disabled || currentPage === 1}
         className="inline-flex h-9 items-center justify-center rounded-md px-2 text-gray-500 hover:bg-gray-100 disabled:pointer-events-none disabled:opacity-50 dark:text-gray-400 dark:hover:bg-gray-800"
-        aria-label="Previous page"
+        aria-label="ទំព័រមុន"
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
@@ -54,7 +54,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange, disabled = false })
         onClick={() => onPageChange(currentPage + 1)}
         disabled={disabled || currentPage === totalPages}
         className="inline-flex h-9 items-center justify-center rounded-md px-2 text-gray-500 hover:bg-gray-100 disabled:pointer-events-none disabled:opacity-50 dark:text-gray-400 dark:hover:bg-gray-800"
-        aria-label="Next page"
+        aria-label="ទំព័របន្ទាប់"
       >
         <ChevronRight className="h-4 w-4" />
       </button>

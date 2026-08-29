@@ -40,10 +40,10 @@ const STATUS_VARIANT = {
 };
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' },
-  { value: 'ACTIVE', label: 'Active' },
-  { value: 'INACTIVE', label: 'Inactive' },
-  { value: 'ARCHIVED', label: 'Archived' },
+  { value: '', label: 'ស្ថានភាពទាំងអស់' },
+  { value: 'ACTIVE', label: 'សកម្ម' },
+  { value: 'INACTIVE', label: 'អសកម្ម' },
+  { value: 'ARCHIVED', label: 'បានរក្សាទុក' },
 ];
 
 const EMPTY_FORM = {
@@ -108,12 +108,12 @@ export default function Amenities() {
   }, [amenities, searchTerm, statusFilter]);
 
   const getStatusBadge = (status) => (
-    <Badge variant={STATUS_VARIANT[status] || 'default'}>{status || '—'}</Badge>
+    <Badge variant={STATUS_VARIANT[status] || 'default'}>{STATUS_OPTIONS.find((o) => o.value === status)?.label || status || '—'}</Badge>
   );
 
   const columns = [
     {
-      header: 'Amenity',
+      header: 'គ្រឿងបរិក្ខារ',
       render: (row) => (
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-900/20 dark:text-violet-400">
@@ -127,7 +127,7 @@ export default function Amenities() {
       ),
     },
     {
-      header: 'Description',
+      header: 'ការពិពណ៌នា',
       render: (row) => (
         <span className="block max-w-[260px] truncate text-sm text-slate-500 dark:text-slate-400">
           {row.description || '—'}
@@ -135,17 +135,17 @@ export default function Amenities() {
       ),
     },
     {
-      header: 'Icon',
+      header: 'រូបតំណាង',
       render: (row) => (
         <span className="font-mono text-xs text-slate-400">{row.icon || '—'}</span>
       ),
     },
     {
-      header: 'Status',
+      header: 'ស្ថានភាព',
       render: (row) => getStatusBadge(row.status),
     },
     {
-      header: 'Created',
+      header: 'បានបង្កើត',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
           <Calendar className="h-3.5 w-3.5" />
@@ -154,12 +154,12 @@ export default function Amenities() {
       ),
     },
     {
-      header: 'Actions',
+      header: 'សកម្មភាព',
       render: (row) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <IconButton variant="ghost" size="sm" tooltip="View" icon={<Eye className="h-4 w-4" />} onClick={() => setViewTarget(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="Edit" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="Delete" icon={<Trash2 className="h-4 w-4" />} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300" onClick={() => setDeleteTarget(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="មើល" icon={<Eye className="h-4 w-4" />} onClick={() => setViewTarget(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="លុប" icon={<Trash2 className="h-4 w-4" />} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300" onClick={() => setDeleteTarget(row)} />
         </div>
       ),
     },
@@ -196,8 +196,8 @@ export default function Amenities() {
 
   const validate = () => {
     const errs = {};
-    if (!form.name.trim()) errs.name = 'Name is required';
-    if (!form.code.trim()) errs.code = 'Code is required';
+    if (!form.name.trim()) errs.name = 'តម្រូវឱ្យបញ្ចូលឈ្មោះ';
+    if (!form.code.trim()) errs.code = 'តម្រូវឱ្យបញ្ចូលលេខកូដ';
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -218,20 +218,20 @@ export default function Amenities() {
     try {
       if (editTarget) {
         await updateAmenity(editTarget.id, payload);
-        toast.success('Amenity updated', `"${payload.name}" has been updated.`);
+        toast.success('គ្រឿងបរិក្ខារត្រូវបានកែប្រែ', `"${payload.name}" ត្រូវបានកែប្រែ។`);
         setEditTarget(null);
       } else {
         await createAmenity(payload);
-        toast.success('Amenity created', `"${payload.name}" has been created.`);
+        toast.success('គ្រឿងបរិក្ខារត្រូវបានបង្កើត', `"${payload.name}" ត្រូវបានបង្កើត។`);
         setCreateOpen(false);
       }
       resetForm();
     } catch (err) {
-      const message = err.response?.data?.message || err.response?.data?.error || 'Operation failed.';
+      const message = err.response?.data?.message || err.response?.data?.error || 'ប្រតិបត្តិការបរាជ័យ។';
       if (/name|c/i.test(message)) {
         setFormErrors((prev) => ({ ...prev, code: message }));
       } else {
-        toast.error('Error', message);
+        toast.error('កំហុស', message);
       }
     } finally {
       setSubmitting(false);
@@ -243,10 +243,10 @@ export default function Amenities() {
     setDeleting(true);
     try {
       await deleteAmenity(deleteTarget.id);
-      toast.success('Amenity deleted', `"${deleteTarget.name}" has been removed.`);
+      toast.success('គ្រឿងបរិក្ខារត្រូវបានលុប', `"${deleteTarget.name}" ត្រូវបានលុប។`);
       setDeleteTarget(null);
     } catch (err) {
-      toast.error('Delete failed', err.response?.data?.message || err.response?.data?.error || 'Failed to delete amenity.');
+      toast.error('ការលុបបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'ការលុបគ្រឿងបរិក្ខារបរាជ័យ។');
     } finally {
       setDeleting(false);
     }
@@ -290,21 +290,21 @@ export default function Amenities() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">Amenities</h1>
+          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">គ្រឿងបរិក្ខារ</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Manage amenities and assign them to rooms.
+            គ្រប់គ្រងគ្រឿងបរិក្ខារ និងកំណត់វាទៅបន្ទប់នីមួយៗ។
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>Refresh</Button>
-          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>Create Amenity</Button>
+          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>ធ្វើឱ្យស្រស់</Button>
+          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតគ្រឿងបរិក្ខារ</Button>
         </div>
       </div>
 
       {error && (
-        <Alert variant="danger" title="Error loading amenities" description={error} dismissible>
+        <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកគ្រឿងបរិក្ខារ" description={error} dismissible>
           <div className="mt-3">
-            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>Retry</Button>
+            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>ព្យាយាមម្តងទៀត</Button>
           </div>
         </Alert>
       )}
@@ -312,10 +312,10 @@ export default function Amenities() {
       {/* Stats */}
       {amenities.length > 0 && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Total" value={stats.total} icon={<Sparkles className="h-5 w-5 text-slate-600 dark:text-slate-400" />} />
-          <StatCard label="Active" value={stats.active} icon={<CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />} valueClass="text-green-700 dark:text-green-400" />
-          <StatCard label="Inactive" value={stats.inactive} icon={<XCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />} valueClass="text-amber-700 dark:text-amber-400" />
-          <StatCard label="Archived" value={stats.archived} icon={<Archive className="h-5 w-5 text-slate-600 dark:text-slate-400" />} />
+          <StatCard label="សរុប" value={stats.total} icon={<Sparkles className="h-5 w-5 text-slate-600 dark:text-slate-400" />} />
+          <StatCard label="សកម្ម" value={stats.active} icon={<CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />} valueClass="text-green-700 dark:text-green-400" />
+          <StatCard label="អសកម្ម" value={stats.inactive} icon={<XCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />} valueClass="text-amber-700 dark:text-amber-400" />
+          <StatCard label="បានរក្សាទុក" value={stats.archived} icon={<Archive className="h-5 w-5 text-slate-600 dark:text-slate-400" />} />
         </div>
       )}
 
@@ -323,12 +323,12 @@ export default function Amenities() {
       {amenities.length > 0 && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex-1">
-            <Input placeholder="Search by name, code, or description..." leftIcon={<Search className="h-4 w-4" />} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <Input placeholder="ស្វែងរកតាមឈ្មោះ លេខកូដ ឬការពិពណ៌នា..." leftIcon={<Search className="h-4 w-4" />} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
           <div className="w-full sm:w-48">
-            <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} placeholder="All Statuses" />
+            <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} placeholder="ស្ថានភាពទាំងអស់" />
           </div>
-          <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter(''); }}>Clear</Button>
+          <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter(''); }}>សម្អាត</Button>
         </div>
       )}
 
@@ -336,12 +336,12 @@ export default function Amenities() {
       {!loading && amenities.length === 0 ? (
         <EmptyState
           icon={Sparkles}
-          title="No amenities yet"
-          description="Create your first amenity to start assigning it to rooms."
-          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>Create Amenity</Button>}
+          title="មិនទាន់មានគ្រឿងបរិក្ខារទេ"
+          description="បង្កើតគ្រឿងបរិក្ខារដំបូងរបស់អ្នកដើម្បីចាប់ផ្តើមកំណត់វាទៅបន្ទប់។"
+          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតគ្រឿងបរិក្ខារ</Button>}
         />
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Filter} title="No matches found" description="Try adjusting your search or filter criteria." />
+        <EmptyState icon={Filter} title="រកមិនឃើញលទ្ធផលត្រូវនឹងលក្ខខណ្ឌទេ" description="សូមព្យាយាមកែតម្រូវលក្ខខណ្ឌនៃការស្វែងរក ឬតម្រង។" />
       ) : (
         <>
           {/* Mobile cards */}
@@ -360,10 +360,10 @@ export default function Amenities() {
                   </div>
                   {getStatusBadge(a.status)}
                 </div>
-                <p className="mt-3 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">{a.description || 'No description'}</p>
+                <p className="mt-3 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">{a.description || 'គ្មានការពិពណ៌នា'}</p>
                 <div className="mt-4 flex items-center gap-1 border-t border-slate-100 pt-3 dark:border-gray-800">
-                  <IconButton variant="ghost" size="sm" tooltip="Edit" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(a); }} />
-                  <IconButton variant="ghost" size="sm" tooltip="Delete" icon={<Trash2 className="h-4 w-4" />} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeleteTarget(a); }} />
+                  <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(a); }} />
+                  <IconButton variant="ghost" size="sm" tooltip="លុប" icon={<Trash2 className="h-4 w-4" />} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeleteTarget(a); }} />
                 </div>
               </div>
             ))}
@@ -380,32 +380,32 @@ export default function Amenities() {
       <Modal
         open={createOpen || !!editTarget}
         onClose={() => { setCreateOpen(false); setEditTarget(null); }}
-        title={editTarget ? 'Edit Amenity' : 'Create Amenity'}
-        description={editTarget ? `Editing "${editTarget.name}"` : 'Define an amenity you can assign to rooms.'}
+        title={editTarget ? 'កែប្រែគ្រឿងបរិក្ខារ' : 'បង្កើតគ្រឿងបរិក្ខារ'}
+        description={editTarget ? `កំពុងកែប្រែ "${editTarget.name}"` : 'កំណត់គ្រឿងបរិក្ខារដែលអ្នកអាចកំណត់ទៅបន្ទប់បាន។'}
         size="md"
         footer={
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => { setCreateOpen(false); setEditTarget(null); }} disabled={submitting}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setCreateOpen(false); setEditTarget(null); }} disabled={submitting}>បោះបង់</Button>
             <Button type="submit" form="amenityForm" onClick={() => document.getElementById('amenityForm')?.requestSubmit()} loading={submitting}>
-              {editTarget ? 'Save Changes' : 'Create Amenity'}
+              {editTarget ? 'រក្សាទុកការផ្លាស់ប្តូរ' : 'បង្កើតគ្រឿងបរិក្ខារ'}
             </Button>
           </div>
         }
       >
         <form id="amenityForm" onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Name" required name="name" value={form.name} onChange={handleFormChange} placeholder="e.g., WiFi" error={formErrors.name} />
-            <Input label="Code" required name="code" value={form.code} onChange={handleFormChange} placeholder="e.g., WIFI" error={formErrors.code} />
+            <Input label="ឈ្មោះ" required name="name" value={form.name} onChange={handleFormChange} placeholder="ឧ. WiFi" error={formErrors.name} />
+            <Input label="លេខកូដ" required name="code" value={form.code} onChange={handleFormChange} placeholder="ឧ. WIFI" error={formErrors.code} />
           </div>
-          <Input label="Icon" name="icon" value={form.icon} onChange={handleFormChange} placeholder="e.g., wifi, pool, parking" />
-          <Textarea label="Description" name="description" value={form.description} onChange={handleFormChange} rows={2} placeholder="Describe this amenity..." />
+          <Input label="រូបតំណាង" name="icon" value={form.icon} onChange={handleFormChange} placeholder="ឧ. wifi, pool, parking" />
+          <Textarea label="ការពិពណ៌នា" name="description" value={form.description} onChange={handleFormChange} rows={2} placeholder="ពិពណ៌នាអំពីគ្រឿងបរិក្ខារនេះ..." />
           <Select
-            label="Status"
+            label="ស្ថានភាព"
             name="status"
             options={[
-              { value: 'ACTIVE', label: 'Active' },
-              { value: 'INACTIVE', label: 'Inactive' },
-              { value: 'ARCHIVED', label: 'Archived' },
+              { value: 'ACTIVE', label: 'សកម្ម' },
+              { value: 'INACTIVE', label: 'អសកម្ម' },
+              { value: 'ARCHIVED', label: 'បានរក្សាទុក' },
             ]}
             value={form.status}
             onChange={handleFormChange}
@@ -414,7 +414,7 @@ export default function Amenities() {
       </Modal>
 
       {/* View modal */}
-      <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title="Amenity Details" size="md">
+      <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title="ព័ត៌មានលម្អិតនៃគ្រឿងបរិក្ខារ" size="md">
         {viewTarget && (
           <div className="space-y-5">
             <div className="flex items-start justify-between">
@@ -432,15 +432,15 @@ export default function Amenities() {
 
             {viewTarget.description && (
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
-                <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Description</p>
+                <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">ការពិពណ៌នា</p>
                 <p className="text-sm text-slate-700 dark:text-slate-300">{viewTarget.description}</p>
               </div>
             )}
 
             <div className="grid grid-cols-2 gap-3">
-              <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="Amenity ID" value={viewTarget.id} />
-              <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="Created" value={formatDate(viewTarget.createdAt)} />
-              <DetailItem icon={<ShieldCheck className="h-4 w-4 text-slate-400" />} label="Icon" value={viewTarget.icon || '—'} />
+              <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="លេខសម្គាល់គ្រឿងបរិក្ខារ" value={viewTarget.id} />
+              <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="បានបង្កើត" value={formatDate(viewTarget.createdAt)} />
+              <DetailItem icon={<ShieldCheck className="h-4 w-4 text-slate-400" />} label="រូបតំណាង" value={viewTarget.icon || '—'} />
             </div>
           </div>
         )}
@@ -449,10 +449,10 @@ export default function Amenities() {
       {/* Delete */}
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Delete Amenity"
-        description={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="លុបគ្រឿងបរិក្ខារ"
+        description={`តើអ្នកប្រាកដថាចង់លុប "${deleteTarget?.name}"? សកម្មភាពនេះមិនអាចបញ្ឈប់បានទេ។`}
+        confirmText="លុប"
+        cancelText="បោះបង់"
         danger
         loading={deleting}
         onConfirm={handleDelete}

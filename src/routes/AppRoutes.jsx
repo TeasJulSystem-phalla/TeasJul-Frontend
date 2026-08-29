@@ -44,18 +44,18 @@ const AppRoutes = () => {
             <Route path="/contracts/new" element={<ContractEditorPage />} />
             <Route path="/contracts/:id/edit" element={<ContractEditorPage />} />
             <Route path="/contracts/:id" element={<ContractDetailPage />} />
-            <Route path="/finance" element={<Placeholder title="Finance" />} />
+            <Route path="/finance" element={<Placeholder title="ហិរញ្ញវត្ថុ" />} />
             <Route path="/utilities" element={<UtilityTypesPage />} />
             <Route path="/utilities/meters" element={<UtilityMetersPage />} />
             <Route path="/utilities/readings" element={<UtilityReadingsPage />} />
             <Route path="/utilities/rates" element={<UtilityRatesPage />} />
             <Route path="/maintenance" element={<MaintenanceRequestsPage />} />
             <Route path="/maintenance/categories" element={<MaintenanceCategoriesPage />} />
-            <Route path="/assistant" element={<Placeholder title="AI Assistant" />} />
-            <Route path="/settings" element={<Placeholder title="Settings" />} />
-            <Route path="/help" element={<Placeholder title="Help & Support" />} />
+            <Route path="/assistant" element={<Placeholder title="ជំនួយការ AI" />} />
+            <Route path="/settings" element={<Placeholder title="ការកំណត់" />} />
+            <Route path="/help" element={<Placeholder title="ជំនួយ និងការគាំទ្រ" />} />
             <Route path="/ui-showcase" element={<UiShowcase />} />
-            <Route path="*" element={<Placeholder title="Page not found" />} />
+            <Route path="*" element={<Placeholder title="រកមិនឃើញទំព័រ" />} />
           </Route>
         </Route>
       </Routes>

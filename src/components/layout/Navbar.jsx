@@ -5,9 +5,9 @@ import { Menu, PanelLeft, Search, Bell, X, ChevronDown, User, Settings, LogOut, 
 import ThemeToggle from '../common/ThemeToggle';
 
 const NOTIFICATIONS = [
-  { id: 1, title: 'Payment received', detail: 'John Doe paid rent for Apartment 4B', time: '2m ago', unread: true },
-  { id: 2, title: 'Maintenance request', detail: 'New request at Building 2, Unit 12', time: '1h ago', unread: true },
-  { id: 3, title: 'Contract expiring', detail: 'Lease for Unit 7A ends in 14 days', time: '3h ago', unread: false },
+  { id: 1, title: 'ទទួលបានការទូទាត់', detail: 'សុខ ដារ៉ា បានបង់ថ្លៃផ្ទះសម្រាប់បន្ទប់ 4B', time: '២នាទីមុន', unread: true },
+  { id: 2, title: 'សំណើជួសជុល', detail: 'សំណើថ្មីនៅអគារ 2 បន្ទប់ 12', time: '១ម៉ោងមុន', unread: true },
+  { id: 3, title: 'កិច្ចសន្យាជិតផុតកំណត់', detail: 'កិច្ចសន្យាសម្រាប់បន្ទប់ 7A ផុតកំណត់ក្នុងរយៈពេល 14 ថ្ងៃ', time: '៣ម៉ោងមុន', unread: false },
 ];
 
 const useClickOutside = (ref, onClose) => {
@@ -60,7 +60,7 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
           <button
             onClick={toggleSidebar}
             className={iconButtonClass}
-            aria-label="Toggle sidebar"
+            aria-label="បិទ/បើករបារចំហៀង"
           >
             {isCollapsed ? <PanelLeft className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -79,7 +79,7 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             type="search"
-            placeholder="Search properties, tenants, contracts..."
+            placeholder="ស្វែងរកអចលនទ្រព្យ អ្នកជួល កិច្ចសន្យា..."
             className={searchInputClass}
           />
         </div>
@@ -89,7 +89,7 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
           <button
             onClick={() => setIsMobileSearch((v) => !v)}
             className={`${iconButtonClass} lg:hidden`}
-            aria-label="Search"
+            aria-label="ស្វែងរក"
           >
             {isMobileSearch ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
           </button>
@@ -102,7 +102,7 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
             <button
               onClick={() => setIsNotifOpen((v) => !v)}
               className={`relative ${iconButtonClass}`}
-              aria-label="Notifications"
+              aria-label="ការជូនដំណឹង"
             >
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
@@ -118,9 +118,9 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
               className={`w-80 ${dropdownPanelClass}`}
             >
               <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-gray-800">
-                <p className="text-sm font-semibold text-slate-800 dark:text-white">Notifications</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-white">ការជូនដំណឹង</p>
                 <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                  {unreadCount} new
+                  {unreadCount} ថ្មី
                 </span>
               </div>
               <ul className="max-h-80 overflow-y-auto">
@@ -146,7 +146,7 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
                 ))}
               </ul>
               <button className="w-full border-t border-slate-100 px-4 py-2.5 text-center text-[13px] font-medium text-gray-800 transition-colors hover:bg-gray-100 dark:border-gray-800 dark:text-gray-200 dark:hover:bg-gray-800">
-                View all notifications
+                មើលការជូនដំណឹងទាំងអស់
               </button>
             </Dropdown>
           </div>
@@ -156,7 +156,7 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
             <button
               onClick={() => setIsProfileOpen((v) => !v)}
               className="flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-slate-100 dark:hover:bg-gray-800"
-              aria-label="Account"
+              aria-label="គណនី"
             >
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-gray-700 to-gray-900 text-[13px] font-semibold text-white">
                 AD
@@ -165,7 +165,7 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
                 <span className="block text-[13px] font-semibold leading-tight text-slate-800 dark:text-white">
                   Alex Davis
                 </span>
-                <span className="block text-[11px] leading-tight text-slate-400 dark:text-slate-500">Administrator</span>
+                <span className="block text-[11px] leading-tight text-slate-400 dark:text-slate-500">អ្នកគ្រប់គ្រងប្រព័ន្ធ</span>
               </span>
               <ChevronDown className="hidden h-4 w-4 text-slate-400 dark:text-slate-500 md:block" />
             </button>
@@ -181,9 +181,9 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
               </div>
               <ul className="p-1.5">
                 {[
-                  { icon: User, label: 'My profile', onClick: () => navigate('/profile') },
-                  { icon: Settings, label: 'Account settings' },
-                  { icon: HelpCircle, label: 'Help center' },
+                  { icon: User, label: 'ប្រវត្តិរបស់ខ្ញុំ', onClick: () => navigate('/profile') },
+                  { icon: Settings, label: 'ការកំណត់គណនី' },
+                  { icon: HelpCircle, label: 'មជ្ឈមណ្ឌលជំនួយ' },
                 ].map(({ icon: Icon, label, onClick }) => (
                   <li key={label}>
                     <button
@@ -199,7 +199,7 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
               <div className="border-t border-slate-100 p-1.5 dark:border-gray-800">
                 <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10">
                   <LogOut className="h-4 w-4" />
-                  Sign out
+                  ចេញពីប្រព័ន្ធ
                 </button>
               </div>
             </Dropdown>
@@ -219,7 +219,7 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
           <input
             autoFocus={isMobileSearch}
             type="search"
-            placeholder="Search..."
+            placeholder="ស្វែងរក..."
             className={searchInputClass}
           />
         </div>

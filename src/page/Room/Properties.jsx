@@ -26,16 +26,16 @@ import Modal from "../../components/ui/Modal";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 
 const STATUS_OPTIONS = [
-  { value: "", label: "All Statuses" },
-  { value: "ACTIVE", label: "Active" },
-  { value: "INACTIVE", label: "Inactive" },
-  { value: "MAINTENANCE", label: "Maintenance" },
+  { value: "", label: "ស្ថានភាពទាំងអស់" },
+  { value: "ACTIVE", label: "សកម្ម" },
+  { value: "INACTIVE", label: "អសកម្ម" },
+  { value: "MAINTENANCE", label: "កំពុងជួសជុល" },
 ];
 
 const STATUS_FORM_OPTIONS = [
-  { value: "ACTIVE", label: "Active" },
-  { value: "INACTIVE", label: "Inactive" },
-  { value: "MAINTENANCE", label: "Maintenance" },
+  { value: "ACTIVE", label: "សកម្ម" },
+  { value: "INACTIVE", label: "អសកម្ម" },
+  { value: "MAINTENANCE", label: "កំពុងជួសជុល" },
 ];
 
 const STATUS_VARIANT = {
@@ -125,10 +125,10 @@ const Properties = () => {
 
   const validate = () => {
     const errs = {};
-    if (!form.name.trim()) errs.name = "Name is required";
-    if (!form.slug.trim()) errs.slug = "Slug is required";
-    if (!form.code.trim()) errs.code = "Code is required";
-    if (!form.address.trim()) errs.address = "Address is required";
+    if (!form.name.trim()) errs.name = "តម្រូវឱ្យបញ្ចូលឈ្មោះ";
+    if (!form.slug.trim()) errs.slug = "តម្រូវឱ្យបញ្ចូល Slug";
+    if (!form.code.trim()) errs.code = "តម្រូវឱ្យបញ្ចូលលេខកូដ";
+    if (!form.address.trim()) errs.address = "តម្រូវឱ្យបញ្ចូលអាសយដ្ឋាន";
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -152,18 +152,18 @@ const Properties = () => {
 
       if (formModal === "create") {
         await createHouse(payload);
-        toast.success("Property created", "New property has been added successfully.");
+        toast.success("អចលនទ្រព្យត្រូវបានបង្កើត", "អចលនទ្រព្យថ្មីត្រូវបានបន្ថែមដោយជោគជ័យ។");
       } else {
         await updateHouse(formModal.id, { ...payload, status: form.status });
-        toast.success("Property updated", "Property details have been saved.");
+        toast.success("អចលនទ្រព្យត្រូវបានកែប្រែ", "ព័ត៌មានលម្អិតនៃអចលនទ្រព្យត្រូវបានរក្សាទុក។");
       }
       setFormModal(null);
     } catch (err) {
       const message =
         err.response?.data?.message ||
         err.response?.data?.error ||
-        "Something went wrong. Please try again.";
-      toast.error("Error", message);
+        "មានអ្វីមួយខុសប្រក្រតី។ សូមព្យាយាមម្តងទៀត។";
+      toast.error("កំហុស", message);
     } finally {
       setFormLoading(false);
     }
@@ -174,14 +174,14 @@ const Properties = () => {
     setDeleting(true);
     try {
       await deleteHouse(deleteTarget.id);
-      toast.success("Property deleted", `"${deleteTarget.name}" has been removed.`);
+      toast.success("អចលនទ្រព្យត្រូវបានលុប", `"${deleteTarget.name}" ត្រូវបានលុប។`);
       setDeleteTarget(null);
     } catch (err) {
       const message =
         err.response?.data?.message ||
         err.response?.data?.error ||
-        "Failed to delete property.";
-      toast.error("Delete failed", message);
+        "ការលុបអចលនទ្រព្យបរាជ័យ។";
+      toast.error("ការលុបបរាជ័យ", message);
     } finally {
       setDeleting(false);
     }
@@ -244,10 +244,10 @@ const Properties = () => {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">
-            Properties
+            អចលនទ្រព្យ
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Manage your houses and rental units.
+            គ្រប់គ្រងផ្ទះ និងបន្ទប់ជួលរបស់អ្នក។
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -257,16 +257,16 @@ const Properties = () => {
             leftIcon={<RefreshCw className="h-4 w-4" />}
             onClick={fetchHouses}
           >
-            Refresh
+            ធ្វើឱ្យស្រស់
           </Button>
           <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
-            Add Property
+            បន្ថែមអចលនទ្រព្យ
           </Button>
         </div>
       </div>
 
       {error && (
-        <Alert variant="danger" title="Error" description={error} dismissible />
+        <Alert variant="danger" title="កំហុស" description={error} dismissible />
       )}
 
       {/* Filters */}
@@ -274,7 +274,7 @@ const Properties = () => {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex-1">
             <Input
-              placeholder="Search by name, code, or address..."
+              placeholder="ស្វែងរកតាមឈ្មោះ លេខកូដ ឬអាសយដ្ឋាន..."
               leftIcon={<Search className="h-4 w-4" />}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -294,19 +294,19 @@ const Properties = () => {
       {!loading && houses.length === 0 ? (
         <EmptyState
           icon={Building2}
-          title="No properties yet"
-          description="Get started by adding your first property."
+          title="មិនទាន់មានអចលនទ្រព្យទេ"
+          description="ចាប់ផ្តើមដោយបន្ថែមអចលនទ្រព្យដំបូងរបស់អ្នក។"
           action={
             <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
-              Add Property
+              បន្ថែមអចលនទ្រព្យ
             </Button>
           }
         />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Filter}
-          title="No matches found"
-          description="Try adjusting your search or filter criteria."
+          title="រកមិនឃើញលទ្ធផលត្រូវនឹងលក្ខខណ្ឌទេ"
+          description="សូមព្យាយាមកែតម្រូវលក្ខខណ្ឌនៃការស្វែងរក ឬតម្រង។"
         />
       ) : (
         /* Cards grid */
@@ -356,13 +356,13 @@ const Properties = () => {
                             }}
                             className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
                           >
-                            <Eye className="h-4 w-4" /> View details
+                            <Eye className="h-4 w-4" /> មើលព័ត៌មានលម្អិត
                           </button>
                           <button
                             onClick={() => openEdit(house)}
                             className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
                           >
-                            <Edit3 className="h-4 w-4" /> Edit
+                            <Edit3 className="h-4 w-4" /> កែប្រែ
                           </button>
                           <button
                             onClick={() => {
@@ -371,7 +371,7 @@ const Properties = () => {
                             }}
                             className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
                           >
-                            <Trash2 className="h-4 w-4" /> Delete
+                            <Trash2 className="h-4 w-4" /> លុប
                           </button>
                         </div>
                       </>
@@ -390,11 +390,11 @@ const Properties = () => {
                   <div className="flex items-center gap-1.5 text-[13px] text-slate-600 dark:text-slate-300">
                     <BedDouble className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <span>
-                      {house.availableRooms}/{house.totalRooms} rooms
+                      {house.availableRooms}/{house.totalRooms} បន្ទប់
                     </span>
                   </div>
                   <Badge variant={STATUS_VARIANT[house.status] || "default"}>
-                    {house.status}
+                    {STATUS_OPTIONS.find((o) => o.value === house.status)?.label || house.status}
                   </Badge>
                 </div>
 
@@ -407,7 +407,7 @@ const Properties = () => {
 
               <div className="border-t border-slate-100 px-5 py-3 dark:border-gray-800">
                 <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                  Created {new Date(house.createdAt).toLocaleDateString()}
+                  បានបង្កើត {new Date(house.createdAt).toLocaleDateString()}
                 </p>
               </div>
             </div>
@@ -418,10 +418,10 @@ const Properties = () => {
       {/* Delete confirmation */}
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Delete Property"
-        description={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="លុបអចលនទ្រព្យ"
+        description={`តើអ្នកប្រាកដថាចង់លុប "${deleteTarget?.name}"? សកម្មភាពនេះមិនអាចបញ្ឈប់បានទេ។`}
+        confirmText="លុប"
+        cancelText="បោះបង់"
         danger
         loading={deleting}
         onConfirm={handleDelete}
@@ -432,24 +432,24 @@ const Properties = () => {
       <Modal
         open={!!formModal}
         onClose={() => setFormModal(null)}
-        title={formModal === "create" ? "Add Property" : "Edit Property"}
+        title={formModal === "create" ? "បន្ថែមអចលនទ្រព្យ" : "កែប្រែអចលនទ្រព្យ"}
         size="lg"
         footer={
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={() => setFormModal(null)} disabled={formLoading}>
-              Cancel
+              បោះបង់
             </Button>
             <Button onClick={handleSubmit} loading={formLoading}>
-              {formModal === "create" ? "Create Property" : "Save Changes"}
+              {formModal === "create" ? "បង្កើតអចលនទ្រព្យ" : "រក្សាទុកការផ្លាស់ប្តូរ"}
             </Button>
           </div>
         }
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
-            label="Name"
+            label="ឈ្មោះ"
             required
-            placeholder="e.g. Sunset Apartments"
+            placeholder="ឧ. Sunset Apartments"
             value={form.name}
             onChange={(e) => handleFormChange("name", e.target.value)}
             error={formErrors.name}
@@ -457,53 +457,53 @@ const Properties = () => {
           <Input
             label="Slug"
             required
-            placeholder="e.g. sunset-apartments"
+            placeholder="ឧ. sunset-apartments"
             value={form.slug}
             onChange={(e) => handleFormChange("slug", e.target.value)}
             error={formErrors.slug}
           />
           <Input
-            label="Code"
+            label="លេខកូដ"
             required
-            placeholder="e.g. SA-001"
+            placeholder="ឧ. SA-001"
             value={form.code}
             onChange={(e) => handleFormChange("code", e.target.value)}
             error={formErrors.code}
           />
           <Input
-            label="Postal Code"
-            placeholder="e.g. 12345"
+            label="លេខកូដប្រៃសណីយ៍"
+            placeholder="ឧ. 12345"
             value={form.postalCode}
             onChange={(e) => handleFormChange("postalCode", e.target.value)}
           />
           <div className="sm:col-span-2">
             <Input
-              label="Address"
+              label="អាសយដ្ឋាន"
               required
-              placeholder="Full address"
+              placeholder="អាសយដ្ឋានពេញលេញ"
               value={form.address}
               onChange={(e) => handleFormChange("address", e.target.value)}
               error={formErrors.address}
             />
           </div>
           <Input
-            label="Latitude"
+            label="រយៈទទឹង"
             type="number"
             step="any"
-            placeholder="e.g. 10.762622"
+            placeholder="ឧ. 10.762622"
             value={form.latitude}
             onChange={(e) => handleFormChange("latitude", e.target.value)}
           />
           <Input
-            label="Longitude"
+            label="រយៈបណ្តោយ"
             type="number"
             step="any"
-            placeholder="e.g. 106.660172"
+            placeholder="ឧ. 106.660172"
             value={form.longitude}
             onChange={(e) => handleFormChange("longitude", e.target.value)}
           />
           <Input
-            label="Total Rooms"
+            label="ចំនួនបន្ទប់សរុប"
             type="number"
             min="0"
             placeholder="0"
@@ -511,7 +511,7 @@ const Properties = () => {
             onChange={(e) => handleFormChange("totalRooms", e.target.value)}
           />
           <Input
-            label="Available Rooms"
+            label="ចំនួនបន្ទប់ទំនេរ"
             type="number"
             min="0"
             placeholder="0"
@@ -519,15 +519,15 @@ const Properties = () => {
             onChange={(e) => handleFormChange("availableRooms", e.target.value)}
           />
           <Select
-            label="Status"
+            label="ស្ថានភាព"
             options={STATUS_FORM_OPTIONS}
             value={form.status}
             onChange={(e) => handleFormChange("status", e.target.value)}
           />
           <div className="sm:col-span-2">
             <Textarea
-              label="Description"
-              placeholder="Optional description..."
+              label="ការពិពណ៌នា"
+              placeholder="ការពិពណ៌នាបន្ថែម (ស្រេចចិត្ត)..."
               rows={3}
               value={form.description}
               onChange={(e) => handleFormChange("description", e.target.value)}
@@ -552,7 +552,7 @@ const Properties = () => {
               <div>
                 <p className="text-[13px] font-mono text-slate-400 dark:text-slate-500">{viewTarget.code}</p>
                 <Badge variant={STATUS_VARIANT[viewTarget.status] || "default"} className="mt-1">
-                  {viewTarget.status}
+                  {STATUS_OPTIONS.find((o) => o.value === viewTarget.status)?.label || viewTarget.status}
                 </Badge>
               </div>
             </div>
@@ -563,47 +563,47 @@ const Properties = () => {
                 <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{viewTarget.slug}</p>
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Address</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">អាសយដ្ឋាន</p>
                 <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-200">
                   <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" />
                   {viewTarget.address}
                 </p>
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Postal Code</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">លេខកូដប្រៃសណីយ៍</p>
                 <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{viewTarget.postalCode || "—"}</p>
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Rooms</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">បន្ទប់</p>
                 <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-200">
                   <BedDouble className="h-4 w-4 text-slate-400" />
-                  {viewTarget.availableRooms}/{viewTarget.totalRooms} available
+                  {viewTarget.availableRooms}/{viewTarget.totalRooms} ទំនេរ
                 </p>
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Latitude</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">រយៈទទឹង</p>
                 <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{viewTarget.latitude ?? "—"}</p>
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Longitude</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">រយៈបណ្តោយ</p>
                 <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{viewTarget.longitude ?? "—"}</p>
               </div>
             </div>
 
             {viewTarget.description && (
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Description</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">ការពិពណ៌នា</p>
                 <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{viewTarget.description}</p>
               </div>
             )}
 
             <div className="flex items-center gap-6 border-t border-slate-100 pt-4 dark:border-gray-800">
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Created</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">បានបង្កើត</p>
                 <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{new Date(viewTarget.createdAt).toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Updated</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">បានធ្វើបច្ចុប្បន្នភាព</p>
                 <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{new Date(viewTarget.updatedAt).toLocaleString()}</p>
               </div>
             </div>

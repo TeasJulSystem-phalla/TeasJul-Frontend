@@ -42,31 +42,31 @@ const LoginPage = () => {
           {/* Highlight Hero Text */}
           <div className="max-w-md z-10 space-y-6">
             <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-300 bg-slate-800 rounded-full border border-slate-700">
-              Rental Management System
+              ប្រព័ន្ធគ្រប់គ្រងការជួល
             </span>
             <h1 className="text-4xl font-extrabold leading-tight text-white">
-              Effortless Property & Lease Management
+              ការគ្រប់គ្រងអចលនទ្រព្យ និងកិច្ចសន្យាជួលដ៏ងាយស្រួល
             </h1>
             <p className="text-slate-300 text-base leading-relaxed">
-              Automate rent collection, streamline maintenance requests, and keep track of tenants all in one centralized platform.
+              ធ្វើស្វ័យប្រវត្តិកម្មការប្រមូលប្រាក់ជួល ធ្វើឱ្យសាមញ្ញនូវការស្នើជួសជុល និងតាមដានអ្នកជួលទាំងអស់ នៅលើវេទិការួមតែមួយ។
             </p>
 
             {/* Feature Bullet Points */}
             <div className="pt-4 space-y-3">
               <div className="flex items-center gap-3 text-sm text-slate-300">
                 <ShieldCheck className="w-5 h-5 text-slate-400 shrink-0" />
-                <span>Automated lease agreements & digital signing</span>
+                <span>កិច្ចសន្យាជួលដោយស្វ័យប្រវត្តិ និងហត្ថលេខាឌីជីថល</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-slate-300">
                 <KeyRound className="w-5 h-5 text-slate-400 shrink-0" />
-                <span>Real-time rent tracking & automated reminders</span>
+                <span>តាមដានប្រាក់ជួលតាមពេលវេលាជាក់ស្តែង និងការរំលឹកដោយស្វ័យប្រវត្តិ</span>
               </div>
             </div>
           </div>
 
           {/* Footer Info */}
           <div className="z-10 text-xs text-slate-500">
-            &copy; {new Date().getFullYear()} Teasjul Inc. All rights reserved.
+            &copy; {new Date().getFullYear()} Teasjul Inc. រក្សាសិទ្ធិគ្រប់យ៉ាង។
           </div>
         </div>
 
@@ -81,9 +81,9 @@ const LoginPage = () => {
             </div>
 
             <div>
-              <h2 className="text-3xl font-bold tracking-tight text-slate-900">Welcome back</h2>
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900">ស្វាគមន៍មកកាន់វិញ</h2>
               <p className="mt-2 text-sm text-slate-600">
-                Please enter your details to sign in to your dashboard.
+                សូមបញ្ចូលព័ត៌មានរបស់អ្នក ដើម្បីចូលប្រព័ន្ធ។
               </p>
             </div>
 
@@ -98,7 +98,7 @@ const LoginPage = () => {
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Landlord / Admin
+                ម្ចាស់អចលនទ្រព្យ / អ្នកគ្រប់គ្រង
               </button>
               <button
                 type="button"
@@ -109,7 +109,7 @@ const LoginPage = () => {
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Tenant
+                អ្នកជួល
               </button>
             </div>
 
@@ -117,7 +117,7 @@ const LoginPage = () => {
               {/* Email Field */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Email Address
+                  អាសយដ្ឋានអ៊ីមែល
                 </label>
                 <input
                   type="email"
@@ -133,10 +133,10 @@ const LoginPage = () => {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-sm font-medium text-slate-700">
-                    Password
+                    ពាក្យសម្ងាត់
                   </label>
                   <a href="#forgot" className="text-xs font-semibold text-slate-900 hover:underline">
-                    Forgot password?
+                    ភ្លេចពាក្យសម្ងាត់?
                   </a>
                 </div>
                 <div className="relative">
@@ -168,7 +168,7 @@ const LoginPage = () => {
                   className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
                 />
                 <label htmlFor="remember" className="ml-2.5 text-sm text-slate-600 cursor-pointer select-none">
-                  Remember me for 30 days
+                  ចងចាំខ្ញុំរយៈពេល 30 ថ្ងៃ
                 </label>
               </div>
 
@@ -187,11 +187,11 @@ const LoginPage = () => {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Signing in...</span>
+                    <span>កំពុងចូលប្រព័ន្ធ...</span>
                   </>
                 ) : (
                   <>
-                    <span>Sign in to Teasjul</span>
+                    <span>ចូលប្រព័ន្ធ Teasjul</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                   </>
                 )}
@@ -200,9 +200,9 @@ const LoginPage = () => {
 
             {/* Registration Prompt */}
             <p className="text-center text-sm text-slate-600">
-              Don't have an account?{' '}
+              មិនទាន់មានគណនី?{' '}
               <a href="#signup" className="font-semibold text-slate-900 hover:underline">
-                Request access / Register property
+                ស្នើសុំសិទ្ធិចូលប្រើ / ចុះឈ្មោះអចលនទ្រព្យ
               </a>
             </p>
           </div>

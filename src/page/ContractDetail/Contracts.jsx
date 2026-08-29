@@ -38,11 +38,11 @@ import {
 } from '../../components/ui/index.js';
 
 const STATUS_META = {
-  DRAFT: { label: 'Draft', variant: 'neutral', dot: 'bg-slate-400', bar: 'from-slate-400 to-slate-300', text: 'text-slate-600 dark:text-slate-300' },
-  ACTIVE: { label: 'Active', variant: 'success', dot: 'bg-emerald-500', bar: 'from-emerald-500 to-emerald-400', text: 'text-emerald-600 dark:text-emerald-400' },
-  TERMINATED: { label: 'Terminated', variant: 'warning', dot: 'bg-amber-500', bar: 'from-amber-500 to-amber-400', text: 'text-amber-600 dark:text-amber-400' },
-  EXPIRED: { label: 'Expired', variant: 'info', dot: 'bg-sky-500', bar: 'from-sky-500 to-sky-400', text: 'text-sky-600 dark:text-sky-400' },
-  CANCELLED: { label: 'Cancelled', variant: 'danger', dot: 'bg-rose-500', bar: 'from-rose-500 to-rose-400', text: 'text-rose-600 dark:text-rose-400' },
+  DRAFT: { label: 'សេចក្តីព្រាង', variant: 'neutral', dot: 'bg-slate-400', bar: 'from-slate-400 to-slate-300', text: 'text-slate-600 dark:text-slate-300' },
+  ACTIVE: { label: 'សកម្ម', variant: 'success', dot: 'bg-emerald-500', bar: 'from-emerald-500 to-emerald-400', text: 'text-emerald-600 dark:text-emerald-400' },
+  TERMINATED: { label: 'បានបញ្ចប់', variant: 'warning', dot: 'bg-amber-500', bar: 'from-amber-500 to-amber-400', text: 'text-amber-600 dark:text-amber-400' },
+  EXPIRED: { label: 'ផុតកំណត់', variant: 'info', dot: 'bg-sky-500', bar: 'from-sky-500 to-sky-400', text: 'text-sky-600 dark:text-sky-400' },
+  CANCELLED: { label: 'បានលុបចោល', variant: 'danger', dot: 'bg-rose-500', bar: 'from-rose-500 to-rose-400', text: 'text-rose-600 dark:text-rose-400' },
 };
 
 const STATUS_ORDER = ['ACTIVE', 'DRAFT', 'EXPIRED', 'TERMINATED', 'CANCELLED'];
@@ -50,11 +50,11 @@ const STATUS_ORDER = ['ACTIVE', 'DRAFT', 'EXPIRED', 'TERMINATED', 'CANCELLED'];
 const STATUS_OPTIONS = STATUS_ORDER.map((s) => ({ value: s, label: STATUS_META[s].label }));
 
 const SORT_OPTIONS = [
-  { value: 'recent', label: 'Newest first' },
-  { value: 'oldest', label: 'Oldest first' },
-  { value: 'rent-high', label: 'Rent: high to low' },
-  { value: 'rent-low', label: 'Rent: low to high' },
-  { value: 'expiry', label: 'Ending soonest' },
+  { value: 'recent', label: 'ថ្មីបំផុតមុន' },
+  { value: 'oldest', label: 'ចាស់បំផុតមុន' },
+  { value: 'rent-high', label: 'ថ្លៃជួល៖ ខ្ពស់ទៅទាប' },
+  { value: 'rent-low', label: 'ថ្លៃជួល៖ ទាបទៅខ្ពស់' },
+  { value: 'expiry', label: 'បញ្ចប់លឿនបំផុត' },
 ];
 
 const EXPIRING_SOON_DAYS = 60;
@@ -67,7 +67,7 @@ const formatDate = (dateStr, opts = {}) => {
   return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', ...opts });
 };
 
-const roomLabel = (r) => (r.name ? `${r.name} (${r.roomNumber})` : `Room ${r.roomNumber}`);
+const roomLabel = (r) => (r.name ? `${r.name} (${r.roomNumber})` : `បន្ទប់ ${r.roomNumber}`);
 
 const daysUntil = (dateStr) => {
   if (!dateStr) return null;
@@ -132,7 +132,7 @@ export default function Contracts() {
   const roomName = useCallback(
     (rid) => {
       const r = rooms.find((x) => x.id === rid);
-      return r ? roomLabel(r) : `Room #${rid}`;
+      return r ? roomLabel(r) : `បន្ទប់ #${rid}`;
     },
     [rooms]
   );
@@ -193,10 +193,10 @@ export default function Contracts() {
     setDeleting(true);
     try {
       await deleteContract(deleteTarget.id);
-      toast.success('Contract deleted', `Contract #${deleteTarget.id} has been removed.`);
+      toast.success('បានលុបកិច្ចសន្យា', `កិច្ចសន្យា #${deleteTarget.id} ត្រូវបានលុបចេញ។`);
       setDeleteTarget(null);
     } catch (err) {
-      toast.error('Delete failed', err.response?.data?.message || err.response?.data?.error || 'Failed to delete contract.');
+      toast.error('ការលុបបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'មិនអាចលុបកិច្ចសន្យាបានទេ។');
     } finally {
       setDeleting(false);
     }
@@ -246,21 +246,21 @@ export default function Contracts() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">Rental Contracts</h1>
+          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">កិច្ចសន្យាជួល</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Monitor contracts, tenants, deposits, renewals — all in one place.
+            តាមដានកិច្ចសន្យា អ្នកជួល ប្រាក់កក់ និងការបន្តកិច្ចសន្យា — ទាំងអស់នៅកន្លែងតែមួយ។
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>Refresh</Button>
-          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate('/contracts/new')}>Create Contract</Button>
+          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>ធ្វើស្រស់</Button>
+          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate('/contracts/new')}>បង្កើតកិច្ចសន្យា</Button>
         </div>
       </div>
 
       {error && (
-        <Alert variant="danger" title="Error loading contracts" description={error} dismissible>
+        <Alert variant="danger" title="មិនអាចផ្ទុកកិច្ចសន្យាបានទេ" description={error} dismissible>
           <div className="mt-3">
-            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>Retry</Button>
+            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>ព្យាយាមម្តងទៀត</Button>
           </div>
         </Alert>
       )}
@@ -269,33 +269,33 @@ export default function Contracts() {
       {contracts.length > 0 && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <HeroStat
-            label="Total contracts"
+            label="កិច្ចសន្យាសរុប"
             value={stats.total}
             icon={<FileText className="h-5 w-5" />}
             tone="slate"
-            sub={`${stats.active} active right now`}
+            sub={`${stats.active} សកម្មនាពេលបច្ចុប្បន្ន`}
           />
           <HeroStat
-            label="Active"
+            label="សកម្ម"
             value={stats.active}
             icon={<CheckCircle2 className="h-5 w-5" />}
             tone="emerald"
-            sub={`${stats.expiring.length} expiring soon`}
+            sub={`${stats.expiring.length} ផុតកំណត់ឆាប់ៗ`}
             subTone={stats.expiring.length > 0 ? 'danger' : 'muted'}
           />
           <HeroStat
-            label="Monthly rent"
+            label="ថ្លៃជួលប្រចាំខែ"
             value={formatCurrency(stats.monthlyRent)}
             icon={<Wallet className="h-5 w-5" />}
             tone="violet"
-            sub="across active contracts"
+            sub="នៃកិច្ចសន្យាសកម្ម"
           />
           <HeroStat
-            label="Expiring soon"
+            label="ផុតកំណត់ឆាប់ៗ"
             value={stats.expiring.length}
             icon={<CalendarClock className="h-5 w-5" />}
             tone={stats.expiring.length > 0 ? 'amber' : 'slate'}
-            sub={stats.expiring.length > 0 ? `within ${EXPIRING_SOON_DAYS} days` : 'nothing due soon'}
+            sub={stats.expiring.length > 0 ? `ក្នុងរយៈពេល ${EXPIRING_SOON_DAYS} ថ្ងៃ` : 'មិនមានអ្វីបញ្ចប់ឆាប់ៗ'}
             subTone={stats.expiring.length > 0 ? 'danger' : 'muted'}
           />
         </div>
@@ -310,10 +310,10 @@ export default function Contracts() {
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-                {stats.expiring.length} contract{stats.expiring.length > 1 ? 's' : ''} ending soon
+                {stats.expiring.length} កិច្ចសន្យានឹងបញ្ចប់ឆាប់ៗ
               </p>
               <p className="truncate text-xs text-amber-700/80 dark:text-amber-400/80">
-                {stats.expiring.map((c) => `${c.contractNo || `#${c.id}`} (${daysUntil(c.endDate)}d)`).join(' · ')}
+                {stats.expiring.map((c) => `${c.contractNo || `#${c.id}`} (${daysUntil(c.endDate)} ថ្ងៃ)`).join(' · ')}
               </p>
             </div>
             <Button
@@ -322,7 +322,7 @@ export default function Contracts() {
               rightIcon={<ArrowRight className="h-4 w-4" />}
               onClick={() => setSortBy('expiry')}
             >
-              Review
+              ពិនិត្យមើល
             </Button>
           </div>
         </div>
@@ -333,7 +333,7 @@ export default function Contracts() {
         <div className="flex gap-2 overflow-x-auto pb-1">
           <TabPill
             active={!effectiveStatus}
-            label="All"
+            label="ទាំងអស់"
             count={stats.total}
             onClick={() => handleTabChange('')}
           />
@@ -356,7 +356,7 @@ export default function Contracts() {
           <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
             <div className="flex-1">
               <Input
-                placeholder="Search contract, room, notes..."
+                placeholder="ស្វែងរកកិច្ចសន្យា បន្ទប់ កំណត់ចំណាំ..."
                 leftIcon={<Search className="h-4 w-4" />}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -364,7 +364,7 @@ export default function Contracts() {
             </div>
             <div className="grid grid-cols-2 gap-3 sm:flex">
               <Select
-                options={[{ value: '', label: 'All statuses' }, ...STATUS_OPTIONS]}
+                options={[{ value: '', label: 'ស្ថានភាពទាំងអស់' }, ...STATUS_OPTIONS]}
                 value={statusFilter}
                 onChange={(e) => {
                   const v = e.target.value;
@@ -381,11 +381,11 @@ export default function Contracts() {
           </div>
           <div className="flex items-center justify-between gap-2 sm:justify-end">
             {hasFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>Clear</Button>
+              <Button variant="ghost" size="sm" onClick={clearFilters}>សម្អាត</Button>
             )}
             <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white p-0.5 dark:border-gray-700 dark:bg-gray-900">
-              <ViewToggle active={view === 'grid'} label="Grid" icon={<LayoutGrid className="h-4 w-4" />} onClick={() => setView('grid')} />
-              <ViewToggle active={view === 'table'} label="List" icon={<Rows3 className="h-4 w-4" />} onClick={() => setView('table')} />
+              <ViewToggle active={view === 'grid'} label="ក្រឡាចត្រង្គ" icon={<LayoutGrid className="h-4 w-4" />} onClick={() => setView('grid')} />
+              <ViewToggle active={view === 'table'} label="បញ្ជី" icon={<Rows3 className="h-4 w-4" />} onClick={() => setView('table')} />
             </div>
           </div>
         </div>
@@ -395,16 +395,16 @@ export default function Contracts() {
       {!loading && contracts.length === 0 ? (
         <EmptyState
           icon={FileText}
-          title="No contracts yet"
-          description="Create your first rental contract to start tracking tenants, deposits, and renewals."
-          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate('/contracts/new')}>Create Contract</Button>}
+          title="មិនទាន់មានកិច្ចសន្យានៅឡើយទេ"
+          description="បង្កើតកិច្ចសន្យាជួលដំបូងរបស់អ្នក ដើម្បីចាប់ផ្តើមតាមដានអ្នកជួល ប្រាក់កក់ និងការបន្តកិច្ចសន្យា។"
+          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate('/contracts/new')}>បង្កើតកិច្ចសន្យា</Button>}
         />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Filter}
-          title="No matches found"
-          description="Try adjusting your search, status, or filters."
-          action={<Button variant="outline" size="sm" onClick={clearFilters}>Clear filters</Button>}
+          title="មិនមានលទ្ធផលត្រូវគ្នាទេ"
+          description="សូមព្យាយាមកែតម្រូវការស្វែងរក ស្ថានភាព ឬតម្រងរបស់អ្នក។"
+          action={<Button variant="outline" size="sm" onClick={clearFilters}>សម្អាតតម្រង</Button>}
         />
       ) : view === 'grid' ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -426,10 +426,10 @@ export default function Contracts() {
       {/* Delete */}
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Delete Contract"
-        description={`Are you sure you want to delete contract "${deleteTarget?.contractNo}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="លុបកិច្ចសន្យា"
+        description={`តើអ្នកប្រាកដថាចង់លុបកិច្ចសន្យា "${deleteTarget?.contractNo}" មែនទេ? សកម្មភាពនេះមិនអាចយកមកវិញបានទេ។`}
+        confirmText="លុប"
+        cancelText="បោះបង់"
         danger
         loading={deleting}
         onConfirm={handleDelete}
@@ -491,7 +491,7 @@ const ViewToggle = ({ active, label, icon, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    title={`${label} view`}
+    title={`មើល ${label}`}
     className={`
       inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors
       ${active ? 'bg-slate-100 text-slate-800 dark:bg-gray-800 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}
@@ -511,10 +511,10 @@ const ContractCard = ({ contract: c, roomName, onOpen, onEdit, onDelete }) => {
   const expiryLabel = () => {
     if (!c.endDate) return null;
     if (days === null) return null;
-    if (days < 0) return { text: 'Ended', cls: 'text-slate-400 dark:text-slate-500' };
-    if (days === 0) return { text: 'Ends today', cls: 'text-rose-600 dark:text-rose-400' };
-    if (days <= EXPIRING_SOON_DAYS) return { text: `${days}d left`, cls: 'text-amber-600 dark:text-amber-400' };
-    return { text: `${days}d left`, cls: 'text-slate-400 dark:text-slate-500' };
+    if (days < 0) return { text: 'បានបញ្ចប់', cls: 'text-slate-400 dark:text-slate-500' };
+    if (days === 0) return { text: 'បញ្ចប់ថ្ងៃនេះ', cls: 'text-rose-600 dark:text-rose-400' };
+    if (days <= EXPIRING_SOON_DAYS) return { text: `${days} ថ្ងៃទៀត`, cls: 'text-amber-600 dark:text-amber-400' };
+    return { text: `${days} ថ្ងៃទៀត`, cls: 'text-slate-400 dark:text-slate-500' };
   };
   const expiry = expiryLabel();
 
@@ -534,7 +534,7 @@ const ContractCard = ({ contract: c, roomName, onOpen, onEdit, onDelete }) => {
           </span>
           <div className="min-w-0">
             <p className="truncate text-[15px] font-semibold text-slate-800 dark:text-white">
-              {c.contractNo || `Contract #${c.id}`}
+              {c.contractNo || `កិច្ចសន្យា #${c.id}`}
             </p>
             <p className="flex items-center gap-1 truncate text-xs text-slate-400">
               <DoorOpen className="h-3 w-3" /> {roomName}
@@ -546,16 +546,16 @@ const ContractCard = ({ contract: c, roomName, onOpen, onEdit, onDelete }) => {
             <button
               type="button"
               className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-gray-800 dark:hover:text-slate-200"
-              aria-label="Contract actions"
+              aria-label="សកម្មភាពកិច្ចសន្យា"
             >
               <MoreVertical className="h-4 w-4" />
             </button>
           }
           items={[
-            { label: 'Edit', icon: <Pencil className="h-4 w-4" />, onClick: onEdit },
+            { label: 'កែប្រែ', icon: <Pencil className="h-4 w-4" />, onClick: onEdit },
             { divider: true },
             {
-              label: 'Delete',
+              label: 'លុប',
               icon: <Trash2 className="h-4 w-4" />,
               onClick: onDelete,
               danger: true,
@@ -571,11 +571,11 @@ const ContractCard = ({ contract: c, roomName, onOpen, onEdit, onDelete }) => {
           {isExpiring && c.status === 'ACTIVE' && (
             <Badge variant="warning">
               <span className="mr-1 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
-              Ending soon
+              ផុតកំណត់ឆាប់ៗ
             </Badge>
           )}
           <span className={`ml-auto text-xs font-semibold ${expiry ? expiry.cls : 'text-slate-400 dark:text-slate-500'}`}>
-            {expiry ? expiry.text : 'Open-ended'}
+            {expiry ? expiry.text : 'មិនកំណត់រយៈពេល'}
           </span>
         </div>
 
@@ -597,18 +597,18 @@ const ContractCard = ({ contract: c, roomName, onOpen, onEdit, onDelete }) => {
         {/* Financial summary */}
         <div className="grid grid-cols-2 gap-3 rounded-lg border border-slate-100 bg-slate-50/60 p-3 dark:border-gray-800 dark:bg-gray-800/40">
           <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">Monthly rent</p>
+            <p className="text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">ថ្លៃជួលប្រចាំខែ</p>
             <p className="mt-0.5 truncate text-[15px] font-bold text-slate-800 dark:text-white">
               {formatCurrency(c.monthlyRent)}
             </p>
-            <p className="text-[11px] text-slate-400">due day {c.dueDay}</p>
+            <p className="text-[11px] text-slate-400">ថ្ងៃកំណត់បង់: {c.dueDay}</p>
           </div>
           <div className="min-w-0 border-l border-slate-200 pl-3 dark:border-gray-700">
-            <p className="text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">Deposit</p>
+            <p className="text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">ប្រាក់កក់</p>
             <p className="mt-0.5 truncate text-[15px] font-bold text-slate-800 dark:text-white">
               {formatCurrency(c.securityDeposit)}
             </p>
-            <p className="text-[11px] text-slate-400">{c.status}</p>
+            <p className="text-[11px] text-slate-400">{STATUS_META[c.status]?.label || c.status}</p>
           </div>
         </div>
       </div>
@@ -616,10 +616,10 @@ const ContractCard = ({ contract: c, roomName, onOpen, onEdit, onDelete }) => {
       {/* Footer */}
       <div className="flex items-center gap-2 border-t border-slate-100 bg-white px-5 py-3 dark:border-gray-800 dark:bg-gray-900">
         <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${meta.text}`}>
-          <CircleDot className="h-3 w-3" /> {c.roomId ? `Room #${c.roomId}` : 'No room'}
+          <CircleDot className="h-3 w-3" /> {c.roomId ? `បន្ទប់ #${c.roomId}` : 'គ្មានបន្ទប់'}
         </span>
         <span className="ml-auto text-xs font-medium text-slate-500 transition-colors group-hover:text-slate-800 dark:text-slate-400 dark:group-hover:text-white">
-          View details <ArrowRight className="inline h-3.5 w-3.5" />
+          មើលព័ត៌មានលម្អិត <ArrowRight className="inline h-3.5 w-3.5" />
         </span>
       </div>
     </div>
@@ -629,7 +629,7 @@ const ContractCard = ({ contract: c, roomName, onOpen, onEdit, onDelete }) => {
 const ListView = ({ contracts, roomName, onOpen, onEdit, onDelete }) => {
   const columns = [
     {
-      header: 'Contract',
+      header: 'កិច្ចសន្យា',
       render: (row) => {
         const meta = STATUS_META[row.status] || STATUS_META.DRAFT;
         return (
@@ -648,16 +648,16 @@ const ListView = ({ contracts, roomName, onOpen, onEdit, onDelete }) => {
       },
     },
     {
-      header: 'Status',
+      header: 'ស្ថានភាព',
       render: (row) => (
         <div className="flex flex-col gap-1">
-          <Badge variant={STATUS_META[row.status]?.variant || 'default'}>{row.status || '—'}</Badge>
-          <span className="text-[11px] text-slate-400">{row.endDate ? `${daysUntil(row.endDate) ?? '—'}d left` : '—'}</span>
+          <Badge variant={STATUS_META[row.status]?.variant || 'default'}>{STATUS_META[row.status]?.label || row.status || '—'}</Badge>
+          <span className="text-[11px] text-slate-400">{row.endDate ? `${daysUntil(row.endDate) ?? '—'} ថ្ងៃទៀត` : '—'}</span>
         </div>
       ),
     },
     {
-      header: 'Period',
+      header: 'រយៈពេល',
       render: (row) => (
         <div className="text-sm text-slate-600 dark:text-slate-300">
           <p>{formatDate(row.startDate)}</p>
@@ -666,24 +666,24 @@ const ListView = ({ contracts, roomName, onOpen, onEdit, onDelete }) => {
       ),
     },
     {
-      header: 'Rent',
+      header: 'ថ្លៃជួល',
       render: (row) => (
         <div className="text-sm text-slate-600 dark:text-slate-300">
           <p className="font-medium text-slate-700 dark:text-slate-200">{formatCurrency(row.monthlyRent)}</p>
-          <p className="text-xs text-slate-400">due day {row.dueDay}</p>
+          <p className="text-xs text-slate-400">ថ្ងៃកំណត់បង់: {row.dueDay}</p>
         </div>
       ),
     },
     {
-      header: 'Deposit',
+      header: 'ប្រាក់កក់',
       render: (row) => <span className="text-sm text-slate-600 dark:text-slate-300">{formatCurrency(row.securityDeposit)}</span>,
     },
     {
       header: '',
       render: (row) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <IconButton variant="ghost" size="sm" tooltip="Edit" icon={<Pencil className="h-4 w-4" />} onClick={() => onEdit(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="Delete" icon={<Trash2 className="h-4 w-4" />} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300" onClick={() => onDelete(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Pencil className="h-4 w-4" />} onClick={() => onEdit(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="លុប" icon={<Trash2 className="h-4 w-4" />} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300" onClick={() => onDelete(row)} />
         </div>
       ),
     },

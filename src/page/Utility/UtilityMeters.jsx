@@ -40,10 +40,10 @@ const STATUS_VARIANT = {
 };
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' },
-  { value: 'ACTIVE', label: 'Active' },
-  { value: 'INACTIVE', label: 'Inactive' },
-  { value: 'REPLACED', label: 'Replaced' },
+  { value: '', label: 'ស្ថានភាពទាំងអស់' },
+  { value: 'ACTIVE', label: 'សកម្ម' },
+  { value: 'INACTIVE', label: 'អសកម្ម' },
+  { value: 'REPLACED', label: 'បានជំនួស' },
 ];
 
 const EMPTY_FORM = {
@@ -101,8 +101,8 @@ export default function UtilityMeters() {
 
   const houseOptions = useMemo(
     () => [
-      { value: '', label: 'All Houses' },
-      ...houses.map((h) => ({ value: String(h.id), label: h.name || `House #${h.id}` })),
+      { value: '', label: 'អចលនទ្រព្យទាំងអស់' },
+      ...houses.map((h) => ({ value: String(h.id), label: h.name || `អចលនទ្រព្យ #${h.id}` })),
     ],
     [houses]
   );
@@ -136,7 +136,7 @@ export default function UtilityMeters() {
 
   const columns = [
     {
-      header: 'Meter',
+      header: 'ម៉ែត្រ',
       render: (row) => (
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 dark:bg-sky-900/20 dark:text-sky-400">
@@ -150,13 +150,13 @@ export default function UtilityMeters() {
       ),
     },
     {
-      header: 'Type',
+      header: 'ប្រភេទ',
       render: (row) => (
         <span className="text-sm text-slate-600 dark:text-slate-300">{getTypeName(row.utilityTypeId)}</span>
       ),
     },
     {
-      header: 'House',
+      header: 'អចលនទ្រព្យ',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
           <Building2 className="h-4 w-4 text-slate-400" />
@@ -165,7 +165,7 @@ export default function UtilityMeters() {
       ),
     },
     {
-      header: 'Installed',
+      header: 'បានដំឡើង',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
           <Calendar className="h-3.5 w-3.5" />
@@ -174,19 +174,19 @@ export default function UtilityMeters() {
       ),
     },
     {
-      header: 'Status',
+      header: 'ស្ថានភាព',
       render: (row) => getStatusBadge(row.status),
     },
     {
-      header: 'Actions',
+      header: 'សកម្មភាព',
       render: (row) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <IconButton variant="ghost" size="sm" tooltip="View" icon={<Eye className="h-4 w-4" />} onClick={() => setViewTarget(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="Edit" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="មើល" icon={<Eye className="h-4 w-4" />} onClick={() => setViewTarget(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)} />
           <IconButton
             variant="ghost"
             size="sm"
-            tooltip={row.status === 'INACTIVE' ? 'Already inactive' : 'Deactivate'}
+            tooltip={row.status === 'INACTIVE' ? 'អសកម្មរួចហើយ' : 'បិទដំណើរការ'}
             icon={<Trash2 className="h-4 w-4" />}
             disabled={row.status === 'INACTIVE'}
             className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
@@ -228,9 +228,9 @@ export default function UtilityMeters() {
 
   const validate = () => {
     const errs = {};
-    if (!form.houseId) errs.houseId = 'House is required';
-    if (!form.utilityTypeId) errs.utilityTypeId = 'Utility type is required';
-    if (!form.meterNumber.trim()) errs.meterNumber = 'Meter number is required';
+    if (!form.houseId) errs.houseId = 'អចលនទ្រព្យត្រូវបានទាមទារ';
+    if (!form.utilityTypeId) errs.utilityTypeId = 'ប្រភេទប្រើប្រាស់ត្រូវបានទាមទារ';
+    if (!form.meterNumber.trim()) errs.meterNumber = 'លេខម៉ែត្រត្រូវបានទាមទារ';
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -252,20 +252,20 @@ export default function UtilityMeters() {
     try {
       if (editTarget) {
         await updateMeter(editTarget.id, payload);
-        toast.success('Utility meter updated', `"${payload.meterNumber}" has been updated.`);
+        toast.success('ម៉ែត្រប្រើប្រាស់ត្រូវបានកែប្រែ', `"${payload.meterNumber}" ត្រូវបានកែប្រែរួចរាល់។`);
         setEditTarget(null);
       } else {
         await createMeter(payload);
-        toast.success('Utility meter created', `"${payload.meterNumber}" has been created.`);
+        toast.success('ម៉ែត្រប្រើប្រាស់ត្រូវបានបង្កើត', `"${payload.meterNumber}" ត្រូវបានបង្កើតរួចរាល់។`);
         setCreateOpen(false);
       }
       resetForm();
     } catch (err) {
-      const message = err.response?.data?.message || err.response?.data?.error || 'Operation failed.';
+      const message = err.response?.data?.message || err.response?.data?.error || 'ប្រតិបត្តិការបរាជ័យ។';
       if (/meter|c/i.test(message)) {
         setFormErrors((prev) => ({ ...prev, meterNumber: message }));
       } else {
-        toast.error('Error', message);
+        toast.error('កំហុស', message);
       }
     } finally {
       setSubmitting(false);
@@ -277,10 +277,10 @@ export default function UtilityMeters() {
     setDeactivating(true);
     try {
       await deactivateMeter(deactivateTarget.id);
-      toast.success('Utility meter deactivated', `"${deactivateTarget.meterNumber}" has been deactivated.`);
+      toast.success('ម៉ែត្រប្រើប្រាស់ត្រូវបានបិទដំណើរការ', `"${deactivateTarget.meterNumber}" ត្រូវបានបិទដំណើរការរួចរាល់។`);
       setDeactivateTarget(null);
     } catch (err) {
-      toast.error('Deactivate failed', err.response?.data?.message || err.response?.data?.error || 'Failed to deactivate meter.');
+      toast.error('ការបិទដំណើរការបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'បរាជ័យក្នុងការបិទដំណើរការម៉ែត្រ។');
     } finally {
       setDeactivating(false);
     }
@@ -319,21 +319,21 @@ export default function UtilityMeters() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">Utility Meters</h1>
+          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">ម៉ែត្រប្រើប្រាស់ទឹកភ្លើង</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Track the meters installed across your properties.
+            តាមដានម៉ែត្រដែលបានដំឡើងនៅទូទាំងអចលនទ្រព្យរបស់អ្នក។
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>Refresh</Button>
-          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>Add Meter</Button>
+          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>ធ្វើឱ្យស្រស់</Button>
+          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បន្ថែមម៉ែត្រ</Button>
         </div>
       </div>
 
       {error && (
-        <Alert variant="danger" title="Error loading utility meters" description={error} dismissible>
+        <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកម៉ែត្រប្រើប្រាស់" description={error} dismissible>
           <div className="mt-3">
-            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>Retry</Button>
+            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>ព្យាយាមម្តងទៀត</Button>
           </div>
         </Alert>
       )}
@@ -342,7 +342,7 @@ export default function UtilityMeters() {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="flex-1">
             <Input
-              placeholder="Search by meter number or type..."
+              placeholder="ស្វែងរកតាមលេខម៉ែត្រ ឬប្រភេទ..."
               leftIcon={<Search className="h-4 w-4" />}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -353,8 +353,8 @@ export default function UtilityMeters() {
             <Select options={houseOptions} value={houseFilter} onChange={(e) => setHouseFilter(e.target.value)} />
             <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} />
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={applyFilters}>Apply</Button>
-              <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setHouseFilter(''); setStatusFilter(''); fetchMeters({}); }}>Clear</Button>
+              <Button variant="outline" size="sm" onClick={applyFilters}>អនុវត្ត</Button>
+              <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setHouseFilter(''); setStatusFilter(''); fetchMeters({}); }}>សម្អាត</Button>
             </div>
           </div>
         </div>
@@ -363,12 +363,12 @@ export default function UtilityMeters() {
       {!loading && meters.length === 0 ? (
         <EmptyState
           icon={Gauge}
-          title="No utility meters yet"
-          description="Add a meter to start recording utility readings."
-          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>Add Meter</Button>}
+          title="មិនទាន់មានម៉ែត្រប្រើប្រាស់"
+          description="បន្ថែមម៉ែត្រ ដើម្បីចាប់ផ្តើមកត់ត្រាការអានម៉ែត្រប្រើប្រាស់។"
+          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បន្ថែមម៉ែត្រ</Button>}
         />
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Filter} title="No matches found" description="Try adjusting your search or filter criteria." />
+        <EmptyState icon={Filter} title="រកមិនឃើញទិន្នន័យ" description="សូមព្យាយាមកែតម្រូវការស្វែងរក ឬលក្ខខណ្ឌតម្រងរបស់អ្នក។" />
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:hidden">
@@ -392,8 +392,8 @@ export default function UtilityMeters() {
                     {getHouseName(m.houseId)}
                   </span>
                   <div className="flex items-center gap-1">
-                    <IconButton variant="ghost" size="sm" tooltip="Edit" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(m); }} />
-                    <IconButton variant="ghost" size="sm" tooltip="Deactivate" icon={<Trash2 className="h-4 w-4" />} disabled={m.status === 'INACTIVE'} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeactivateTarget(m); }} />
+                    <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(m); }} />
+                    <IconButton variant="ghost" size="sm" tooltip="បិទដំណើរការ" icon={<Trash2 className="h-4 w-4" />} disabled={m.status === 'INACTIVE'} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeactivateTarget(m); }} />
                   </div>
                 </div>
               </div>
@@ -415,23 +415,23 @@ export default function UtilityMeters() {
       <Modal
         open={createOpen || !!editTarget}
         onClose={() => { setCreateOpen(false); setEditTarget(null); }}
-        title={editTarget ? 'Edit Utility Meter' : 'Add Utility Meter'}
-        description={editTarget ? `Editing "${editTarget.meterNumber}"` : 'Register a meter on one of your properties.'}
+        title={editTarget ? 'កែប្រែម៉ែត្រប្រើប្រាស់' : 'បន្ថែមម៉ែត្រប្រើប្រាស់'}
+        description={editTarget ? `កំពុងកែប្រែ "${editTarget.meterNumber}"` : 'ចុះឈ្មោះម៉ែត្រនៅលើអចលនទ្រព្យណាមួយរបស់អ្នក។'}
         size="lg"
         footer={
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => { setCreateOpen(false); setEditTarget(null); }} disabled={submitting}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setCreateOpen(false); setEditTarget(null); }} disabled={submitting}>បោះបង់</Button>
             <Button type="submit" form="utilityMeterForm" onClick={() => document.getElementById('utilityMeterForm')?.requestSubmit()} loading={submitting}>
-              {editTarget ? 'Save Changes' : 'Add Meter'}
+              {editTarget ? 'រក្សាទុកការផ្លាស់ប្តូរ' : 'បន្ថែមម៉ែត្រ'}
             </Button>
           </div>
         }
       >
         <form id="utilityMeterForm" onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Select label="House" required name="houseId" options={houseOptions.filter((o) => o.value !== '')} value={form.houseId} onChange={handleFormChange} error={formErrors.houseId} />
+            <Select label="អចលនទ្រព្យ" required name="houseId" options={houseOptions.filter((o) => o.value !== '')} value={form.houseId} onChange={handleFormChange} error={formErrors.houseId} />
             <Select
-              label="Utility Type"
+              label="ប្រភេទប្រើប្រាស់"
               required
               name="utilityTypeId"
               options={types.map((t) => ({ value: String(t.id), label: t.name }))}
@@ -440,16 +440,16 @@ export default function UtilityMeters() {
               error={formErrors.utilityTypeId}
             />
           </div>
-          <Input label="Meter Number" required name="meterNumber" value={form.meterNumber} onChange={handleFormChange} placeholder="e.g., EL-001" error={formErrors.meterNumber} />
+          <Input label="លេខម៉ែត្រ" required name="meterNumber" value={form.meterNumber} onChange={handleFormChange} placeholder="ឧ. EL-001" error={formErrors.meterNumber} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Installed Date" type="date" name="installedAt" value={form.installedAt} onChange={handleFormChange} />
+            <Input label="កាលបរិច្ឆេទដំឡើង" type="date" name="installedAt" value={form.installedAt} onChange={handleFormChange} />
             <Select
-              label="Status"
+              label="ស្ថានភាព"
               name="status"
               options={[
-                { value: 'ACTIVE', label: 'Active' },
-                { value: 'INACTIVE', label: 'Inactive' },
-                { value: 'REPLACED', label: 'Replaced' },
+                { value: 'ACTIVE', label: 'សកម្ម' },
+                { value: 'INACTIVE', label: 'អសកម្ម' },
+                { value: 'REPLACED', label: 'បានជំនួស' },
               ]}
               value={form.status}
               onChange={handleFormChange}
@@ -458,7 +458,7 @@ export default function UtilityMeters() {
         </form>
       </Modal>
 
-      <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title="Utility Meter Details" size="md">
+      <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title="ព័ត៌មានលម្អិតម៉ែត្រប្រើប្រាស់" size="md">
         {viewTarget && (
           <div className="space-y-5">
             <div className="flex items-start justify-between">
@@ -475,10 +475,10 @@ export default function UtilityMeters() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <DetailItem icon={<Plug className="h-4 w-4 text-slate-400" />} label="Utility Type" value={getTypeName(viewTarget.utilityTypeId)} />
-              <DetailItem icon={<Building2 className="h-4 w-4 text-slate-400" />} label="House" value={getHouseName(viewTarget.houseId)} />
-              <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="Room ID" value={viewTarget.roomId || '—'} />
-              <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="Installed" value={formatDate(viewTarget.installedAt)} />
+              <DetailItem icon={<Plug className="h-4 w-4 text-slate-400" />} label="ប្រភេទប្រើប្រាស់" value={getTypeName(viewTarget.utilityTypeId)} />
+              <DetailItem icon={<Building2 className="h-4 w-4 text-slate-400" />} label="អចលនទ្រព្យ" value={getHouseName(viewTarget.houseId)} />
+              <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="លេខសម្គាល់បន្ទប់" value={viewTarget.roomId || '—'} />
+              <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="បានដំឡើង" value={formatDate(viewTarget.installedAt)} />
             </div>
           </div>
         )}
@@ -486,10 +486,10 @@ export default function UtilityMeters() {
 
       <ConfirmDialog
         open={!!deactivateTarget}
-        title="Deactivate Utility Meter"
-        description={`Are you sure you want to deactivate "${deactivateTarget?.meterNumber}"?`}
-        confirmText="Deactivate"
-        cancelText="Cancel"
+        title="បិទដំណើរការម៉ែត្រប្រើប្រាស់"
+        description={`តើអ្នកប្រាកដថាចង់បិទដំណើរការ "${deactivateTarget?.meterNumber}" មែនទេ?`}
+        confirmText="បិទដំណើរការ"
+        cancelText="បោះបង់"
         danger
         loading={deactivating}
         onConfirm={handleDeactivate}

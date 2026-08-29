@@ -40,9 +40,9 @@ const STATUS_VARIANT = {
 };
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' },
-  { value: 'ACTIVE', label: 'Active' },
-  { value: 'INACTIVE', label: 'Inactive' },
+  { value: '', label: 'ស្ថានភាពទាំងអស់' },
+  { value: 'ACTIVE', label: 'សកម្ម' },
+  { value: 'INACTIVE', label: 'អសកម្ម' },
 ];
 
 const EMPTY_FORM = {
@@ -129,12 +129,12 @@ export default function RoomTypes() {
   }, [roomTypes, searchTerm, statusFilter]);
 
   const getStatusBadge = (status) => (
-    <Badge variant={STATUS_VARIANT[status] || 'default'}>{status || '—'}</Badge>
+    <Badge variant={STATUS_VARIANT[status] || 'default'}>{STATUS_OPTIONS.find((o) => o.value === status)?.label || status || '—'}</Badge>
   );
 
   const columns = [
     {
-      header: 'Code',
+      header: 'លេខកូដ',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 font-mono text-sm text-slate-700 dark:text-slate-300">
           <Hash className="h-3.5 w-3.5 text-slate-400" />
@@ -143,22 +143,22 @@ export default function RoomTypes() {
       ),
     },
     {
-      header: 'Name',
+      header: 'ឈ្មោះ',
       render: (row) => (
         <span className="font-medium text-slate-800 dark:text-white">{row.name}</span>
       ),
     },
     {
-      header: 'Capacity',
+      header: 'សមត្ថភាព',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-sm">
           <UsersIcon className="h-4 w-4 text-slate-400" />
-          {row.capacity} people
+          {row.capacity} នាក់
         </span>
       ),
     },
     {
-      header: 'Default Rent',
+      header: 'តម្លៃជួលលំនាំដើម',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-sm">
           <DollarSign className="h-4 w-4 text-slate-400" />
@@ -167,7 +167,7 @@ export default function RoomTypes() {
       ),
     },
     {
-      header: 'Default Deposit',
+      header: 'ប្រាក់ដាក់ប្រាកដលំនាំដើម',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-sm">
           <Wallet className="h-4 w-4 text-slate-400" />
@@ -176,11 +176,11 @@ export default function RoomTypes() {
       ),
     },
     {
-      header: 'Status',
+      header: 'ស្ថានភាព',
       render: (row) => getStatusBadge(row.status),
     },
     {
-      header: 'Created',
+      header: 'បានបង្កើត',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
           <Calendar className="h-3.5 w-3.5" />
@@ -189,27 +189,27 @@ export default function RoomTypes() {
       ),
     },
     {
-      header: 'Actions',
+      header: 'សកម្មភាព',
       render: (row) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <IconButton
             variant="ghost"
             size="sm"
-            tooltip="View details"
+            tooltip="មើលព័ត៌មានលម្អិត"
             icon={<Eye className="h-4 w-4" />}
             onClick={() => setViewTarget(row)}
           />
           <IconButton
             variant="ghost"
             size="sm"
-            tooltip="Edit"
+            tooltip="កែប្រែ"
             icon={<Edit className="h-4 w-4" />}
             onClick={() => openEdit(row)}
           />
           <IconButton
             variant="ghost"
             size="sm"
-            tooltip="Delete"
+            tooltip="លុប"
             icon={<Trash2 className="h-4 w-4" />}
             className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
             onClick={() => setDeleteTarget(row)}
@@ -259,11 +259,11 @@ export default function RoomTypes() {
 
   const validateForm = () => {
     const errors = {};
-    if (!form.name.trim()) errors.name = 'Name is required';
-    if (!form.code.trim()) errors.code = 'Code is required';
-    if (!form.capacity || form.capacity < 1) errors.capacity = 'Capacity must be at least 1';
-    if (Number(form.defaultRent) < 0) errors.defaultRent = 'Rent cannot be negative';
-    if (Number(form.defaultDeposit) < 0) errors.defaultDeposit = 'Deposit cannot be negative';
+    if (!form.name.trim()) errors.name = 'តម្រូវឱ្យបញ្ចូលឈ្មោះ';
+    if (!form.code.trim()) errors.code = 'តម្រូវឱ្យបញ្ចូលលេខកូដ';
+    if (!form.capacity || form.capacity < 1) errors.capacity = 'សមត្ថភាពត្រូវតែយ៉ាងតិច ១';
+    if (Number(form.defaultRent) < 0) errors.defaultRent = 'ថ្លៃជួលមិនអាចជាលេខអវិជ្ជមានបានទេ';
+    if (Number(form.defaultDeposit) < 0) errors.defaultDeposit = 'ប្រាក់ដាក់ប្រាកដមិនអាចជាលេខអវិជ្ជមានបានទេ';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -286,11 +286,11 @@ export default function RoomTypes() {
     try {
       if (editTarget) {
         await updateRoomType(editTarget.id, payload);
-        toast.success('Room type updated', `"${payload.name}" has been updated.`);
+        toast.success('ប្រភេទបន្ទប់ត្រូវបានកែប្រែ', `"${payload.name}" ត្រូវបានកែប្រែ។`);
         setEditTarget(null);
       } else {
         await createRoomType(payload);
-        toast.success('Room type created', `"${payload.name}" has been created.`);
+        toast.success('ប្រភេទបន្ទប់ត្រូវបានបង្កើត', `"${payload.name}" ត្រូវបានបង្កើត។`);
         setCreateOpen(false);
       }
       resetForm();
@@ -298,11 +298,11 @@ export default function RoomTypes() {
       const message =
         err.response?.data?.message ||
         err.response?.data?.error ||
-        'Operation failed. Please try again.';
+        'ប្រតិបត្តិការបរាជ័យ។ សូមព្យាយាមម្តងទៀត។';
       if (message.toLowerCase().includes('code')) {
         setFormErrors({ code: message });
       } else {
-        toast.error('Error', message);
+        toast.error('កំហុស', message);
       }
     } finally {
       setSubmitting(false);
@@ -326,14 +326,14 @@ export default function RoomTypes() {
     setDeleting(true);
     try {
       await deleteRoomType(deleteTarget.id);
-      toast.success('Room type deleted', `"${deleteTarget.name}" has been removed.`);
+      toast.success('ប្រភេទបន្ទប់ត្រូវបានលុប', `"${deleteTarget.name}" ត្រូវបានលុប។`);
       setDeleteTarget(null);
     } catch (err) {
       const message =
         err.response?.data?.message ||
         err.response?.data?.error ||
-        'Failed to delete room type.';
-      toast.error('Delete failed', message);
+        'ការលុបប្រភេទបន្ទប់បរាជ័យ។';
+      toast.error('ការលុបបរាជ័យ', message);
     } finally {
       setDeleting(false);
     }
@@ -382,10 +382,10 @@ export default function RoomTypes() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">
-            Room Types
+            ប្រភេទបន្ទប់
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Manage room type configurations, pricing, and availability.
+            គ្រប់គ្រងការកំណត់រចនាសម្ព័ន្ធ តម្លៃ និងភាពអាចរកបាននៃប្រភេទបន្ទប់។
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -395,7 +395,7 @@ export default function RoomTypes() {
             leftIcon={<RefreshCw className="h-4 w-4" />}
             onClick={() => refresh()}
           >
-            Refresh
+            ធ្វើឱ្យស្រស់
           </Button>
           <Button
             variant="primary"
@@ -403,7 +403,7 @@ export default function RoomTypes() {
             leftIcon={<Plus className="h-4 w-4" />}
             onClick={handleCreateOpen}
           >
-            Create Room Type
+            បង្កើតប្រភេទបន្ទប់
           </Button>
         </div>
       </div>
@@ -411,7 +411,7 @@ export default function RoomTypes() {
       {error && (
         <Alert
           variant="danger"
-          title="Error loading room types"
+          title="កំហុសក្នុងការផ្ទុកប្រភេទបន្ទប់"
           description={error}
           dismissible
         >
@@ -422,7 +422,7 @@ export default function RoomTypes() {
               leftIcon={<RefreshCw className="h-4 w-4" />}
               onClick={() => refresh()}
             >
-              Retry
+              ព្យាយាមម្តងទៀត
             </Button>
           </div>
         </Alert>
@@ -432,27 +432,27 @@ export default function RoomTypes() {
       {roomTypes.length > 0 && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            label="Total"
+            label="សរុប"
             value={stats.total}
             icon={<Home className="h-5 w-5 text-slate-600 dark:text-slate-400" />}
             hover="hover:border-slate-300 dark:hover:border-gray-700"
           />
           <StatCard
-            label="Active"
+            label="សកម្ម"
             value={stats.active}
             valueClass="text-green-700 dark:text-green-400"
             icon={<CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />}
             hover="hover:border-green-300 dark:hover:border-green-800"
           />
           <StatCard
-            label="Inactive"
+            label="អសកម្ម"
             value={stats.inactive}
             valueClass="text-red-700 dark:text-red-400"
             icon={<XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />}
             hover="hover:border-red-300 dark:hover:border-red-800"
           />
           <StatCard
-            label="Avg. Capacity"
+            label="សមត្ថភាពមធ្យម"
             value={stats.avgCapacity}
             icon={<UsersIcon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />}
             hover="hover:border-indigo-300 dark:hover:border-indigo-800"
@@ -465,7 +465,7 @@ export default function RoomTypes() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex-1">
             <Input
-              placeholder="Search by name, code, or description..."
+              placeholder="ស្វែងរកតាមឈ្មោះ លេខកូដ ឬការពិពណ៌នា..."
               leftIcon={<Search className="h-4 w-4" />}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -486,7 +486,7 @@ export default function RoomTypes() {
               setStatusFilter('');
             }}
           >
-            Clear
+            សម្អាត
           </Button>
         </div>
       )}
@@ -495,19 +495,19 @@ export default function RoomTypes() {
       {!loading && roomTypes.length === 0 ? (
         <EmptyState
           icon={Home}
-          title="No room types yet"
-          description="Get started by creating your first room type."
+          title="មិនទាន់មានប្រភេទបន្ទប់ទេ"
+          description="ចាប់ផ្តើមដោយបង្កើតប្រភេទបន្ទប់ដំបូងរបស់អ្នក។"
           action={
             <Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>
-              Create Room Type
+              បង្កើតប្រភេទបន្ទប់
             </Button>
           }
         />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Filter}
-          title="No matches found"
-          description="Try adjusting your search or filter criteria."
+          title="រកមិនឃើញលទ្ធផលត្រូវនឹងលក្ខខណ្ឌទេ"
+          description="សូមព្យាយាមកែតម្រូវលក្ខខណ្ឌនៃការស្វែងរក ឬតម្រង។"
         />
       ) : (
         <>
@@ -533,7 +533,7 @@ export default function RoomTypes() {
                 <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                     <UsersIcon className="h-4 w-4 shrink-0 text-slate-400" />
-                    {rt.capacity} people
+                    {rt.capacity} នាក់
                   </div>
                   <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                     <DollarSign className="h-4 w-4 shrink-0 text-slate-400" />
@@ -552,7 +552,7 @@ export default function RoomTypes() {
                   <IconButton
                     variant="ghost"
                     size="sm"
-                    tooltip="Edit"
+                    tooltip="កែប្រែ"
                     icon={<Edit className="h-4 w-4" />}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -562,7 +562,7 @@ export default function RoomTypes() {
                   <IconButton
                     variant="ghost"
                     size="sm"
-                    tooltip="Delete"
+                    tooltip="លុប"
                     icon={<Trash2 className="h-4 w-4" />}
                     className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
                     onClick={(e) => {
@@ -592,8 +592,8 @@ export default function RoomTypes() {
       <Modal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        title="Create Room Type"
-        description="Configure a new room type for your properties."
+        title="បង្កើតប្រភេទបន្ទប់"
+        description="កំណត់ប្រភេទបន្ទប់ថ្មីសម្រាប់អចលនទ្រព្យរបស់អ្នក။"
         size="lg"
         footer={
           <div className="flex items-center gap-3">
@@ -602,7 +602,7 @@ export default function RoomTypes() {
               onClick={() => setCreateOpen(false)}
               disabled={submitting}
             >
-              Cancel
+              បោះបង់
             </Button>
             <Button
               type="submit"
@@ -610,7 +610,7 @@ export default function RoomTypes() {
               onClick={() => document.getElementById('roomTypeForm')?.requestSubmit()}
               loading={submitting}
             >
-              {submitting ? 'Creating...' : 'Create Room Type'}
+              {submitting ? 'កំពុងបង្កើត...' : 'បង្កើតប្រភេទបន្ទប់'}
             </Button>
           </div>
         }
@@ -628,13 +628,13 @@ export default function RoomTypes() {
       <Modal
         open={!!editTarget}
         onClose={() => setEditTarget(null)}
-        title="Edit Room Type"
-        description={editTarget ? `Editing "${editTarget.name}"` : undefined}
+        title="កែប្រែប្រភេទបន្ទប់"
+        description={editTarget ? `កំពុងកែប្រែ "${editTarget.name}"` : undefined}
         size="lg"
         footer={
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={() => setEditTarget(null)} disabled={submitting}>
-              Cancel
+              បោះបង់
             </Button>
             <Button
               type="submit"
@@ -642,7 +642,7 @@ export default function RoomTypes() {
               onClick={() => document.getElementById('editRoomTypeForm')?.requestSubmit()}
               loading={submitting}
             >
-              {submitting ? 'Saving...' : 'Save Changes'}
+              {submitting ? 'កំពុងរក្សាទុក...' : 'រក្សាទុកការផ្លាស់ប្តូរ'}
             </Button>
           </div>
         }
@@ -660,7 +660,7 @@ export default function RoomTypes() {
       <Modal
         open={!!viewTarget}
         onClose={() => setViewTarget(null)}
-        title="Room Type Details"
+        title="ព័ត៌មានលម្អិតនៃប្រភេទបន្ទប់"
         size="md"
       >
         {viewLoading ? (
@@ -686,27 +686,27 @@ export default function RoomTypes() {
 
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
               <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                Pricing & Config
+                តម្លៃ និងការកំណត់
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <DetailItem
                   icon={<UsersIcon className="h-4 w-4 text-slate-400" />}
-                  label="Capacity"
-                  value={`${viewData.capacity} people`}
+                  label="សមត្ថភាព"
+                  value={`${viewData.capacity} នាក់`}
                 />
                 <DetailItem
                   icon={<DollarSign className="h-4 w-4 text-slate-400" />}
-                  label="Default Rent"
+                  label="តម្លៃជួលលំនាំដើម"
                   value={formatCurrency(viewData.defaultRent)}
                 />
                 <DetailItem
                   icon={<Wallet className="h-4 w-4 text-slate-400" />}
-                  label="Default Deposit"
+                  label="ប្រាក់ដាក់ប្រាកដលំនាំដើម"
                   value={formatCurrency(viewData.defaultDeposit)}
                 />
                 <DetailItem
                   icon={<Hash className="h-4 w-4 text-slate-400" />}
-                  label="Owner ID"
+                  label="លេខសម្គាល់ម្ចាស់"
                   value={viewData.ownerId}
                 />
               </div>
@@ -715,7 +715,7 @@ export default function RoomTypes() {
             {viewData.description && (
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
                 <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  Description
+                  ការពិពណ៌នា
                 </p>
                 <p className="text-sm text-slate-700 dark:text-slate-300">
                   {viewData.description}
@@ -726,12 +726,12 @@ export default function RoomTypes() {
             <div className="grid grid-cols-2 gap-3">
               <DetailItem
                 icon={<Calendar className="h-4 w-4 text-slate-400" />}
-                label="Created"
+                label="បានបង្កើត"
                 value={formatDate(viewData.createdAt)}
               />
               <DetailItem
                 icon={<Calendar className="h-4 w-4 text-slate-400" />}
-                label="Updated"
+                label="បានធ្វើបច្ចុប្បន្នភាព"
                 value={formatDate(viewData.updatedAt)}
               />
             </div>
@@ -739,8 +739,8 @@ export default function RoomTypes() {
         ) : (
           <EmptyState
             icon={Home}
-            title="Room type not found"
-            description="Could not load room type details."
+            title="រកមិនឃើញប្រភេទបន្ទប់"
+            description="មិនអាចផ្ទុកព័ត៌មានលម្អិតនៃប្រភេទបន្ទប់បានទេ។"
           />
         )}
       </Modal>
@@ -748,10 +748,10 @@ export default function RoomTypes() {
       {/* Delete confirmation */}
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Delete Room Type"
-        description={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="លុបប្រភេទបន្ទប់"
+        description={`តើអ្នកប្រាកដថាចង់លុប "${deleteTarget?.name}"? សកម្មភាពនេះមិនអាចបញ្ឈប់បានទេ។`}
+        confirmText="លុប"
+        cancelText="បោះបង់"
         danger
         loading={deleting}
         onConfirm={handleDelete}
@@ -795,37 +795,37 @@ const RoomTypeForm = ({ id, form, errors, onChange, onSubmit }) => (
   <form id={id} onSubmit={onSubmit} className="space-y-4">
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <Input
-        label="Name"
+        label="ឈ្មោះ"
         required
         name="name"
         value={form.name}
         onChange={onChange}
-        placeholder="e.g., Deluxe Room"
+        placeholder="ឧ. Deluxe Room"
         error={errors.name}
       />
       <Input
-        label="Code"
+        label="លេខកូដ"
         required
         name="code"
         value={form.code}
         onChange={onChange}
-        placeholder="e.g., DLX-001"
+        placeholder="ឧ. DLX-001"
         error={errors.code}
       />
     </div>
 
     <Textarea
-      label="Description"
+      label="ការពិពណ៌នា"
       name="description"
       value={form.description}
       onChange={onChange}
-      placeholder="Describe the room type..."
+      placeholder="ពិពណ៌នាអំពីប្រភេទបន្ទប់..."
       rows={3}
     />
 
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <Input
-        label="Capacity"
+        label="សមត្ថភាព"
         required
         type="number"
         min="1"
@@ -835,7 +835,7 @@ const RoomTypeForm = ({ id, form, errors, onChange, onSubmit }) => (
         error={errors.capacity}
       />
       <Input
-        label="Default Rent ($)"
+        label="តម្លៃជួលលំនាំដើម ($)"
         type="number"
         step="0.01"
         min="0"
@@ -845,7 +845,7 @@ const RoomTypeForm = ({ id, form, errors, onChange, onSubmit }) => (
         error={errors.defaultRent}
       />
       <Input
-        label="Default Deposit ($)"
+        label="ប្រាក់ដាក់ប្រាកដលំនាំដើម ($)"
         type="number"
         step="0.01"
         min="0"
@@ -857,13 +857,13 @@ const RoomTypeForm = ({ id, form, errors, onChange, onSubmit }) => (
     </div>
 
     <Select
-      label="Status"
+      label="ស្ថានភាព"
       name="status"
       value={form.status}
       onChange={onChange}
       options={[
-        { value: 'ACTIVE', label: 'Active' },
-        { value: 'INACTIVE', label: 'Inactive' },
+        { value: 'ACTIVE', label: 'សកម្ម' },
+        { value: 'INACTIVE', label: 'អសកម្ម' },
       ]}
     />
   </form>

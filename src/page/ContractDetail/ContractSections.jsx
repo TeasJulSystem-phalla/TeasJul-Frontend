@@ -180,7 +180,7 @@ export const KhmerPartySection = ({ landlord, primaryTenant }) => (
 
 export const KhmerPropertySection = ({ contract, room, house, roomType }) => (
   <div className="mb-6">
-    <SectionTitle number="១" title="ព័ត៌មានអចលនទ្រព្យ" subtitle="Property Details" />
+    <SectionTitle number="១" title="ព័ត៌មានអចលនទ្រព្យ" subtitle="ព័ត៌មានលម្អិតអំពីអចលនទ្រព្យ" />
     <div className="rounded-lg border border-slate-300 overflow-hidden">
       <div className="p-4">
         <div className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-[14.5px]">
@@ -248,7 +248,7 @@ export const KhmerPropertySection = ({ contract, room, house, roomType }) => (
 
 export const KhmerAgreementSection = ({ contract, room, house, roomAmenities }) => (
   <div className="mb-6">
-    <SectionTitle number="២" title="លក្ខខណ្ឌកិច្ចសន្យា" subtitle="Terms & Conditions" />
+    <SectionTitle number="២" title="លក្ខខណ្ឌកិច្ចសន្យា" subtitle="លក្ខខណ្ឌ និងលក្ខខ័ន្ត" />
     <div className="rounded-lg border border-slate-300 p-5">
       <div className="space-y-3.5 text-[15px] leading-relaxed font-khmer">
         <div>
@@ -356,7 +356,7 @@ export const KhmerDepositSection = ({ deposits }) => {
 
   return (
     <div className="mb-6">
-      <SectionTitle number="៣" title="ព័ត៌មានប្រាក់កក់" subtitle="Deposit Information" />
+      <SectionTitle number="៣" title="ព័ត៌មានប្រាក់កក់" subtitle="ព័ត៌មានអំពីប្រាក់កក់" />
       <div className="rounded-lg border border-slate-300 overflow-hidden">
         <table className="w-full border-collapse text-left text-[13.5px] font-khmer">
           <thead>
@@ -396,7 +396,7 @@ export const KhmerDepositSection = ({ deposits }) => {
 
 export const KhmerSignatureSection = ({ landlord, primaryTenant, contract }) => (
   <div>
-    <SectionTitle number="៤" title="ហត្ថលេខា និង ស្នាមមេដៃ" subtitle="Signatures" />
+    <SectionTitle number="៤" title="ហត្ថលេខា និង ស្នាមមេដៃ" subtitle="ហត្ថលេខា" />
 
     <div className="rounded-lg border border-slate-300 p-5">
       <p className="text-[14px] text-center mb-2 font-khmer text-slate-600">

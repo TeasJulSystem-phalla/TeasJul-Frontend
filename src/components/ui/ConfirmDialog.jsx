@@ -3,10 +3,10 @@ import Modal from './Modal';
 
 const ConfirmDialog = ({
   open,
-  title = 'Confirm Action',
-  description = 'Are you sure you want to proceed?',
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  title = 'បញ្ជាក់សកម្មភាព',
+  description = 'តើអ្នកប្រាកដថាចង់បន្តឬ?',
+  confirmText = 'បញ្ជាក់',
+  cancelText = 'បោះបង់',
   onConfirm,
   onCancel,
   loading = false,

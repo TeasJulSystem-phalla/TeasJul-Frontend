@@ -38,9 +38,9 @@ const STATUS_VARIANT = {
 };
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' },
-  { value: 'ACTIVE', label: 'Active' },
-  { value: 'INACTIVE', label: 'Inactive' },
+  { value: '', label: 'ស្ថានភាពទាំងអស់' },
+  { value: 'ACTIVE', label: 'សកម្ម' },
+  { value: 'INACTIVE', label: 'អសកម្ម' },
 ];
 
 const EMPTY_FORM = {
@@ -101,8 +101,8 @@ export default function UtilityRates() {
 
   const houseOptions = useMemo(
     () => [
-      { value: '', label: 'All Houses' },
-      ...houses.map((h) => ({ value: String(h.id), label: h.name || `House #${h.id}` })),
+      { value: '', label: 'អចលនទ្រព្យទាំងអស់' },
+      ...houses.map((h) => ({ value: String(h.id), label: h.name || `អចលនទ្រព្យ #${h.id}` })),
     ],
     [houses]
   );
@@ -135,7 +135,7 @@ export default function UtilityRates() {
 
   const columns = [
     {
-      header: 'Utility Type',
+      header: 'ប្រភេទប្រើប្រាស់',
       render: (row) => (
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-600 dark:bg-teal-900/20 dark:text-teal-400">
@@ -143,13 +143,13 @@ export default function UtilityRates() {
           </span>
           <div>
             <p className="font-medium text-slate-800 dark:text-white">{getTypeName(row.utilityTypeId)}</p>
-            <p className="text-xs text-slate-400">Rate #{row.id}</p>
+            <p className="text-xs text-slate-400">តម្លៃ # {row.id}</p>
           </div>
         </div>
       ),
     },
     {
-      header: 'Rate',
+      header: 'តម្លៃ',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-800 dark:text-white">
           <DollarSign className="h-4 w-4 text-slate-400" />
@@ -158,7 +158,7 @@ export default function UtilityRates() {
       ),
     },
     {
-      header: 'House',
+      header: 'អចលនទ្រព្យ',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
           <Building2 className="h-4 w-4 text-slate-400" />
@@ -167,7 +167,7 @@ export default function UtilityRates() {
       ),
     },
     {
-      header: 'Effective',
+      header: 'មានប្រសិទ្ធភាព',
       render: (row) => (
         <span className="text-xs text-slate-500 dark:text-slate-400">
           {formatDate(row.effectiveFrom)} → {formatDate(row.effectiveTo)}
@@ -175,19 +175,19 @@ export default function UtilityRates() {
       ),
     },
     {
-      header: 'Status',
+      header: 'ស្ថានភាព',
       render: (row) => getStatusBadge(row.status),
     },
     {
-      header: 'Actions',
+      header: 'សកម្មភាព',
       render: (row) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <IconButton variant="ghost" size="sm" tooltip="View" icon={<Eye className="h-4 w-4" />} onClick={() => setViewTarget(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="Edit" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="មើល" icon={<Eye className="h-4 w-4" />} onClick={() => setViewTarget(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)} />
           <IconButton
             variant="ghost"
             size="sm"
-            tooltip={row.status === 'INACTIVE' ? 'Already inactive' : 'Deactivate'}
+            tooltip={row.status === 'INACTIVE' ? 'អសកម្មរួចហើយ' : 'បិទដំណើរការ'}
             icon={<Trash2 className="h-4 w-4" />}
             disabled={row.status === 'INACTIVE'}
             className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
@@ -229,10 +229,10 @@ export default function UtilityRates() {
 
   const validate = () => {
     const errs = {};
-    if (!form.houseId) errs.houseId = 'House is required';
-    if (!form.utilityTypeId) errs.utilityTypeId = 'Utility type is required';
-    if (form.rate === '' || Number(form.rate) < 0) errs.rate = 'Rate must not be negative';
-    if (!form.effectiveFrom) errs.effectiveFrom = 'Effective from is required';
+    if (!form.houseId) errs.houseId = 'អចលនទ្រព្យត្រូវបានទាមទារ';
+    if (!form.utilityTypeId) errs.utilityTypeId = 'ប្រភេទប្រើប្រាស់ត្រូវបានទាមទារ';
+    if (form.rate === '' || Number(form.rate) < 0) errs.rate = 'តម្លៃមិនត្រូវជាអវិជ្ជមានទេ';
+    if (!form.effectiveFrom) errs.effectiveFrom = 'កាលបរិច្ឆេទមានប្រសិទ្ធភាពចាប់ពីត្រូវបានទាមទារ';
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -254,16 +254,16 @@ export default function UtilityRates() {
     try {
       if (editTarget) {
         await updateRate(editTarget.id, payload);
-        toast.success('Utility rate updated', 'The rate has been updated.');
+        toast.success('តម្លៃប្រើប្រាស់ត្រូវបានកែប្រែ', 'តម្លៃត្រូវបានកែប្រែរួចរាល់។');
         setEditTarget(null);
       } else {
         await createRate(payload);
-        toast.success('Utility rate created', 'The rate has been created.');
+        toast.success('តម្លៃប្រើប្រាស់ត្រូវបានបង្កើត', 'តម្លៃត្រូវបានបង្កើតរួចរាល់។');
         setCreateOpen(false);
       }
       resetForm();
     } catch (err) {
-      toast.error('Error', err.response?.data?.message || err.response?.data?.error || 'Operation failed.');
+      toast.error('កំហុស', err.response?.data?.message || err.response?.data?.error || 'ប្រតិបត្តិការបរាជ័យ។');
     } finally {
       setSubmitting(false);
     }
@@ -274,10 +274,10 @@ export default function UtilityRates() {
     setDeactivating(true);
     try {
       await deactivateRate(deactivateTarget.id);
-      toast.success('Utility rate deactivated', 'The rate has been deactivated.');
+      toast.success('តម្លៃប្រើប្រាស់ត្រូវបានបិទដំណើរការ', 'តម្លៃត្រូវបានបិទដំណើរការរួចរាល់។');
       setDeactivateTarget(null);
     } catch (err) {
-      toast.error('Deactivate failed', err.response?.data?.message || err.response?.data?.error || 'Failed to deactivate rate.');
+      toast.error('ការបិទដំណើរការបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'បរាជ័យក្នុងការបិទដំណើរការតម្លៃ។');
     } finally {
       setDeactivating(false);
     }
@@ -316,21 +316,21 @@ export default function UtilityRates() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">Utility Rates</h1>
+          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">តម្លៃប្រើប្រាស់ទឹកភ្លើង</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Define the billing rate for each utility during a period.
+            កំណត់តម្លៃគិតថ្លៃសម្រាប់ការប្រើប្រាស់នីមួយៗក្នុងកំឡុងពេលជាក់លាក់។
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>Refresh</Button>
-          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>Add Rate</Button>
+          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>ធ្វើឱ្យស្រស់</Button>
+          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បន្ថែមតម្លៃ</Button>
         </div>
       </div>
 
       {error && (
-        <Alert variant="danger" title="Error loading utility rates" description={error} dismissible>
+        <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកតម្លៃប្រើប្រាស់" description={error} dismissible>
           <div className="mt-3">
-            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>Retry</Button>
+            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>ព្យាយាមម្តងទៀត</Button>
           </div>
         </Alert>
       )}
@@ -339,7 +339,7 @@ export default function UtilityRates() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex-1">
             <Input
-              placeholder="Search by type or house..."
+              placeholder="ស្វែងរកតាមប្រភេទ ឬអចលនទ្រព្យ..."
               leftIcon={<Search className="h-4 w-4" />}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -351,20 +351,20 @@ export default function UtilityRates() {
           <div className="w-full sm:w-40">
             <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} />
           </div>
-          <Button variant="outline" size="sm" onClick={applyFilters}>Apply</Button>
-          <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setHouseFilter(''); setStatusFilter(''); fetchRates({}); }}>Clear</Button>
+          <Button variant="outline" size="sm" onClick={applyFilters}>អនុវត្ត</Button>
+          <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setHouseFilter(''); setStatusFilter(''); fetchRates({}); }}>សម្អាត</Button>
         </div>
       )}
 
       {!loading && rates.length === 0 ? (
         <EmptyState
           icon={DollarSign}
-          title="No utility rates yet"
-          description="Create a rate to define how much each unit of utility costs."
-          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>Add Rate</Button>}
+          title="មិនទាន់មានតម្លៃប្រើប្រាស់"
+          description="បង្កើតតម្លៃ ដើម្បីកំណត់ថាការប្រើប្រាស់នីមួយៗត្រូវចំណាយប៉ុន្មាន។"
+          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បន្ថែមតម្លៃ</Button>}
         />
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Filter} title="No matches found" description="Try adjusting your search or filter criteria." />
+        <EmptyState icon={Filter} title="រកមិនឃើញទិន្នន័យ" description="សូមព្យាយាមកែតម្រូវការស្វែងរក ឬលក្ខខណ្ឌតម្រងរបស់អ្នក។" />
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:hidden">
@@ -388,8 +388,8 @@ export default function UtilityRates() {
                     {formatCurrency(r.rate)}
                   </span>
                   <div className="flex items-center gap-1">
-                    <IconButton variant="ghost" size="sm" tooltip="Edit" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(r); }} />
-                    <IconButton variant="ghost" size="sm" tooltip="Deactivate" icon={<Trash2 className="h-4 w-4" />} disabled={r.status === 'INACTIVE'} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeactivateTarget(r); }} />
+                    <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(r); }} />
+                    <IconButton variant="ghost" size="sm" tooltip="បិទដំណើរការ" icon={<Trash2 className="h-4 w-4" />} disabled={r.status === 'INACTIVE'} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeactivateTarget(r); }} />
                   </div>
                 </div>
               </div>
@@ -411,23 +411,23 @@ export default function UtilityRates() {
       <Modal
         open={createOpen || !!editTarget}
         onClose={() => { setCreateOpen(false); setEditTarget(null); }}
-        title={editTarget ? 'Edit Utility Rate' : 'Create Utility Rate'}
-        description={editTarget ? 'Update the details of this rate.' : 'Define the cost of a unit of utility for a period.'}
+        title={editTarget ? 'កែប្រែតម្លៃប្រើប្រាស់' : 'បង្កើតតម្លៃប្រើប្រាស់'}
+        description={editTarget ? 'កែតម្រូវព័ត៌មាននៃតម្លៃនេះ។' : 'កំណត់តម្លៃនៃការប្រើប្រាស់មួយឯកតាសម្រាប់កំឡុងពេលជាក់លាក់។'}
         size="lg"
         footer={
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => { setCreateOpen(false); setEditTarget(null); }} disabled={submitting}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setCreateOpen(false); setEditTarget(null); }} disabled={submitting}>បោះបង់</Button>
             <Button type="submit" form="rateForm" onClick={() => document.getElementById('rateForm')?.requestSubmit()} loading={submitting}>
-              {editTarget ? 'Save Changes' : 'Add Rate'}
+              {editTarget ? 'រក្សាទុកការផ្លាស់ប្តូរ' : 'បន្ថែមតម្លៃ'}
             </Button>
           </div>
         }
       >
         <form id="rateForm" onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Select label="House" required name="houseId" options={houseOptions.filter((o) => o.value !== '')} value={form.houseId} onChange={handleFormChange} error={formErrors.houseId} />
+            <Select label="អចលនទ្រព្យ" required name="houseId" options={houseOptions.filter((o) => o.value !== '')} value={form.houseId} onChange={handleFormChange} error={formErrors.houseId} />
             <Select
-              label="Utility Type"
+              label="ប្រភេទប្រើប្រាស់"
               required
               name="utilityTypeId"
               options={types.map((t) => ({ value: String(t.id), label: t.name }))}
@@ -436,17 +436,17 @@ export default function UtilityRates() {
               error={formErrors.utilityTypeId}
             />
           </div>
-          <Input label="Rate ($)" required type="number" step="0.01" min="0" name="rate" value={form.rate} onChange={handleFormChange} error={formErrors.rate} />
+          <Input label="តម្លៃ ($)" required type="number" step="0.01" min="0" name="rate" value={form.rate} onChange={handleFormChange} error={formErrors.rate} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Effective From" required type="date" name="effectiveFrom" value={form.effectiveFrom} onChange={handleFormChange} error={formErrors.effectiveFrom} />
-            <Input label="Effective To" type="date" name="effectiveTo" value={form.effectiveTo} onChange={handleFormChange} />
+            <Input label="មានប្រសិទ្ធភាពចាប់ពី" required type="date" name="effectiveFrom" value={form.effectiveFrom} onChange={handleFormChange} error={formErrors.effectiveFrom} />
+            <Input label="មានប្រសិទ្ធភាពរហូតដល់" type="date" name="effectiveTo" value={form.effectiveTo} onChange={handleFormChange} />
           </div>
           <Select
-            label="Status"
+            label="ស្ថានភាព"
             name="status"
             options={[
-              { value: 'ACTIVE', label: 'Active' },
-              { value: 'INACTIVE', label: 'Inactive' },
+              { value: 'ACTIVE', label: 'សកម្ម' },
+              { value: 'INACTIVE', label: 'អសកម្ម' },
             ]}
             value={form.status}
             onChange={handleFormChange}
@@ -454,7 +454,7 @@ export default function UtilityRates() {
         </form>
       </Modal>
 
-      <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title="Utility Rate Details" size="md">
+      <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title="ព័ត៌មានលម្អិតតម្លៃប្រើប្រាស់" size="md">
         {viewTarget && (
           <div className="space-y-5">
             <div className="flex items-start justify-between">
@@ -464,17 +464,17 @@ export default function UtilityRates() {
                 </span>
                 <div>
                   <p className="text-lg font-semibold text-slate-800 dark:text-white">{formatCurrency(viewTarget.rate)}</p>
-                  <p className="font-mono text-sm text-slate-500 dark:text-slate-400">Rate #{viewTarget.id}</p>
+                  <p className="font-mono text-sm text-slate-500 dark:text-slate-400">តម្លៃ # {viewTarget.id}</p>
                 </div>
               </div>
               {getStatusBadge(viewTarget.status)}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <DetailItem icon={<Plug className="h-4 w-4 text-slate-400" />} label="Utility Type" value={getTypeName(viewTarget.utilityTypeId)} />
-              <DetailItem icon={<Building2 className="h-4 w-4 text-slate-400" />} label="House" value={getHouseName(viewTarget.houseId)} />
-              <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="Effective From" value={formatDate(viewTarget.effectiveFrom)} />
-              <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="Effective To" value={formatDate(viewTarget.effectiveTo)} />
+              <DetailItem icon={<Plug className="h-4 w-4 text-slate-400" />} label="ប្រភេទប្រើប្រាស់" value={getTypeName(viewTarget.utilityTypeId)} />
+              <DetailItem icon={<Building2 className="h-4 w-4 text-slate-400" />} label="អចលនទ្រព្យ" value={getHouseName(viewTarget.houseId)} />
+              <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="មានប្រសិទ្ធភាពចាប់ពី" value={formatDate(viewTarget.effectiveFrom)} />
+              <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="មានប្រសិទ្ធភាពរហូតដល់" value={formatDate(viewTarget.effectiveTo)} />
             </div>
           </div>
         )}
@@ -482,10 +482,10 @@ export default function UtilityRates() {
 
       <ConfirmDialog
         open={!!deactivateTarget}
-        title="Deactivate Utility Rate"
-        description="Are you sure you want to deactivate this rate?"
-        confirmText="Deactivate"
-        cancelText="Cancel"
+        title="បិទដំណើរការតម្លៃប្រើប្រាស់"
+        description="តើអ្នកប្រាកដថាចង់បិទដំណើរការតម្លៃនេះមែនទេ?"
+        confirmText="បិទដំណើរការ"
+        cancelText="បោះបង់"
         danger
         loading={deactivating}
         onConfirm={handleDeactivate}

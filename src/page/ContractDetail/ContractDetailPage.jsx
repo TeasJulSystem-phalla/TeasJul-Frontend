@@ -47,7 +47,7 @@ const STATUS_VARIANT = {
 };
 
 const docTitle = (contract, ext = '') =>
-  `${contract?.contractNo || `Contract-${contract?.id}`}-Rental-Agreement${ext}`;
+  `${contract?.contractNo || `កិច្ចសន្យា-${contract?.id}`}-កិច្ចសន្យាជួលផ្ទះ${ext}`;
 
 export default function ContractDetailPage() {
   const { id } = useParams();
@@ -92,7 +92,7 @@ export default function ContractDetailPage() {
       setRoom(r);
     } catch (err) {
       setLoadError(
-        err.response?.data?.message || err.response?.data?.error || 'Failed to load contract.'
+        err.response?.data?.message || err.response?.data?.error || 'មិនអាចផ្ទុកកិច្ចសន្យាបានទេ។'
       );
     } finally {
       setLoading(false);
@@ -127,7 +127,7 @@ export default function ContractDetailPage() {
   const landlord = useMemo(() => {
     const name = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
     return {
-      name: name || user?.username || 'Property Owner',
+      name: name || user?.username || 'ម្ចាស់ផ្ទះ',
       email: user?.email,
       phone: user?.phone,
       gender: user?.gender,
@@ -205,17 +205,17 @@ export default function ContractDetailPage() {
           to="/contracts"
           className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
         >
-          <ArrowLeft className="h-4 w-4" /> Back to Contracts
+          <ArrowLeft className="h-4 w-4" /> ត្រឡប់ទៅកិច្ចសន្យា
         </Link>
         <EmptyState
           icon={FileText}
-          title="Unable to load contract"
+          title="មិនអាចផ្ទុកកិច្ចសន្យាបានទេ"
           description={loadError}
           action={
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={load}>Retry</Button>
+              <Button variant="outline" size="sm" onClick={load}>ព្យាយាមម្តងទៀត</Button>
               <Link to="/contracts">
-                <Button variant="primary" size="sm">Go to Contracts</Button>
+                <Button variant="primary" size="sm">ទៅកាន់កិច្ចសន្យា</Button>
               </Link>
             </div>
           }

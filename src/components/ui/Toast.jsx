@@ -91,7 +91,7 @@ export function ToastProvider({ children }) {
                 type="button"
                 onClick={() => removeToast(t.id)}
                 className="shrink-0 rounded p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                aria-label="Close"
+                aria-label="បិទ"
               >
                 <X className="h-4 w-4" />
               </button>

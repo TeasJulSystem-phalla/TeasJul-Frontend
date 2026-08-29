@@ -30,18 +30,18 @@ export const formatDateTime = (date) => {
 };
 
 export const CONTRACT_STATUS_LABEL = {
-  DRAFT: 'Draft',
-  ACTIVE: 'Active',
-  TERMINATED: 'Terminated',
-  EXPIRED: 'Expired',
-  CANCELLED: 'Cancelled',
+  DRAFT: 'សេចក្តីព្រាង',
+  ACTIVE: 'សកម្ម',
+  TERMINATED: 'បានបញ្ចប់',
+  EXPIRED: 'ផុតកំណត់',
+  CANCELLED: 'បានលុបចោល',
 };
 
 export const DEPOSIT_STATUS_LABEL = {
-  PENDING: 'Pending',
-  PAID: 'Paid',
-  REFUNDED: 'Refunded',
-  FORFEITED: 'Forfeited',
+  PENDING: 'កំពុងរង់ចាំ',
+  PAID: 'បានបង់',
+  REFUNDED: 'បានសងវិញ',
+  FORFEITED: 'បានបាត់បង់',
 };
 
 export const genderLabel = (gender) => {
@@ -72,5 +72,5 @@ export const fullName = (tenant) => {
 
 export const roomLabel = (room) => {
   if (!room) return '—';
-  return room.name || `Room ${room.roomNumber || room.id}`;
+  return room.name || `បន្ទប់ ${room.roomNumber || room.id}`;
 };

@@ -37,9 +37,9 @@ const STATUS_VARIANT = {
 };
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' },
-  { value: 'ACTIVE', label: 'Active' },
-  { value: 'INACTIVE', label: 'Inactive' },
+  { value: '', label: 'ស្ថានភាពទាំងអស់' },
+  { value: 'ACTIVE', label: 'សកម្ម' },
+  { value: 'INACTIVE', label: 'អសកម្ម' },
 ];
 
 const EMPTY_FORM = {
@@ -109,7 +109,7 @@ export default function UtilityTypes() {
 
   const columns = [
     {
-      header: 'Name',
+      header: 'ឈ្មោះ',
       render: (row) => (
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
@@ -123,7 +123,7 @@ export default function UtilityTypes() {
       ),
     },
     {
-      header: 'Unit',
+      header: 'ឯកតា',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
           <Scale className="h-4 w-4 text-slate-400" />
@@ -132,11 +132,11 @@ export default function UtilityTypes() {
       ),
     },
     {
-      header: 'Status',
+      header: 'ស្ថានភាព',
       render: (row) => getStatusBadge(row.status),
     },
     {
-      header: 'Created',
+      header: 'កាលបរិច្ឆេទបង្កើត',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
           <Calendar className="h-3.5 w-3.5" />
@@ -145,15 +145,15 @@ export default function UtilityTypes() {
       ),
     },
     {
-      header: 'Actions',
+      header: 'សកម្មភាព',
       render: (row) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <IconButton variant="ghost" size="sm" tooltip="View" icon={<Eye className="h-4 w-4" />} onClick={() => setViewTarget(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="Edit" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="មើល" icon={<Eye className="h-4 w-4" />} onClick={() => setViewTarget(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)} />
           <IconButton
             variant="ghost"
             size="sm"
-            tooltip={row.status === 'INACTIVE' ? 'Already inactive' : 'Deactivate'}
+            tooltip={row.status === 'INACTIVE' ? 'អសកម្មរួចហើយ' : 'បិទដំណើរការ'}
             icon={<Trash2 className="h-4 w-4" />}
             disabled={row.status === 'INACTIVE'}
             className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
@@ -188,9 +188,9 @@ export default function UtilityTypes() {
 
   const validate = () => {
     const errs = {};
-    if (!form.name.trim()) errs.name = 'Name is required';
-    if (!form.code.trim()) errs.code = 'Code is required';
-    if (!form.unit.trim()) errs.unit = 'Unit is required';
+    if (!form.name.trim()) errs.name = 'ឈ្មោះត្រូវបានទាមទារ';
+    if (!form.code.trim()) errs.code = 'កូដត្រូវបានទាមទារ';
+    if (!form.unit.trim()) errs.unit = 'ឯកតាត្រូវបានទាមទារ';
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -209,20 +209,20 @@ export default function UtilityTypes() {
     try {
       if (editTarget) {
         await updateType(editTarget.id, payload);
-        toast.success('Utility type updated', `"${payload.name}" has been updated.`);
+        toast.success('ប្រភេទប្រើប្រាស់ត្រូវបានកែប្រែ', `"${payload.name}" ត្រូវបានកែប្រែរួចរាល់។`);
         setEditTarget(null);
       } else {
         await createType(payload);
-        toast.success('Utility type created', `"${payload.name}" has been created.`);
+        toast.success('ប្រភេទប្រើប្រាស់ត្រូវបានបង្កើត', `"${payload.name}" ត្រូវបានបង្កើតរួចរាល់។`);
         setCreateOpen(false);
       }
       resetForm();
     } catch (err) {
-      const message = err.response?.data?.message || err.response?.data?.error || 'Operation failed.';
+      const message = err.response?.data?.message || err.response?.data?.error || 'ប្រតិបត្តិការបរាជ័យ។';
       if (/name|c/i.test(message)) {
         setFormErrors((prev) => ({ ...prev, code: message }));
       } else {
-        toast.error('Error', message);
+        toast.error('កំហុស', message);
       }
     } finally {
       setSubmitting(false);
@@ -234,10 +234,10 @@ export default function UtilityTypes() {
     setDeactivating(true);
     try {
       await deactivateType(deactivateTarget.id);
-      toast.success('Utility type deactivated', `"${deactivateTarget.name}" has been deactivated.`);
+      toast.success('ប្រភេទប្រើប្រាស់ត្រូវបានបិទដំណើរការ', `"${deactivateTarget.name}" ត្រូវបានបិទដំណើរការរួចរាល់។`);
       setDeactivateTarget(null);
     } catch (err) {
-      toast.error('Deactivate failed', err.response?.data?.message || err.response?.data?.error || 'Failed to deactivate utility type.');
+      toast.error('ការបិទដំណើរការបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'បរាជ័យក្នុងការបិទដំណើរការប្រភេទប្រើប្រាស់។');
     } finally {
       setDeactivating(false);
     }
@@ -276,21 +276,21 @@ export default function UtilityTypes() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">Utility Types</h1>
+          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">ប្រភេទប្រើប្រាស់ទឹកភ្លើង</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Manage the types of utilities (electricity, water, gas) you track.
+            គ្រប់គ្រងប្រភេទប្រើប្រាស់ទឹកភ្លើង (អគ្គិសនី ទឹក ហ្គាស) ដែលអ្នកតាមដាន។
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>Refresh</Button>
-          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>Create Type</Button>
+          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>ធ្វើឱ្យស្រស់</Button>
+          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតប្រភេទ</Button>
         </div>
       </div>
 
       {error && (
-        <Alert variant="danger" title="Error loading utility types" description={error} dismissible>
+        <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកប្រភេទប្រើប្រាស់" description={error} dismissible>
           <div className="mt-3">
-            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>Retry</Button>
+            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>ព្យាយាមម្តងទៀត</Button>
           </div>
         </Alert>
       )}
@@ -299,7 +299,7 @@ export default function UtilityTypes() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex-1">
             <Input
-              placeholder="Search by name, code, or unit..."
+              placeholder="ស្វែងរកតាមឈ្មោះ កូដ ឬឯកតា..."
               leftIcon={<Search className="h-4 w-4" />}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -307,22 +307,22 @@ export default function UtilityTypes() {
             />
           </div>
           <div className="w-full sm:w-48">
-            <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); }} placeholder="All Statuses" />
+            <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); }} placeholder="ស្ថានភាពទាំងអស់" />
           </div>
-          <Button variant="outline" size="sm" onClick={applyFilters}>Apply</Button>
-          <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter(''); fetchTypes({}); }}>Clear</Button>
+          <Button variant="outline" size="sm" onClick={applyFilters}>អនុវត្ត</Button>
+          <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter(''); fetchTypes({}); }}>សម្អាត</Button>
         </div>
       )}
 
       {!loading && types.length === 0 ? (
         <EmptyState
           icon={Zap}
-          title="No utility types yet"
-          description="Create your first utility type to start tracking meters and readings."
-          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>Create Type</Button>}
+          title="មិនទាន់មានប្រភេទប្រើប្រាស់"
+          description="បង្កើតប្រភេទប្រើប្រាស់ដំបូងរបស់អ្នក ដើម្បីចាប់ផ្តើមតាមដានម៉ែត្រ និងការអានម៉ែត្រ។"
+          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតប្រភេទ</Button>}
         />
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Filter} title="No matches found" description="Try adjusting your search or filter criteria." />
+        <EmptyState icon={Filter} title="រកមិនឃើញទិន្នន័យ" description="សូមព្យាយាមកែតម្រូវការស្វែងរក ឬលក្ខខណ្ឌតម្រងរបស់អ្នក។" />
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:hidden">
@@ -346,8 +346,8 @@ export default function UtilityTypes() {
                     {t.unit || '—'}
                   </span>
                   <div className="flex items-center gap-1">
-                    <IconButton variant="ghost" size="sm" tooltip="Edit" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(t); }} />
-                    <IconButton variant="ghost" size="sm" tooltip="Deactivate" icon={<Trash2 className="h-4 w-4" />} disabled={t.status === 'INACTIVE'} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeactivateTarget(t); }} />
+                    <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(t); }} />
+                    <IconButton variant="ghost" size="sm" tooltip="បិទដំណើរការ" icon={<Trash2 className="h-4 w-4" />} disabled={t.status === 'INACTIVE'} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeactivateTarget(t); }} />
                   </div>
                 </div>
               </div>
@@ -369,28 +369,28 @@ export default function UtilityTypes() {
       <Modal
         open={createOpen || !!editTarget}
         onClose={() => { setCreateOpen(false); setEditTarget(null); }}
-        title={editTarget ? 'Edit Utility Type' : 'Create Utility Type'}
-        description={editTarget ? `Editing "${editTarget.name}"` : 'Define a utility type you can track.'}
+        title={editTarget ? 'កែប្រែប្រភេទប្រើប្រាស់' : 'បង្កើតប្រភេទប្រើប្រាស់'}
+        description={editTarget ? `កំពុងកែប្រែ "${editTarget.name}"` : 'កំណត់ប្រភេទប្រើប្រាស់ទឹកភ្លើងដែលអ្នកអាចតាមដានបាន។'}
         size="md"
         footer={
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => { setCreateOpen(false); setEditTarget(null); }} disabled={submitting}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setCreateOpen(false); setEditTarget(null); }} disabled={submitting}>បោះបង់</Button>
             <Button type="submit" form="utilityTypeForm" onClick={() => document.getElementById('utilityTypeForm')?.requestSubmit()} loading={submitting}>
-              {editTarget ? 'Save Changes' : 'Create Type'}
+              {editTarget ? 'រក្សាទុកការផ្លាស់ប្តូរ' : 'បង្កើតប្រភេទ'}
             </Button>
           </div>
         }
       >
         <form id="utilityTypeForm" onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Name" required name="name" value={form.name} onChange={handleFormChange} placeholder="e.g., Electricity" error={formErrors.name} />
-            <Input label="Code" required name="code" value={form.code} onChange={handleFormChange} placeholder="e.g., ELECTRIC" error={formErrors.code} />
+            <Input label="ឈ្មោះ" required name="name" value={form.name} onChange={handleFormChange} placeholder="ឧ. អគ្គិសនី" error={formErrors.name} />
+            <Input label="កូដ" required name="code" value={form.code} onChange={handleFormChange} placeholder="ឧ. ELECTRIC" error={formErrors.code} />
           </div>
-          <Input label="Unit" required name="unit" value={form.unit} onChange={handleFormChange} placeholder="e.g., kWh, m³, m³" error={formErrors.unit} />
+          <Input label="ឯកតា" required name="unit" value={form.unit} onChange={handleFormChange} placeholder="ឧ. kWh, m³, m³" error={formErrors.unit} />
         </form>
       </Modal>
 
-      <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title="Utility Type Details" size="md">
+      <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title="ព័ត៌មានលម្អិតប្រភេទប្រើប្រាស់" size="md">
         {viewTarget && (
           <div className="space-y-5">
             <div className="flex items-start justify-between">
@@ -407,10 +407,10 @@ export default function UtilityTypes() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="Type ID" value={viewTarget.id} />
-              <DetailItem icon={<Scale className="h-4 w-4 text-slate-400" />} label="Unit" value={viewTarget.unit || '—'} />
-              <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="Created" value={formatDate(viewTarget.createdAt)} />
-              <DetailItem icon={<CheckCircle2 className="h-4 w-4 text-slate-400" />} label="Status" value={viewTarget.status} />
+              <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="លេខសម្គាល់ប្រភេទ" value={viewTarget.id} />
+              <DetailItem icon={<Scale className="h-4 w-4 text-slate-400" />} label="ឯកតា" value={viewTarget.unit || '—'} />
+              <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="កាលបរិច្ឆេទបង្កើត" value={formatDate(viewTarget.createdAt)} />
+              <DetailItem icon={<CheckCircle2 className="h-4 w-4 text-slate-400" />} label="ស្ថានភាព" value={viewTarget.status} />
             </div>
           </div>
         )}
@@ -418,10 +418,10 @@ export default function UtilityTypes() {
 
       <ConfirmDialog
         open={!!deactivateTarget}
-        title="Deactivate Utility Type"
-        description={`Are you sure you want to deactivate "${deactivateTarget?.name}"? Deactivated types can no longer be used for new meters.`}
-        confirmText="Deactivate"
-        cancelText="Cancel"
+        title="បិទដំណើរការប្រភេទប្រើប្រាស់"
+        description={`តើអ្នកប្រាកដថាចង់បិទដំណើរការ "${deactivateTarget?.name}" មែនទេ? ប្រភេទដែលបានបិទដំណើរការមិនអាចប្រើសម្រាប់ម៉ែត្រថ្មីបានទៀតទេ។`}
+        confirmText="បិទដំណើរការ"
+        cancelText="បោះបង់"
         danger
         loading={deactivating}
         onConfirm={handleDeactivate}

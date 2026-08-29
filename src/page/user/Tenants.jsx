@@ -52,22 +52,22 @@ const STATUS_VARIANT = {
 };
 
 const GENDER_OPTIONS = [
-  { value: 'MALE', label: 'Male' },
-  { value: 'FEMALE', label: 'Female' },
-  { value: 'OTHER', label: 'Other' },
+  { value: 'MALE', label: 'ប្រុស' },
+  { value: 'FEMALE', label: 'ស្រី' },
+  { value: 'OTHER', label: 'ផ្សេងទៀត' },
 ];
 
 const OCCUPATION_OPTIONS = [
-  { value: 'STUDENT', label: 'Student' },
-  { value: 'EMPLOYEE', label: 'Employee' },
-  { value: 'OTHER', label: 'Other' },
+  { value: 'STUDENT', label: 'សិស្ស' },
+  { value: 'EMPLOYEE', label: 'បុគ្គលិក' },
+  { value: 'OTHER', label: 'ផ្សេងទៀត' },
 ];
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' },
-  { value: 'ACTIVE', label: 'Active (Available)' },
-  { value: 'RENTING', label: 'Renting House' },
-  { value: 'INACTIVE', label: 'Inactive' },
+  { value: '', label: 'ស្ថានភាពទាំងអស់' },
+  { value: 'ACTIVE', label: 'សកម្ម (ទំនេរ)' },
+  { value: 'RENTING', label: 'កំពុងជួលផ្ទះ' },
+  { value: 'INACTIVE', label: 'អសកម្ម' },
 ];
 
 const EMPTY_FORM = {
@@ -100,7 +100,7 @@ const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
-const fullName = (t) => `${t.firstName || ''} ${t.lastName || ''}`.trim() || `Tenant #${t.id}`;
+const fullName = (t) => `${t.firstName || ''} ${t.lastName || ''}`.trim() || `អ្នកជួល #${t.id}`;
 
 export default function Tenants() {
   const {
@@ -168,14 +168,14 @@ export default function Tenants() {
     () =>
       users.map((u) => ({
         value: u.id,
-        label: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username || u.email || `User #${u.id}`,
+        label: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username || u.email || `អ្នកប្រើប្រាស់ #${u.id}`,
       })),
     [users]
   );
 
   const columns = [
     {
-      header: 'Tenant',
+      header: 'អ្នកជួល',
       render: (row) => (
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 dark:bg-gray-800 dark:text-slate-300">
@@ -189,7 +189,7 @@ export default function Tenants() {
       ),
     },
     {
-      header: 'Contact',
+      header: 'ទំនាក់ទំនង',
       render: (row) => (
         <div className="space-y-1">
           {row.phone && (
@@ -206,11 +206,11 @@ export default function Tenants() {
       ),
     },
     {
-      header: 'Gender',
+      header: 'ភេទ',
       render: (row) => <span className="text-sm text-slate-600 dark:text-slate-300">{row.gender || '—'}</span>,
     },
     {
-      header: 'Occupation',
+      header: 'មុខរបរ',
       render: (row) => (
         <div className="space-y-0.5">
           <span className="text-sm text-slate-600 dark:text-slate-300">
@@ -225,11 +225,11 @@ export default function Tenants() {
       ),
     },
     {
-      header: 'Status',
+      header: 'ស្ថានភាព',
       render: (row) => getStatusBadge(row.status),
     },
     {
-      header: 'Created',
+      header: 'កាលបរិច្ឆេទបង្កើត',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
           <Calendar className="h-3.5 w-3.5" />
@@ -238,14 +238,14 @@ export default function Tenants() {
       ),
     },
     {
-      header: 'Actions',
+      header: 'សកម្មភាព',
       render: (row) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <IconButton variant="ghost" size="sm" tooltip="View" icon={<Eye className="h-4 w-4" />} onClick={() => openView(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="Edit" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="Contacts" icon={<Contact className="h-4 w-4" />} onClick={() => setContactTarget(row)} disabled={row.status !== 'ACTIVE'} />
+          <IconButton variant="ghost" size="sm" tooltip="មើល" icon={<Eye className="h-4 w-4" />} onClick={() => openView(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="ទំនាក់ទំនង" icon={<Contact className="h-4 w-4" />} onClick={() => setContactTarget(row)} disabled={row.status !== 'ACTIVE'} />
           {row.status === 'ACTIVE' && (
-            <IconButton variant="ghost" size="sm" tooltip="Deactivate" icon={<Power className="h-4 w-4" />} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300" onClick={() => setDeactivateTarget(row)} />
+            <IconButton variant="ghost" size="sm" tooltip="បិទដំណើរការ" icon={<Power className="h-4 w-4" />} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300" onClick={() => setDeactivateTarget(row)} />
           )}
         </div>
       ),
@@ -292,11 +292,11 @@ export default function Tenants() {
 
   const validate = () => {
     const errs = {};
-    if (!form.userId) errs.userId = 'User is required';
-    if (!form.firstName.trim()) errs.firstName = 'First name is required';
-    if (!form.lastName.trim()) errs.lastName = 'Last name is required';
-    if (!form.phone.trim()) errs.phone = 'Phone is required';
-    if (!editTarget && !form.tenantCode.trim()) errs.tenantCode = 'Tenant code is required';
+    if (!form.userId) errs.userId = 'តម្រូវឱ្យជ្រើសរើសអ្នកប្រើប្រាស់';
+    if (!form.firstName.trim()) errs.firstName = 'តម្រូវឱ្យបញ្ចូលនាមត្រកូល';
+    if (!form.lastName.trim()) errs.lastName = 'តម្រូវឱ្យបញ្ចូលគោត្តនាម';
+    if (!form.phone.trim()) errs.phone = 'តម្រូវឱ្យបញ្ចូលលេខទូរស័ព្ទ';
+    if (!editTarget && !form.tenantCode.trim()) errs.tenantCode = 'តម្រូវឱ្យបញ្ចូលលេខកូដអ្នកជួល';
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -324,16 +324,16 @@ export default function Tenants() {
     try {
       if (editTarget) {
         await updateTenant(editTarget.id, base);
-        toast.success('Tenant updated', `${fullName({ ...form, id: editTarget.id })} has been updated.`);
+        toast.success('បានកែប្រែអ្នកជួល', `${fullName({ ...form, id: editTarget.id })} ត្រូវបានធ្វើបច្ចុប្បន្នភាព។`);
         setEditTarget(null);
       } else {
         await createTenant({ ...base, userId: Number(form.userId), tenantCode: form.tenantCode.trim() });
-        toast.success('Tenant created', 'New tenant has been added.');
+        toast.success('បានបង្កើតអ្នកជួល', 'បានបន្ថែមអ្នកជួលថ្មី។');
         setCreateOpen(false);
       }
       resetForm();
     } catch (err) {
-      toast.error('Error', err.response?.data?.message || err.response?.data?.error || 'Operation failed.');
+      toast.error('កំហុស', err.response?.data?.message || err.response?.data?.error || 'ប្រតិបត្តិការបានបរាជ័យ។');
     } finally {
       setSubmitting(false);
     }
@@ -358,10 +358,10 @@ export default function Tenants() {
     setDeactivating(true);
     try {
       await deactivateTenant(deactivateTarget.id);
-      toast.success('Tenant deactivated', `${fullName(deactivateTarget)} has been marked inactive.`);
+      toast.success('បានបិទដំណើរការអ្នកជួល', `${fullName(deactivateTarget)} ត្រូវបានកំណត់ជាអសកម្ម។`);
       setDeactivateTarget(null);
     } catch (err) {
-      toast.error('Deactivation failed', err.response?.data?.message || err.response?.data?.error || 'Failed to deactivate tenant.');
+      toast.error('ការបិទដំណើរការបានបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'ការបិទដំណើរការអ្នកជួលបានបរាជ័យ។');
     } finally {
       setDeactivating(false);
     }
@@ -405,21 +405,21 @@ export default function Tenants() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">Tenants</h1>
+          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">អ្នកជួល</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Manage tenant profiles and their emergency contacts.
+            គ្រប់គ្រងប្រវត្តិរូបអ្នកជួល និងទំនាក់ទំនងសង្គ្រោះបន្ទាន់របស់ពួកគេ។
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>Refresh</Button>
-          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>Create Tenant</Button>
+          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>ផ្ទុកឡើងវិញ</Button>
+          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតអ្នកជួល</Button>
         </div>
       </div>
 
       {error && (
-        <Alert variant="danger" title="Error loading tenants" description={error} dismissible>
+        <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកអ្នកជួល" description={error} dismissible>
           <div className="mt-3">
-            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>Retry</Button>
+            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>ព្យាយាមម្តងទៀត</Button>
           </div>
         </Alert>
       )}
@@ -427,9 +427,9 @@ export default function Tenants() {
       {/* Stats */}
       {tenants.length > 0 && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <StatCard label="Total Tenants" value={stats.total} icon={<UsersIcon className="h-5 w-5 text-slate-600 dark:text-slate-400" />} />
-          <StatCard label="Active" value={stats.active} icon={<CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />} valueClass="text-green-700 dark:text-green-400" />
-          <StatCard label="Inactive" value={stats.inactive} icon={<XCircle className="h-5 w-5 text-slate-600 dark:text-slate-400" />} />
+          <StatCard label="ចំនួនអ្នកជួលសរុប" value={stats.total} icon={<UsersIcon className="h-5 w-5 text-slate-600 dark:text-slate-400" />} />
+          <StatCard label="សកម្ម" value={stats.active} icon={<CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />} valueClass="text-green-700 dark:text-green-400" />
+          <StatCard label="អសកម្ម" value={stats.inactive} icon={<XCircle className="h-5 w-5 text-slate-600 dark:text-slate-400" />} />
         </div>
       )}
 
@@ -437,25 +437,25 @@ export default function Tenants() {
       {tenants.length > 0 && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex-1">
-            <Input placeholder="Search by name, code, phone, or email..." leftIcon={<Search className="h-4 w-4" />} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <Input placeholder="ស្វែងរកតាមឈ្មោះ លេខកូដ លេខទូរស័ព្ទ ឬអ៊ីមែល..." leftIcon={<Search className="h-4 w-4" />} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
           <div className="w-full sm:w-48">
-            <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} placeholder="All Statuses" />
+            <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} placeholder="ស្ថានភាពទាំងអស់" />
           </div>
-          <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter(''); }}>Clear</Button>
+          <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter(''); }}>សម្អាត</Button>
         </div>
       )}
 
       {/* Content */}
       {!loading && tenants.length === 0 ? (
-        <EmptyState
+<EmptyState
           icon={UsersIcon}
-          title="No tenants yet"
-          description="Create your first tenant profile to get started."
-          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>Create Tenant</Button>}
+          title="មិនទាន់មានអ្នកជួល"
+          description="បង្កើតប្រវត្តិរូបអ្នកជួលដំបូងរបស់អ្នក ដើម្បីចាប់ផ្តើម។"
+          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតអ្នកជួល</Button>}
         />
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Filter} title="No matches found" description="Try adjusting your search or filter criteria." />
+        <EmptyState icon={Filter} title="រកមិនឃើញលទ្ធផល" description="សូមព្យាយាមកែតម្រូវលក្ខណៈវិនិច្ឆ័យស្វែងរក ឬតម្រងរបស់អ្នក។" />
       ) : (
         <>
           {/* Mobile cards */}
@@ -483,10 +483,10 @@ export default function Tenants() {
                   )}
                 </div>
                 <div className="mt-4 flex items-center gap-1 border-t border-slate-100 pt-3 dark:border-gray-800">
-                  <IconButton variant="ghost" size="sm" tooltip="Edit" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(t); }} />
-                  <IconButton variant="ghost" size="sm" tooltip="Contacts" icon={<Contact className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); setContactTarget(t); }} disabled={t.status !== 'ACTIVE'} />
+                  <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(t); }} />
+                  <IconButton variant="ghost" size="sm" tooltip="ទំនាក់ទំនង" icon={<Contact className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); setContactTarget(t); }} disabled={t.status !== 'ACTIVE'} />
                   {t.status === 'ACTIVE' && (
-                    <IconButton variant="ghost" size="sm" tooltip="Deactivate" icon={<Power className="h-4 w-4" />} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeactivateTarget(t); }} />
+                    <IconButton variant="ghost" size="sm" tooltip="បិទដំណើរការ" icon={<Power className="h-4 w-4" />} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeactivateTarget(t); }} />
                   )}
                 </div>
               </div>
@@ -504,68 +504,68 @@ export default function Tenants() {
       <Modal
         open={createOpen || !!editTarget}
         onClose={() => { setCreateOpen(false); setEditTarget(null); }}
-        title={editTarget ? 'Edit Tenant' : 'Create Tenant'}
-        description={editTarget ? `Editing ${fullName(editTarget)}` : 'Add a new tenant profile.'}
+        title={editTarget ? 'កែប្រែអ្នកជួល' : 'បង្កើតអ្នកជួល'}
+        description={editTarget ? `កំពុងកែប្រែ ${fullName(editTarget)}` : 'បន្ថែមប្រវត្តិរូបអ្នកជួលថ្មី។'}
         size="lg"
         footer={
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => { setCreateOpen(false); setEditTarget(null); }} disabled={submitting}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setCreateOpen(false); setEditTarget(null); }} disabled={submitting}>បោះបង់</Button>
             <Button type="submit" form="tenantForm" onClick={() => document.getElementById('tenantForm')?.requestSubmit()} loading={submitting}>
-              {editTarget ? 'Save Changes' : 'Create Tenant'}
+              {editTarget ? 'រក្សាទុកការផ្លាស់ប្តូរ' : 'បង្កើតអ្នកជួល'}
             </Button>
           </div>
         }
       >
         <form id="tenantForm" onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Account</p>
+            <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">គណនី</p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {editTarget ? (
-                <Input label="Tenant Code" disabled value={form.tenantCode} />
+                <Input label="លេខកូដអ្នកជួល" disabled value={form.tenantCode} />
               ) : (
-                <Input label="Tenant Code" required name="tenantCode" value={form.tenantCode} onChange={handleFormChange} placeholder="e.g., TN-0001" error={formErrors.tenantCode} />
+                <Input label="លេខកូដអ្នកជួល" required name="tenantCode" value={form.tenantCode} onChange={handleFormChange} placeholder="ឧ. TN-0001" error={formErrors.tenantCode} />
               )}
               <Select
-                label="User Account"
+                label="គណនីអ្នកប្រើប្រាស់"
                 required={!editTarget}
                 name="userId"
                 options={userOptions}
                 value={form.userId}
                 onChange={handleFormChange}
-                placeholder={editTarget ? 'Not changeable' : 'Select a user'}
+                placeholder={editTarget ? 'មិនអាចផ្លាស់ប្តូរបានទេ' : 'ជ្រើសរើសអ្នកប្រើប្រាស់'}
                 error={formErrors.userId}
               />
             </div>
           </div>
 
           <div>
-            <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Personal Information</p>
+            <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">ព័ត៌មានផ្ទាល់ខ្លួន</p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input label="First Name" required name="firstName" value={form.firstName} onChange={handleFormChange} error={formErrors.firstName} />
-              <Input label="Last Name" required name="lastName" value={form.lastName} onChange={handleFormChange} error={formErrors.lastName} />
-              <Select label="Gender" name="gender" options={GENDER_OPTIONS} value={form.gender} onChange={handleFormChange} />
-              <Input label="Date of Birth" type="date" name="dateOfBirth" value={form.dateOfBirth} onChange={handleFormChange} />
-              <Input label="Phone" required name="phone" value={form.phone} onChange={handleFormChange} placeholder="e.g., 0812-3456-789" error={formErrors.phone} />
-              <Input label="Email" type="email" name="email" value={form.email} onChange={handleFormChange} placeholder="email@example.com" />
-              <Select label="Occupation Type" name="occupationType" options={OCCUPATION_OPTIONS} value={form.occupationType} onChange={handleFormChange} />
-              <Input label="Occupation" name="occupation" value={form.occupation} onChange={handleFormChange} placeholder="e.g., Software Engineer" />
+              <Input label="នាមត្រកូល" required name="firstName" value={form.firstName} onChange={handleFormChange} error={formErrors.firstName} />
+              <Input label="គោត្តនាម" required name="lastName" value={form.lastName} onChange={handleFormChange} error={formErrors.lastName} />
+              <Select label="ភេទ" name="gender" options={GENDER_OPTIONS} value={form.gender} onChange={handleFormChange} />
+              <Input label="ថ្ងៃខែឆ្នាំកំណើត" type="date" name="dateOfBirth" value={form.dateOfBirth} onChange={handleFormChange} />
+              <Input label="លេខទូរស័ព្ទ" required name="phone" value={form.phone} onChange={handleFormChange} placeholder="ឧ. 0812-3456-789" error={formErrors.phone} />
+              <Input label="អ៊ីមែល" type="email" name="email" value={form.email} onChange={handleFormChange} placeholder="email@example.com" />
+              <Select label="ប្រភេទមុខរបរ" name="occupationType" options={OCCUPATION_OPTIONS} value={form.occupationType} onChange={handleFormChange} />
+              <Input label="មុខរបរ" name="occupation" value={form.occupation} onChange={handleFormChange} placeholder="ឧ. វិស្វករកម្មវិធី" />
             </div>
           </div>
 
           <div>
-            <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">School / Company</p>
+            <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">សាលារៀន / ក្រុមហ៊ុន</p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input label="School or Company" name="schoolOrCompany" value={form.schoolOrCompany} onChange={handleFormChange} />
-              <Input label="ID Type" name="idType" value={form.idType} onChange={handleFormChange} placeholder="e.g., NIK, Passport" />
-              <Input label="ID Number" name="idNumber" value={form.idNumber} onChange={handleFormChange} />
-              <Textarea label="Address" name="address" value={form.address} onChange={handleFormChange} rows={2} placeholder="Current address..." />
+              <Input label="សាលារៀន ឬក្រុមហ៊ុន" name="schoolOrCompany" value={form.schoolOrCompany} onChange={handleFormChange} />
+              <Input label="ប្រភេទអត្តសញ្ញាណប័ណ្ណ" name="idType" value={form.idType} onChange={handleFormChange} placeholder="ឧ. NIK លិខិតឆ្លងដែន" />
+              <Input label="លេខអត្តសញ្ញាណប័ណ្ណ" name="idNumber" value={form.idNumber} onChange={handleFormChange} />
+              <Textarea label="អាសយដ្ឋាន" name="address" value={form.address} onChange={handleFormChange} rows={2} placeholder="អាសយដ្ឋានបច្ចុប្បន្ន..." />
             </div>
           </div>
         </form>
       </Modal>
 
       {/* View modal */}
-      <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title="Tenant Details" description={viewData ? `Tenant ${viewData.tenantCode}` : undefined} size="lg">
+      <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title="ព័ត៌មានលម្អិតអ្នកជួល" description={viewData ? `អ្នកជួល ${viewData.tenantCode}` : undefined} size="lg">
         {viewLoading && !viewData ? (
           <div className="space-y-4">
             <Skeleton className="h-10 w-56" />
@@ -588,43 +588,43 @@ export default function Tenants() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" leftIcon={<Edit className="h-4 w-4" />} onClick={() => { openEdit(viewData); setViewTarget(null); }}>Edit</Button>
-              <Button variant="outline" size="sm" leftIcon={<Contact className="h-4 w-4" />} onClick={() => { setContactTarget(viewData); setViewTarget(null); }} disabled={viewData.status !== 'ACTIVE'}>Emergency Contacts</Button>
+              <Button variant="outline" size="sm" leftIcon={<Edit className="h-4 w-4" />} onClick={() => { openEdit(viewData); setViewTarget(null); }}>កែប្រែ</Button>
+              <Button variant="outline" size="sm" leftIcon={<Contact className="h-4 w-4" />} onClick={() => { setContactTarget(viewData); setViewTarget(null); }} disabled={viewData.status !== 'ACTIVE'}>ទំនាក់ទំនងសង្គ្រោះបន្ទាន់</Button>
               {viewData.status === 'ACTIVE' && (
-                <Button variant="danger" size="sm" leftIcon={<Power className="h-4 w-4" />} onClick={() => { setDeactivateTarget(viewData); setViewTarget(null); }}>Deactivate</Button>
+                <Button variant="danger" size="sm" leftIcon={<Power className="h-4 w-4" />} onClick={() => { setDeactivateTarget(viewData); setViewTarget(null); }}>បិទដំណើរការ</Button>
               )}
             </div>
 
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
-              <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Contact</p>
+              <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">ទំនាក់ទំនង</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <DetailItem icon={<Phone className="h-4 w-4 text-slate-400" />} label="Phone" value={viewData.phone || '—'} />
-                <DetailItem icon={<Mail className="h-4 w-4 text-slate-400" />} label="Email" value={viewData.email || '—'} />
-                <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="Date of Birth" value={formatDate(viewData.dateOfBirth)} />
-                <DetailItem icon={<MapPin className="h-4 w-4 text-slate-400" />} label="Address" value={viewData.address || '—'} />
+                <DetailItem icon={<Phone className="h-4 w-4 text-slate-400" />} label="លេខទូរស័ព្ទ" value={viewData.phone || '—'} />
+                <DetailItem icon={<Mail className="h-4 w-4 text-slate-400" />} label="អ៊ីមែល" value={viewData.email || '—'} />
+                <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="ថ្ងៃខែឆ្នាំកំណើត" value={formatDate(viewData.dateOfBirth)} />
+                <DetailItem icon={<MapPin className="h-4 w-4 text-slate-400" />} label="អាសយដ្ឋាន" value={viewData.address || '—'} />
               </div>
             </div>
 
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
-              <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Occupation</p>
+              <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">មុខរបរ</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <DetailItem icon={<Briefcase className="h-4 w-4 text-slate-400" />} label="Occupation Type" value={viewData.occupationType ? viewData.occupationType.charAt(0) + viewData.occupationType.slice(1).toLowerCase() : '—'} />
-                <DetailItem icon={<GraduationCap className="h-4 w-4 text-slate-400" />} label="Occupation" value={viewData.occupation || '—'} />
-                <DetailItem icon={<School className="h-4 w-4 text-slate-400" />} label="School / Company" value={viewData.schoolOrCompany || '—'} />
+                <DetailItem icon={<Briefcase className="h-4 w-4 text-slate-400" />} label="ប្រភេទមុខរបរ" value={viewData.occupationType ? viewData.occupationType.charAt(0) + viewData.occupationType.slice(1).toLowerCase() : '—'} />
+                <DetailItem icon={<GraduationCap className="h-4 w-4 text-slate-400" />} label="មុខរបរ" value={viewData.occupation || '—'} />
+                <DetailItem icon={<School className="h-4 w-4 text-slate-400" />} label="សាលារៀន / ក្រុមហ៊ុន" value={viewData.schoolOrCompany || '—'} />
               </div>
             </div>
 
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
-              <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Identification</p>
+              <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">អត្តសញ្ញាណប័ណ្ណ</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <DetailItem icon={<IdCard className="h-4 w-4 text-slate-400" />} label="ID Type" value={viewData.idType || '—'} />
-                <DetailItem icon={<CreditCard className="h-4 w-4 text-slate-400" />} label="ID Number" value={viewData.idNumber || '—'} />
+                <DetailItem icon={<IdCard className="h-4 w-4 text-slate-400" />} label="ប្រភេទអត្តសញ្ញាណប័ណ្ណ" value={viewData.idType || '—'} />
+                <DetailItem icon={<CreditCard className="h-4 w-4 text-slate-400" />} label="លេខអត្តសញ្ញាណប័ណ្ណ" value={viewData.idNumber || '—'} />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="Tenant ID" value={viewData.id} />
-              <DetailItem icon={<ShieldCheck className="h-4 w-4 text-slate-400" />} label="User ID" value={viewData.userId ?? '—'} />
+              <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="លេខសម្គាល់អ្នកជួល" value={viewData.id} />
+              <DetailItem icon={<ShieldCheck className="h-4 w-4 text-slate-400" />} label="លេខសម្គាល់អ្នកប្រើប្រាស់" value={viewData.userId ?? '—'} />
             </div>
           </div>
         ) : null}
@@ -636,10 +636,10 @@ export default function Tenants() {
       {/* Deactivate */}
       <ConfirmDialog
         open={!!deactivateTarget}
-        title="Deactivate Tenant"
-        description={`Are you sure you want to deactivate "${deactivateTarget ? fullName(deactivateTarget) : ''}"? This will mark the tenant as inactive.`}
-        confirmText="Deactivate"
-        cancelText="Cancel"
+        title="បិទដំណើរការអ្នកជួល"
+        description={`តើអ្នកប្រាកដទេថាចង់បិទដំណើរការ "${deactivateTarget ? fullName(deactivateTarget) : ''}"? នេះនឹងកំណត់អ្នកជួលជាអសកម្ម។`}
+        confirmText="បិទដំណើរការ"
+        cancelText="បោះបង់"
         danger
         loading={deactivating}
         onConfirm={handleDeactivate}
@@ -700,8 +700,8 @@ const EmergencyContactsManager = ({ tenant, onClose }) => {
 
   const validate = () => {
     const errs = {};
-    if (!form.name.trim()) errs.name = 'Name is required';
-    if (!form.phone.trim()) errs.phone = 'Phone is required';
+    if (!form.name.trim()) errs.name = 'តម្រូវឱ្យបញ្ចូលឈ្មោះ';
+    if (!form.phone.trim()) errs.phone = 'តម្រូវឱ្យបញ្ចូលលេខទូរស័ព្ទ';
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -720,15 +720,15 @@ const EmergencyContactsManager = ({ tenant, onClose }) => {
     try {
       if (editContact) {
         await updateContact(editContact.id, payload);
-        toast.success('Contact updated', `"${payload.name}" has been updated.`);
+        toast.success('បានកែប្រែទំនាក់ទំនង', `"${payload.name}" ត្រូវបានធ្វើបច្ចុប្បន្នភាព។`);
       } else {
         await createContact(payload);
-        toast.success('Contact added', `"${payload.name}" added to emergency contacts.`);
+        toast.success('បានបន្ថែមទំនាក់ទំនង', `"${payload.name}" ត្រូវបានបន្ថែមទៅក្នុងទំនាក់ទំនងសង្គ្រោះបន្ទាន់។`);
       }
       setContactOpen(false);
       resetForm();
     } catch (err) {
-      toast.error('Error', err.response?.data?.message || err.response?.data?.error || 'Failed to save contact.');
+      toast.error('កំហុស', err.response?.data?.message || err.response?.data?.error || 'ការរក្សាទុកទំនាក់ទំនងបានបរាជ័យ។');
     } finally {
       setSubmitting(false);
     }
@@ -739,10 +739,10 @@ const EmergencyContactsManager = ({ tenant, onClose }) => {
     setDeleting(true);
     try {
       await deleteContact(deleteTarget.id);
-      toast.success('Contact deleted', `"${deleteTarget.name}" has been removed.`);
+      toast.success('បានលុបទំនាក់ទំនង', `"${deleteTarget.name}" ត្រូវបានដកចេញ។`);
       setDeleteTarget(null);
     } catch (err) {
-      toast.error('Delete failed', err.response?.data?.message || err.response?.data?.error || 'Failed to delete contact.');
+      toast.error('ការលុបបានបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'ការលុបទំនាក់ទំនងបានបរាជ័យ។');
     } finally {
       setDeleting(false);
     }
@@ -753,19 +753,19 @@ const EmergencyContactsManager = ({ tenant, onClose }) => {
       <Modal
         open={!!tenant}
         onClose={onClose}
-        title="Emergency Contacts"
-        description={tenant ? `Manage emergency contacts for ${fullName(tenant)}.` : undefined}
+        title="ទំនាក់ទំនងសង្គ្រោះបន្ទាន់"
+        description={tenant ? `គ្រប់គ្រងទំនាក់ទំនងសង្គ្រោះបន្ទាន់សម្រាប់ ${fullName(tenant)}។` : undefined}
         size="lg"
         footer={
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={onClose}>Close</Button>
-            <Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleAddOpen}>Add Contact</Button>
+            <Button variant="outline" onClick={onClose}>បិទ</Button>
+            <Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleAddOpen}>បន្ថែមទំនាក់ទំនង</Button>
           </div>
         }
       >
         {!tenant ? null : (
           <div className="space-y-4">
-            {error && <Alert variant="danger" title="Error" description={error} dismissible />}
+            {error && <Alert variant="danger" title="កំហុស" description={error} dismissible />}
             {loading ? (
               <div className="space-y-2">
                 <Skeleton className="h-14 w-full" />
@@ -782,7 +782,7 @@ const EmergencyContactsManager = ({ tenant, onClose }) => {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-semibold text-slate-800 dark:text-white">{c.name}</p>
-                          {c.isPrimary && <Badge variant="info">Primary</Badge>}
+                          {c.isPrimary && <Badge variant="info">ចម្បង</Badge>}
                         </div>
                         <div className="mt-1 space-y-0.5 text-xs text-slate-500 dark:text-slate-400">
                           {c.relationship && <p className="flex items-center gap-1.5"><UserRound className="h-3 w-3" /> {c.relationship}</p>}
@@ -792,8 +792,8 @@ const EmergencyContactsManager = ({ tenant, onClose }) => {
                       </div>
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
-                      <IconButton variant="ghost" size="sm" tooltip="Edit" icon={<Edit className="h-4 w-4" />} onClick={() => openEditContact(c)} />
-                      <IconButton variant="ghost" size="sm" tooltip="Delete" icon={<Trash2 className="h-4 w-4" />} className="text-red-600 dark:text-red-400" onClick={() => setDeleteTarget(c)} />
+                      <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => openEditContact(c)} />
+                      <IconButton variant="ghost" size="sm" tooltip="លុប" icon={<Trash2 className="h-4 w-4" />} className="text-red-600 dark:text-red-400" onClick={() => setDeleteTarget(c)} />
                     </div>
                   </div>
                 ))}
@@ -801,9 +801,9 @@ const EmergencyContactsManager = ({ tenant, onClose }) => {
             ) : (
               <EmptyState
                 icon={Contact}
-                title="No emergency contacts"
-                description="Add an emergency contact for this tenant."
-                action={<Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleAddOpen}>Add Contact</Button>}
+                title="មិនមានទំនាក់ទំនងសង្គ្រោះបន្ទាន់"
+                description="បន្ថែមទំនាក់ទំនងសង្គ្រោះបន្ទាន់សម្រាប់អ្នកជួលនេះ។"
+                action={<Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleAddOpen}>បន្ថែមទំនាក់ទំនង</Button>}
               />
             )}
           </div>
@@ -814,24 +814,24 @@ const EmergencyContactsManager = ({ tenant, onClose }) => {
       <Modal
         open={contactOpen}
         onClose={() => setContactOpen(false)}
-        title={editContact ? 'Edit Emergency Contact' : 'Add Emergency Contact'}
+        title={editContact ? 'កែប្រែទំនាក់ទំនងសង្គ្រោះបន្ទាន់' : 'បន្ថែមទំនាក់ទំនងសង្គ្រោះបន្ទាន់'}
         size="md"
         footer={
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => setContactOpen(false)} disabled={submitting}>Cancel</Button>
+            <Button variant="outline" onClick={() => setContactOpen(false)} disabled={submitting}>បោះបង់</Button>
             <Button type="submit" form="contactForm" onClick={() => document.getElementById('contactForm')?.requestSubmit()} loading={submitting}>
-              {editContact ? 'Save Changes' : 'Add Contact'}
+              {editContact ? 'រក្សាទុកការផ្លាស់ប្តូរ' : 'បន្ថែមទំនាក់ទំនង'}
             </Button>
           </div>
         }
       >
         <form id="contactForm" onSubmit={handleSubmit} className="space-y-4">
-          <Input label="Name" required name="name" value={form.name} onChange={handleChange} error={formErrors.name} />
+          <Input label="ឈ្មោះ" required name="name" value={form.name} onChange={handleChange} error={formErrors.name} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Relationship" name="relationship" value={form.relationship} onChange={handleChange} placeholder="e.g., Parent, Spouse" />
-            <Input label="Phone" required name="phone" value={form.phone} onChange={handleChange} error={formErrors.phone} />
+            <Input label="ទំនាក់ទំនង" name="relationship" value={form.relationship} onChange={handleChange} placeholder="ឧ. ឪពុកម្តាយ ប្តីប្រពន្ធ" />
+            <Input label="លេខទូរស័ព្ទ" required name="phone" value={form.phone} onChange={handleChange} error={formErrors.phone} />
           </div>
-          <Input label="Address" name="address" value={form.address} onChange={handleChange} />
+          <Input label="អាសយដ្ឋាន" name="address" value={form.address} onChange={handleChange} />
           <label className="flex cursor-pointer items-center gap-2.5">
             <input
               type="checkbox"
@@ -840,7 +840,7 @@ const EmergencyContactsManager = ({ tenant, onClose }) => {
               onChange={handleChange}
               className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900 dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:focus:ring-white"
             />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Primary contact</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">ទំនាក់ទំនងចម្បង</span>
           </label>
         </form>
       </Modal>
@@ -848,10 +848,10 @@ const EmergencyContactsManager = ({ tenant, onClose }) => {
       {/* Delete contact */}
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Delete Emergency Contact"
-        description={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="លុបទំនាក់ទំនងសង្គ្រោះបន្ទាន់"
+        description={`តើអ្នកប្រាកដទេថាចង់លុប "${deleteTarget?.name}"? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។`}
+        confirmText="លុប"
+        cancelText="បោះបង់"
         danger
         loading={deleting}
         onConfirm={handleDelete}

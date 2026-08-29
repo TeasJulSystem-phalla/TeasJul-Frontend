@@ -8,7 +8,7 @@ const Placeholder = ({ title }) => (
     </div>
     <h1 className="mt-4 text-xl font-semibold text-slate-800 dark:text-white">{title}</h1>
     <p className="mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400">
-      This page is under construction. The layout, navigation, and responsive sidebar are ready to use.
+      ទំព័រនេះកំពុងស្ថិតក្រោមការសាងសង់។ ប្លង់ ការរុករក និងរបារចំហៀងដែលឆ្លើយតបនឹងទំហំអេក្រង់ បានត្រៀមរួចរាល់សម្រាប់ប្រើប្រាស់។
     </p>
   </div>
 );

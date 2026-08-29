@@ -68,12 +68,12 @@ const formatRelativeTime = (dateStr) => {
   const diffWeeks = Math.floor(diffDays / 7);
   const diffMonths = Math.floor(diffDays / 30);
 
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  if (diffWeeks < 4) return `${diffWeeks}w ago`;
-  return `${diffMonths}mo ago`;
+  if (diffMins < 1) return "ទើបតែឥឡូវនេះ";
+  if (diffMins < 60) return `${diffMins} នាទីមុន`;
+  if (diffHours < 24) return `${diffHours} ម៉ោងមុន`;
+  if (diffDays < 7) return `${diffDays} ថ្ងៃមុន`;
+  if (diffWeeks < 4) return `${diffWeeks} សប្តាហ៍មុន`;
+  return `${diffMonths} ខែមុន`;
 };
 
 const HOUSE_STATUS_VARIANT = {
@@ -109,7 +109,7 @@ const Profile = () => {
       const message =
         err.response?.data?.message ||
         err.response?.data?.error ||
-        "Failed to load profile.";
+        "ការផ្ទុកប្រវត្តិរូបបានបរាជ័យ។";
       setError(message);
     } finally {
       setLoading(false);
@@ -140,8 +140,8 @@ const Profile = () => {
 
   const validateEdit = () => {
     const errs = {};
-    if (!editForm.firstName.trim()) errs.firstName = "First name is required";
-    if (!editForm.lastName.trim()) errs.lastName = "Last name is required";
+    if (!editForm.firstName.trim()) errs.firstName = "តម្រូវឱ្យបញ្ចូលនាមត្រកូល";
+    if (!editForm.lastName.trim()) errs.lastName = "តម្រូវឱ្យបញ្ចូលគោត្តនាម";
     setEditErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -159,13 +159,13 @@ const Profile = () => {
       const updated = await userApi.updateUser(user.id, payload);
       setUser(updated);
       setEditModal(false);
-      toast.success("Profile updated", "Your profile has been saved.");
+      toast.success("បានធ្វើបច្ចុប្បន្នភាពប្រវត្តិរូប", "ប្រវត្តិរូបរបស់អ្នកត្រូវបានរក្សាទុក។");
     } catch (err) {
       const message =
         err.response?.data?.message ||
         err.response?.data?.error ||
-        "Failed to update profile.";
-      toast.error("Update failed", message);
+        "ការធ្វើបច្ចុប្បន្នភាពប្រវត្តិរូបបានបរាជ័យ។";
+      toast.error("ការធ្វើបច្ចុប្បន្នភាពបានបរាជ័យ", message);
     } finally {
       setEditLoading(false);
     }
@@ -214,8 +214,8 @@ const Profile = () => {
   if (error) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">Profile</h1>
-        <Alert variant="danger" title="Error" description={error} dismissible />
+        <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">ប្រវត្តិរូប</h1>
+        <Alert variant="danger" title="កំហុស" description={error} dismissible />
       </div>
     );
   }
@@ -230,14 +230,14 @@ const Profile = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">Profile</h1>
+        <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">ប្រវត្តិរូប</h1>
         <Button
           variant="outline"
           size="sm"
           leftIcon={<Edit3 className="h-4 w-4" />}
           onClick={openEdit}
         >
-          Edit Profile
+          កែប្រែប្រវត្តិរូប
         </Button>
       </div>
 
@@ -280,7 +280,7 @@ const Profile = () => {
               <Mail className="h-4.5 w-4.5 text-slate-500" />
             </div>
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Email</p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">អ៊ីមែល</p>
               <p className="text-sm text-slate-700 dark:text-slate-200">{user.email || "—"}</p>
             </div>
           </div>
@@ -289,7 +289,7 @@ const Profile = () => {
               <Phone className="h-4.5 w-4.5 text-slate-500" />
             </div>
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Phone</p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">លេខទូរស័ព្ទ</p>
               <p className="text-sm text-slate-700 dark:text-slate-200">{user.phone || "—"}</p>
             </div>
           </div>
@@ -298,7 +298,7 @@ const Profile = () => {
               <Shield className="h-4.5 w-4.5 text-slate-500" />
             </div>
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Status</p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">ស្ថានភាព</p>
               <Badge variant={STATUS_VARIANT[user.status] || "default"} className="mt-1">
                 {user.status}
               </Badge>
@@ -309,7 +309,7 @@ const Profile = () => {
               <Clock className="h-4.5 w-4.5 text-slate-500" />
             </div>
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Last Login</p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">ការចូលចុងក្រោយ</p>
               <p className="text-sm text-slate-700 dark:text-slate-200">
                 {user.lastLoginAt ? formatRelativeTime(user.lastLoginAt) : "—"}
               </p>
@@ -320,7 +320,7 @@ const Profile = () => {
               <Calendar className="h-4.5 w-4.5 text-slate-500" />
             </div>
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Joined</p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">បានចូលរួម</p>
               <p className="text-sm text-slate-700 dark:text-slate-200">
                 {user.createdAt ? new Date(user.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "—"}
               </p>
@@ -331,7 +331,7 @@ const Profile = () => {
               <User className="h-4.5 w-4.5 text-slate-500" />
             </div>
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Last Updated</p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">ការធ្វើបច្ចុប្បន្នភាពចុងក្រោយ</p>
               <p className="text-sm text-slate-700 dark:text-slate-200">
                 {user.updatedAt ? formatRelativeTime(user.updatedAt) : "—"}
               </p>
@@ -343,13 +343,13 @@ const Profile = () => {
       {/* Accessible houses */}
       <div>
         <h2 className="mb-4 text-lg font-semibold text-slate-800 dark:text-white">
-          My Accessible Houses
+          ផ្ទះដែលខ្ញុំអាចចូលប្រើបាន
         </h2>
         {houses.length === 0 ? (
           <div className="rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-gray-900">
             <Building2 className="mx-auto h-10 w-10 text-slate-300 dark:text-slate-600" />
             <p className="mt-3 text-sm text-slate-400 dark:text-slate-500">
-              You don't have access to any houses yet.
+              អ្នកមិនទាន់មានសិទ្ធិចូលប្រើផ្ទះណាមួយនៅឡើយទេ។
             </p>
           </div>
         ) : (
@@ -391,7 +391,7 @@ const Profile = () => {
                   <div className="mt-3 flex items-center gap-1.5 text-[13px] text-slate-600 dark:text-slate-300">
                     <BedDouble className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <span>
-                      {house.availableRooms}/{house.totalRooms} rooms
+                      {house.availableRooms}/{house.totalRooms} បន្ទប់
                     </span>
                   </div>
 
@@ -404,7 +404,7 @@ const Profile = () => {
 
                 <div className="border-t border-slate-100 px-5 py-2.5 dark:border-gray-800">
                   <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                    Created {new Date(house.createdAt).toLocaleDateString()}
+                    បង្កើតនៅ {new Date(house.createdAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>
@@ -417,15 +417,15 @@ const Profile = () => {
       <Modal
         open={editModal}
         onClose={() => setEditModal(false)}
-        title="Edit Profile"
+        title="កែប្រែប្រវត្តិរូប"
         size="md"
         footer={
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={() => setEditModal(false)} disabled={editLoading}>
-              Cancel
+              បោះបង់
             </Button>
             <Button onClick={handleEditSubmit} loading={editLoading}>
-              Save Changes
+              រក្សាទុកការផ្លាស់ប្តូរ
             </Button>
           </div>
         }
@@ -456,30 +456,30 @@ const Profile = () => {
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input
-              label="First Name"
+              label="នាមត្រកូល"
               required
-              placeholder="First name"
+              placeholder="នាមត្រកូល"
               value={editForm.firstName}
               onChange={(e) => handleEditChange("firstName", e.target.value)}
               error={editErrors.firstName}
             />
             <Input
-              label="Last Name"
+              label="គោត្តនាម"
               required
-              placeholder="Last name"
+              placeholder="គោត្តនាម"
               value={editForm.lastName}
               onChange={(e) => handleEditChange("lastName", e.target.value)}
               error={editErrors.lastName}
             />
           </div>
           <Input
-            label="Phone"
-            placeholder="Phone number"
+            label="លេខទូរស័ព្ទ"
+            placeholder="លេខទូរស័ព្ទ"
             value={editForm.phone}
             onChange={(e) => handleEditChange("phone", e.target.value)}
           />
           <Input
-            label="Avatar URL"
+            label="URL រូបភាពតំណាង"
             placeholder="https://example.com/avatar.jpg"
             value={editForm.avatar}
             onChange={(e) => handleEditChange("avatar", e.target.value)}

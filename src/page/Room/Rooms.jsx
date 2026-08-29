@@ -52,25 +52,25 @@ import {
 
 const STATUS_META = {
   AVAILABLE: {
-    label: 'Available',
+    label: 'ទំនេរ',
     color: 'text-emerald-700 dark:text-emerald-300',
     bg: 'bg-emerald-50/80 dark:bg-emerald-950/30 border-emerald-200/60 dark:border-emerald-800/40',
     dot: 'bg-emerald-500',
   },
   OCCUPIED: {
-    label: 'Occupied',
+    label: 'មានអ្នកស្នាក់នៅ',
     color: 'text-slate-700 dark:text-slate-300',
     bg: 'bg-slate-100 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700',
     dot: 'bg-slate-500',
   },
   MAINTENANCE: {
-    label: 'Maintenance',
+    label: 'កំពុងជួសជុល',
     color: 'text-amber-700 dark:text-amber-300',
     bg: 'bg-amber-50/80 dark:bg-amber-950/30 border-amber-200/60 dark:border-amber-800/40',
     dot: 'bg-amber-500',
   },
   RESERVED: {
-    label: 'Reserved',
+    label: 'បានកក់',
     color: 'text-purple-700 dark:text-purple-300',
     bg: 'bg-purple-50/80 dark:bg-purple-950/30 border-purple-200/60 dark:border-purple-800/40',
     dot: 'bg-purple-500',
@@ -78,11 +78,11 @@ const STATUS_META = {
 };
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' },
-  { value: 'AVAILABLE', label: 'Available' },
-  { value: 'OCCUPIED', label: 'Occupied' },
-  { value: 'MAINTENANCE', label: 'Maintenance' },
-  { value: 'RESERVED', label: 'Reserved' },
+  { value: '', label: 'ស្ថានភាពទាំងអស់' },
+  { value: 'AVAILABLE', label: 'ទំនេរ' },
+  { value: 'OCCUPIED', label: 'មានអ្នកស្នាក់នៅ' },
+  { value: 'MAINTENANCE', label: 'កំពុងជួសជុល' },
+  { value: 'RESERVED', label: 'បានកក់' },
 ];
 
 const EMPTY_FORM = {
@@ -140,11 +140,11 @@ export default function Rooms() {
   const [submitting, setSubmitting] = useState(false);
 
   const houseName = useCallback(
-    (id) => houses.find((h) => h.id === id)?.name || `House #${id}`,
+    (id) => houses.find((h) => h.id === id)?.name || `ផ្ទះ #${id}`,
     [houses]
   );
   const roomTypeName = useCallback(
-    (id) => roomTypes.find((rt) => rt.id === id)?.name || `Room Type #${id}`,
+    (id) => roomTypes.find((rt) => rt.id === id)?.name || `ប្រភេទបន្ទប់ #${id}`,
     [roomTypes]
   );
 
@@ -197,7 +197,7 @@ export default function Rooms() {
     const list = roomTenants(room.id);
     if (list.length > 0) return list[0].name;
     if (room.tenant) {
-      return `${room.tenant.firstName || ''} ${room.tenant.lastName || ''}`.trim() || `Tenant #${room.tenant.id}`;
+      return `${room.tenant.firstName || ''} ${room.tenant.lastName || ''}`.trim() || `អ្នកជួល #${room.tenant.id}`;
     }
     return null;
   };
@@ -206,18 +206,18 @@ export default function Rooms() {
     const list = roomTenants(room.id);
     if (list.length === 0) {
       if (room.tenant) {
-        const tenantName = `${room.tenant.firstName || ''} ${room.tenant.lastName || ''}`.trim() || `Tenant #${room.tenant.id}`;
+        const tenantName = `${room.tenant.firstName || ''} ${room.tenant.lastName || ''}`.trim() || `អ្នកជួល #${room.tenant.id}`;
         return (
           <span className="inline-flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-200">
             <UserIcon className="h-3.5 w-3.5 shrink-0 text-slate-400" />
             <span className="truncate">{tenantName}</span>
-            <Badge variant="info">Primary</Badge>
+            <Badge variant="info">ចម្បង</Badge>
           </span>
         );
       }
       return (
         <span className="text-sm text-slate-400">
-          {room.status === 'OCCUPIED' && occupantsLoading ? 'Loading…' : '—'}
+          {room.status === 'OCCUPIED' && occupantsLoading ? 'កំពុងផ្ទុក…' : '—'}
         </span>
       );
     }
@@ -227,7 +227,7 @@ export default function Rooms() {
           <span key={t.tenantId} className="inline-flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-200">
             <UserIcon className="h-3.5 w-3.5 shrink-0 text-slate-400" />
             <span className="truncate">{t.name}</span>
-            {t.isPrimary && <Badge variant="info">Primary</Badge>}
+            {t.isPrimary && <Badge variant="info">ចម្បង</Badge>}
           </span>
         ))}
       </div>
@@ -240,7 +240,7 @@ export default function Rooms() {
 
   const columns = [
     {
-      header: 'Room',
+      header: 'បន្ទប់',
       render: (row) => (
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-gray-800 dark:text-slate-300">
@@ -248,13 +248,13 @@ export default function Rooms() {
           </span>
           <div className="min-w-0">
             <p className="font-semibold text-slate-800 dark:text-white">{row.name || row.roomNumber}</p>
-            <p className="font-mono text-xs text-slate-400">Room {row.roomNumber}</p>
+            <p className="font-mono text-xs text-slate-400">បន្ទប់ {row.roomNumber}</p>
           </div>
         </div>
       ),
     },
     {
-      header: 'House',
+      header: 'ផ្ទះ',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
           <Building2 className="h-4 w-4 text-slate-400" />
@@ -263,11 +263,11 @@ export default function Rooms() {
       ),
     },
     {
-      header: 'Tenant',
+      header: 'អ្នកជួល',
       render: (row) => renderTenantCell(row),
     },
     {
-      header: 'Type',
+      header: 'ប្រភេទ',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
           <Layers className="h-4 w-4 text-slate-400" />
@@ -276,7 +276,7 @@ export default function Rooms() {
       ),
     },
     {
-      header: 'Floor',
+      header: 'ជាន់',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-sm">
           <MapPin className="h-4 w-4 text-slate-400" />
@@ -285,7 +285,7 @@ export default function Rooms() {
       ),
     },
     {
-      header: 'Capacity',
+      header: 'សមត្ថភាព',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-sm">
           <UsersIcon className="h-4 w-4 text-slate-400" />
@@ -294,35 +294,35 @@ export default function Rooms() {
       ),
     },
     {
-      header: 'Rent / Deposit',
+      header: 'ថ្លៃជួល / ប្រាក់ដាក់ប្រាកដ',
       render: (row) => (
         <div className="text-sm">
           <p className="font-semibold text-slate-800 dark:text-slate-200">{formatCurrency(row.monthlyRent)}</p>
-          <p className="text-xs text-slate-400">dep {formatCurrency(row.securityDeposit)}</p>
+          <p className="text-xs text-slate-400">ប្រាក់ដាក់ប្រាកដ {formatCurrency(row.securityDeposit)}</p>
         </div>
       ),
     },
     {
-      header: 'Status',
+      header: 'ស្ថានភាព',
       render: (row) => getStatusBadge(row.status),
     },
     {
-      header: 'Actions',
+      header: 'សកម្មភាព',
       render: (row) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           {row.status === 'AVAILABLE' && (
             <IconButton
               variant="ghost"
               size="sm"
-              tooltip="Create Contract"
+              tooltip="បង្កើតកិច្ចសន្យា"
               icon={<FilePlus className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />}
               onClick={() => handleCreateContractForRoom(row.id)}
             />
           )}
-          <IconButton variant="ghost" size="sm" tooltip="View Details" icon={<Eye className="h-4 w-4" />} onClick={() => handleOpenView(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="Amenities" icon={<KeySquare className="h-4 w-4" />} onClick={() => setAmenityTarget(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="Edit" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="Delete" icon={<Trash2 className="h-4 w-4 text-red-600 dark:text-red-400 hover:text-red-700" />} onClick={() => setDeleteTarget(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="មើលព័ត៌មានលម្អិត" icon={<Eye className="h-4 w-4" />} onClick={() => handleOpenView(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="គ្រឿងបរិក្ខារ" icon={<KeySquare className="h-4 w-4" />} onClick={() => setAmenityTarget(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="លុប" icon={<Trash2 className="h-4 w-4 text-red-600 dark:text-red-400 hover:text-red-700" />} onClick={() => setDeleteTarget(row)} />
         </div>
       ),
     },
@@ -364,12 +364,12 @@ export default function Rooms() {
 
   const validate = () => {
     const errs = {};
-    if (!form.houseId) errs.houseId = 'House is required';
-    if (!form.roomTypeId) errs.roomTypeId = 'Room type is required';
-    if (!form.roomNumber.trim()) errs.roomNumber = 'Room number is required';
-    if (Number(form.capacity) < 1) errs.capacity = 'Capacity must be at least 1';
-    if (Number(form.monthlyRent) < 0) errs.monthlyRent = 'Rent cannot be negative';
-    if (Number(form.securityDeposit) < 0) errs.securityDeposit = 'Deposit cannot be negative';
+    if (!form.houseId) errs.houseId = 'តម្រូវឱ្យជ្រើសរើសផ្ទះ';
+    if (!form.roomTypeId) errs.roomTypeId = 'តម្រូវឱ្យជ្រើសរើសប្រភេទបន្ទប់';
+    if (!form.roomNumber.trim()) errs.roomNumber = 'តម្រូវឱ្យបញ្ចូលលេខបន្ទប់';
+    if (Number(form.capacity) < 1) errs.capacity = 'សមត្ថភាពត្រូវតែយ៉ាងតិច ១';
+    if (Number(form.monthlyRent) < 0) errs.monthlyRent = 'ថ្លៃជួលមិនអាចជាលេខអវិជ្ជមានបានទេ';
+    if (Number(form.securityDeposit) < 0) errs.securityDeposit = 'ប្រាក់ដាក់ប្រាកដមិនអាចជាលេខអវិជ្ជមានបានទេ';
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -395,20 +395,20 @@ export default function Rooms() {
     try {
       if (editTarget) {
         await updateRoom(editTarget.id, payload);
-        toast.success('Room updated', `${payload.roomNumber} updated.`);
+        toast.success('បន្ទប់ត្រូវបានកែប្រែ', `${payload.roomNumber} ត្រូវបានកែប្រែ។`);
         setEditTarget(null);
       } else {
         await createRoom(payload);
-        toast.success('Room created', `Room ${payload.roomNumber} created.`);
+        toast.success('បន្ទប់ត្រូវបានបង្កើត', `បន្ទប់ ${payload.roomNumber} ត្រូវបានបង្កើត។`);
         setCreateOpen(false);
       }
       resetForm();
     } catch (err) {
-      const message = err.response?.data?.message || err.response?.data?.error || 'Operation failed.';
+      const message = err.response?.data?.message || err.response?.data?.error || 'ប្រតិបត្តិការបរាជ័យ។';
       if (/room number/i.test(message)) {
         setFormErrors({ roomNumber: message });
       } else {
-        toast.error('Error', message);
+        toast.error('កំហុស', message);
       }
     } finally {
       setSubmitting(false);
@@ -430,10 +430,10 @@ export default function Rooms() {
     setDeleting(true);
     try {
       await deleteRoom(deleteTarget.id);
-      toast.success('Room deleted', `Room ${deleteTarget.roomNumber} removed.`);
+      toast.success('បន្ទប់ត្រូវបានលុប', `បន្ទប់ ${deleteTarget.roomNumber} ត្រូវបានលុប។`);
       setDeleteTarget(null);
     } catch (err) {
-      toast.error('Delete failed', err.response?.data?.message || err.response?.data?.error || 'Failed.');
+      toast.error('ការលុបបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'បរាជ័យ។');
     } finally {
       setDeleting(false);
     }
@@ -467,26 +467,26 @@ export default function Rooms() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">Rooms</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">បន្ទប់</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Overview of room units, monthly pricing, and tenant occupancy.
+            ទិដ្ឋភាពទូទៅនៃបន្ទប់ តម្លៃប្រចាំខែ និងការស្នាក់នៅរបស់អ្នកជួល។
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>
-            Refresh
+            ធ្វើឱ្យស្រស់
           </Button>
           <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>
-            Create Room
+            បង្កើតបន្ទប់
           </Button>
         </div>
       </div>
 
       {error && (
-        <Alert variant="danger" title="Error loading rooms" description={error} dismissible>
+        <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកបន្ទប់" description={error} dismissible>
           <div className="mt-3">
             <Button variant="outline" size="sm" onClick={() => refresh()}>
-              Retry
+              ព្យាយាមម្តងទៀត
             </Button>
           </div>
         </Alert>
@@ -505,7 +505,7 @@ export default function Rooms() {
             }`}
           >
             <div>
-              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Total Rooms</p>
+              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">បន្ទប់សរុប</p>
               <p className="text-xl font-bold text-slate-800 dark:text-white">{stats.total}</p>
             </div>
             <BedDouble className="h-5 w-5 text-slate-400" />
@@ -521,7 +521,7 @@ export default function Rooms() {
             }`}
           >
             <div>
-              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Available</p>
+              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">ទំនេរ</p>
               <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{stats.available}</p>
             </div>
             <CheckCircle2 className="h-5 w-5 text-emerald-500" />
@@ -537,7 +537,7 @@ export default function Rooms() {
             }`}
           >
             <div>
-              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Occupied</p>
+              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">មានអ្នកស្នាក់នៅ</p>
               <p className="text-xl font-bold text-slate-700 dark:text-slate-300">{stats.occupied}</p>
             </div>
             <DoorOpen className="h-5 w-5 text-slate-400" />
@@ -553,7 +553,7 @@ export default function Rooms() {
             }`}
           >
             <div>
-              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Maintenance</p>
+              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">កំពុងជួសជុល</p>
               <p className="text-xl font-bold text-amber-600 dark:text-amber-400">{stats.maintenance}</p>
             </div>
             <Wrench className="h-5 w-5 text-amber-500" />
@@ -567,7 +567,7 @@ export default function Rooms() {
           <div className="flex flex-1 flex-col gap-2.5 sm:flex-row sm:items-center">
             <div className="flex-1">
               <Input
-                placeholder="Filter by room number or name..."
+                placeholder="តម្រងតាមលេខបន្ទប់ ឬឈ្មោះ..."
                 leftIcon={<Search className="h-4 w-4 text-slate-400" />}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -579,7 +579,7 @@ export default function Rooms() {
             <div className="w-full sm:w-44">
               <Select
                 options={[
-                  { value: '', label: 'All Houses' },
+                  { value: '', label: 'ផ្ទះទាំងអស់' },
                   ...houses.map((h) => ({ value: String(h.id), label: h.name })),
                 ]}
                 value={houseFilter}
@@ -594,13 +594,13 @@ export default function Rooms() {
                 onClick={() => { setSearchTerm(''); setStatusFilter(''); setHouseFilter(''); }}
                 className="text-slate-500"
               >
-                Clear
+                សម្អាត
               </Button>
             )}
           </div>
 
           <div className="flex items-center justify-between border-t border-slate-100 pt-2 dark:border-gray-800 sm:border-0 sm:pt-0">
-            <span className="text-xs text-slate-400 mr-2">{filtered.length} rooms</span>
+            <span className="text-xs text-slate-400 mr-2">{filtered.length} បន្ទប់</span>
             <div className="flex items-center rounded-lg bg-slate-100 p-1 dark:bg-gray-800">
               <button
                 type="button"
@@ -611,7 +611,7 @@ export default function Rooms() {
                     : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
                 }`}
               >
-                <LayoutGrid className="h-3.5 w-3.5 inline mr-1" /> Grid
+                <LayoutGrid className="h-3.5 w-3.5 inline mr-1" /> ក្រឡា
               </button>
               <button
                 type="button"
@@ -622,7 +622,7 @@ export default function Rooms() {
                     : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
                 }`}
               >
-                <List className="h-3.5 w-3.5 inline mr-1" /> Table
+                <List className="h-3.5 w-3.5 inline mr-1" /> តារាង
               </button>
             </div>
           </div>
@@ -633,16 +633,16 @@ export default function Rooms() {
       {!loading && rooms.length === 0 ? (
         <EmptyState
           icon={BedDouble}
-          title="No rooms added yet"
-          description="Create your first room to manage rent and tenant assignments."
+          title="មិនទាន់មានបន្ទប់បន្ថែមទេ"
+          description="បង្កើតបន្ទប់ដំបូងរបស់អ្នកដើម្បីគ្រប់គ្រងតម្លៃជួល និងការដាក់អ្នកជួល។"
           action={
             <Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>
-              Create Room
+              បង្កើតបន្ទប់
             </Button>
           }
         />
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Filter} title="No matching rooms" description="Try adjusting your filter search terms." />
+        <EmptyState icon={Filter} title="មិនមានបន្ទប់ត្រូវនឹងលក្ខខណ្ឌទេ" description="សូមព្យាយាមកែតម្រូវលក្ខខណ្ឌនៃការតម្រង។" />
       ) : viewMode === 'table' ? (
         <Card className="overflow-hidden rounded-xl border-slate-200/80 dark:border-gray-800">
           <Table columns={columns} data={filtered} onRowClick={handleOpenView} />
@@ -668,9 +668,9 @@ export default function Rooms() {
                       </span>
                       <div>
                         <h3 className="font-semibold text-slate-800 dark:text-white">
-                          {room.name || `Room ${room.roomNumber}`}
+                          {room.name || `បន្ទប់ ${room.roomNumber}`}
                         </h3>
-                        <p className="font-mono text-xs text-slate-400">Unit #{room.roomNumber}</p>
+                        <p className="font-mono text-xs text-slate-400">អង្គភាព #{room.roomNumber}</p>
                       </div>
                     </div>
                     {getStatusBadge(room.status)}
@@ -687,7 +687,7 @@ export default function Rooms() {
                     </span>
                     {room.floorNumber != null && (
                       <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 dark:bg-gray-800">
-                        Floor {room.floorNumber}
+                        ជាន់ {room.floorNumber}
                       </span>
                     )}
                   </div>
@@ -700,13 +700,13 @@ export default function Rooms() {
                           <UserIcon className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                           <span className="font-medium text-slate-700 dark:text-slate-200 truncate">{primaryTenant}</span>
                         </div>
-                        <span className="text-[10px] font-semibold text-slate-400 uppercase">Tenant</span>
+                        <span className="text-[10px] font-semibold text-slate-400 uppercase">អ្នកជួល</span>
                       </div>
                     ) : (
                       <div className="flex items-center justify-between text-xs text-slate-400">
-                        <span>No tenant assigned</span>
+                        <span>មិនទាន់មានអ្នកជួល</span>
                         {room.status === 'AVAILABLE' && (
-                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">Available</span>
+                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">ទំនេរ</span>
                         )}
                       </div>
                     )}
@@ -715,7 +715,7 @@ export default function Rooms() {
 
                 <div className="mt-4 border-t border-slate-100 pt-3 dark:border-gray-800 flex items-center justify-between">
                   <div>
-                    <span className="text-[11px] text-slate-400">Rent</span>
+                    <span className="text-[11px] text-slate-400">ថ្លៃជួល</span>
                     <p className="font-bold text-slate-900 dark:text-white text-base">{formatCurrency(room.monthlyRent)}</p>
                   </div>
 
@@ -728,12 +728,12 @@ export default function Rooms() {
                         onClick={() => handleCreateContractForRoom(room.id)}
                         className="mr-1 text-xs"
                       >
-                        Contract
+                        កិច្ចសន្យា
                       </Button>
                     )}
-                    <IconButton variant="ghost" size="sm" tooltip="Amenities" icon={<KeySquare className="h-4 w-4" />} onClick={() => setAmenityTarget(room)} />
-                    <IconButton variant="ghost" size="sm" tooltip="Edit" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(room)} />
-                    <IconButton variant="ghost" size="sm" tooltip="Delete" icon={<Trash2 className="h-4 w-4 text-red-500" />} onClick={() => setDeleteTarget(room)} />
+                    <IconButton variant="ghost" size="sm" tooltip="គ្រឿងបរិក្ខារ" icon={<KeySquare className="h-4 w-4" />} onClick={() => setAmenityTarget(room)} />
+                    <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(room)} />
+                    <IconButton variant="ghost" size="sm" tooltip="លុប" icon={<Trash2 className="h-4 w-4 text-red-500" />} onClick={() => setDeleteTarget(room)} />
                   </div>
                 </div>
               </div>
@@ -749,8 +749,8 @@ export default function Rooms() {
           setCreateOpen(false);
           setEditTarget(null);
         }}
-        title={editTarget ? `Edit Room ${editTarget.roomNumber}` : 'Create Room'}
-        description={editTarget ? 'Modify room pricing or unit details.' : 'Add a room to your house property.'}
+        title={editTarget ? `កែប្រែបន្ទប់ ${editTarget.roomNumber}` : 'បង្កើតបន្ទប់'}
+        description={editTarget ? 'កែប្រែតម្លៃជួល ឬព័ត៌មានលម្អិតរបស់បន្ទប់។' : 'បន្ថែមបន្ទប់ទៅក្នុងផ្ទះរបស់អ្នក។'}
         footer={
           <div className="flex justify-end gap-2">
             <Button
@@ -760,10 +760,10 @@ export default function Rooms() {
                 setEditTarget(null);
               }}
             >
-              Cancel
+              បោះបង់
             </Button>
             <Button type="submit" form="roomForm" loading={submitting}>
-              {editTarget ? 'Save Changes' : 'Create Room'}
+              {editTarget ? 'រក្សាទុកការផ្លាស់ប្តូរ' : 'បង្កើតបន្ទប់'}
             </Button>
           </div>
         }
@@ -785,8 +785,8 @@ export default function Rooms() {
           setViewTarget(null);
           setViewData(null);
         }}
-        title={`Room ${viewData?.roomNumber || viewTarget?.roomNumber || ''}`}
-        description="Room details and tenant status."
+        title={`បន្ទប់ ${viewData?.roomNumber || viewTarget?.roomNumber || ''}`}
+        description="ព័ត៌មានលម្អិតនៃបន្ទប់ និងស្ថានភាពអ្នកជួល។"
       >
         {viewLoading ? (
           <div className="space-y-4 py-4">
@@ -823,10 +823,10 @@ export default function Rooms() {
       {/* Delete Confirmation */}
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Delete Room"
-        description={`Delete room "${deleteTarget?.roomNumber}"? Action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="លុបបន្ទប់"
+        description={`លុបបន្ទប់ "${deleteTarget?.roomNumber}"? សកម្មភាពនេះមិនអាចបញ្ឈប់បានទេ។`}
+        confirmText="លុប"
+        cancelText="បោះបង់"
         danger
         loading={deleting}
         onConfirm={handleDelete}
@@ -852,59 +852,59 @@ const RoomForm = ({ form, errors, onChange, houses, roomTypes, onSubmit }) => (
   <form id="roomForm" onSubmit={onSubmit} className="space-y-4">
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <Select
-        label="House"
+        label="ផ្ទះ"
         required
         name="houseId"
-        placeholder="Select house"
+        placeholder="ជ្រើសរើសផ្ទះ"
         options={houses.map((h) => ({ value: String(h.id), label: h.name }))}
         value={String(form.houseId)}
         onChange={onChange}
         error={errors.houseId}
       />
       <Select
-        label="Room Type"
+        label="ប្រភេទបន្ទប់"
         required
         name="roomTypeId"
-        placeholder="Select type"
+        placeholder="ជ្រើសរើសប្រភេទ"
         options={roomTypes.map((rt) => ({ value: String(rt.id), label: rt.name }))}
         value={String(form.roomTypeId)}
         onChange={onChange}
         error={errors.roomTypeId}
       />
       <Input
-        label="Room Number"
+        label="លេខបន្ទប់"
         required
         name="roomNumber"
         value={form.roomNumber}
         onChange={onChange}
-        placeholder="e.g., 101"
+        placeholder="ឧ. 101"
         error={errors.roomNumber}
       />
     </div>
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <Input label="Name" name="name" value={form.name} onChange={onChange} placeholder="e.g., Suite A" />
-      <Input label="Floor" type="number" min="0" name="floorNumber" value={form.floorNumber} onChange={onChange} placeholder="e.g., 1" />
-      <Input label="Capacity" required type="number" min="1" name="capacity" value={form.capacity} onChange={onChange} error={errors.capacity} />
+      <Input label="ឈ្មោះ" name="name" value={form.name} onChange={onChange} placeholder="ឧ. Suite A" />
+      <Input label="ជាន់" type="number" min="0" name="floorNumber" value={form.floorNumber} onChange={onChange} placeholder="ឧ. 1" />
+      <Input label="សមត្ថភាព" required type="number" min="1" name="capacity" value={form.capacity} onChange={onChange} error={errors.capacity} />
     </div>
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <Input label="Monthly Rent ($)" type="number" step="0.01" min="0" name="monthlyRent" value={form.monthlyRent} onChange={onChange} error={errors.monthlyRent} />
-      <Input label="Security Deposit ($)" type="number" step="0.01" min="0" name="securityDeposit" value={form.securityDeposit} onChange={onChange} error={errors.securityDeposit} />
+      <Input label="ថ្លៃជួលប្រចាំខែ ($)" type="number" step="0.01" min="0" name="monthlyRent" value={form.monthlyRent} onChange={onChange} error={errors.monthlyRent} />
+      <Input label="ប្រាក់ដាក់ប្រាកដ ($)" type="number" step="0.01" min="0" name="securityDeposit" value={form.securityDeposit} onChange={onChange} error={errors.securityDeposit} />
     </div>
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <Select
-        label="Status"
+        label="ស្ថានភាព"
         name="status"
         options={[
-          { value: 'AVAILABLE', label: 'Available' },
-          { value: 'OCCUPIED', label: 'Occupied' },
-          { value: 'MAINTENANCE', label: 'Maintenance' },
-          { value: 'RESERVED', label: 'Reserved' },
+          { value: 'AVAILABLE', label: 'ទំនេរ' },
+          { value: 'OCCUPIED', label: 'មានអ្នកស្នាក់នៅ' },
+          { value: 'MAINTENANCE', label: 'កំពុងជួសជុល' },
+          { value: 'RESERVED', label: 'បានកក់' },
         ]}
         value={form.status}
         onChange={onChange}
       />
     </div>
-    <Textarea label="Description" name="description" value={form.description} onChange={onChange} rows={2} placeholder="Room details..." />
+    <Textarea label="ការពិពណ៌នា" name="description" value={form.description} onChange={onChange} rows={2} placeholder="ព័ត៌មានលម្អិតនៃបន្ទប់..." />
   </form>
 );
 
@@ -916,32 +916,32 @@ const ViewRoomDetails = ({ room, houseName, roomTypeName, viewAmenities, occupan
           <DoorOpen className="h-6 w-6" />
         </span>
         <div>
-          <h2 className="text-lg font-bold text-slate-800 dark:text-white">{room.name || `Room ${room.roomNumber}`}</h2>
-          <p className="font-mono text-xs text-slate-400">Unit #{room.roomNumber} · {houseName(room.houseId)}</p>
+          <h2 className="text-lg font-bold text-slate-800 dark:text-white">{room.name || `បន្ទប់ ${room.roomNumber}`}</h2>
+          <p className="font-mono text-xs text-slate-400">អង្គភាព #{room.roomNumber} · {houseName(room.houseId)}</p>
         </div>
       </div>
       <div className="flex items-center gap-1.5">
         {room.status === 'AVAILABLE' && (
           <Button variant="primary" size="sm" leftIcon={<FilePlus className="h-4 w-4" />} onClick={onCreateContract}>
-            Create Contract
+            បង្កើតកិច្ចសន្យា
           </Button>
         )}
         <Button variant="outline" size="sm" leftIcon={<Edit className="h-4 w-4" />} onClick={onEdit}>
-          Edit
+          កែប្រែ
         </Button>
       </div>
     </div>
 
     <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-      <DetailItem icon={<Building2 className="h-4 w-4" />} label="House" value={houseName(room.houseId)} />
-      <DetailItem icon={<Layers className="h-4 w-4" />} label="Type" value={roomTypeName(room.roomTypeId)} />
-      <DetailItem icon={<MapPin className="h-4 w-4" />} label="Floor" value={room.floorNumber ?? '—'} />
-      <DetailItem icon={<UsersIcon className="h-4 w-4" />} label="Capacity" value={`${room.capacity} Person(s)`} />
+      <DetailItem icon={<Building2 className="h-4 w-4" />} label="ផ្ទះ" value={houseName(room.houseId)} />
+      <DetailItem icon={<Layers className="h-4 w-4" />} label="ប្រភេទ" value={roomTypeName(room.roomTypeId)} />
+      <DetailItem icon={<MapPin className="h-4 w-4" />} label="ជាន់" value={room.floorNumber ?? '—'} />
+      <DetailItem icon={<UsersIcon className="h-4 w-4" />} label="សមត្ថភាព" value={`${room.capacity} នាក់`} />
     </div>
 
     <div className="rounded-lg border border-slate-200/80 bg-slate-50/70 p-3 dark:border-gray-800 dark:bg-gray-800/40">
       <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-        Current Occupant{occupants.length === 1 ? '' : 's'}
+        អ្នកស្នាក់នៅបច្ចុប្បន្ន{occupants.length === 1 ? '' : ''}
       </p>
       {occupants.length > 0 ? (
         <div className="space-y-1.5">
@@ -951,7 +951,7 @@ const ViewRoomDetails = ({ room, houseName, roomTypeName, viewAmenities, occupan
                 <UserIcon className="h-3.5 w-3.5 text-slate-400" />
                 {t.name}
               </span>
-              {t.isPrimary && <Badge variant="info">Primary</Badge>}
+              {t.isPrimary && <Badge variant="info">ចម្បង</Badge>}
             </div>
           ))}
         </div>
@@ -959,25 +959,25 @@ const ViewRoomDetails = ({ room, houseName, roomTypeName, viewAmenities, occupan
         <div className="flex items-center justify-between rounded bg-white px-3 py-2 text-xs font-semibold text-slate-700 dark:bg-gray-900 dark:text-slate-200 border border-slate-200/60 dark:border-gray-800">
           <span className="flex items-center gap-2">
             <UserIcon className="h-3.5 w-3.5 text-slate-400" />
-            {`${room.tenant.firstName || ''} ${room.tenant.lastName || ''}`.trim() || `Tenant #${room.tenant.id}`}
+            {`${room.tenant.firstName || ''} ${room.tenant.lastName || ''}`.trim() || `អ្នកជួល #${room.tenant.id}`}
           </span>
-          <Badge variant="info">Primary</Badge>
+          <Badge variant="info">ចម្បង</Badge>
         </div>
       ) : (
-        <p className="text-xs text-slate-400">No tenant currently renting this room.</p>
+        <p className="text-xs text-slate-400">មិនមានអ្នកជួលកំពុងជួលបន្ទប់នេះទេ។</p>
       )}
     </div>
 
     <div className="grid grid-cols-2 gap-2.5">
-      <DetailItem icon={<DollarSign className="h-4 w-4" />} label="Monthly Rent" value={formatCurrency(room.monthlyRent)} />
-      <DetailItem icon={<Wallet className="h-4 w-4" />} label="Security Deposit" value={formatCurrency(room.securityDeposit)} />
+      <DetailItem icon={<DollarSign className="h-4 w-4" />} label="ថ្លៃជួលប្រចាំខែ" value={formatCurrency(room.monthlyRent)} />
+      <DetailItem icon={<Wallet className="h-4 w-4" />} label="ប្រាក់ដាក់ប្រាកដ" value={formatCurrency(room.securityDeposit)} />
     </div>
 
     <div className="rounded-lg border border-slate-200/80 bg-slate-50/70 p-3 dark:border-gray-800 dark:bg-gray-800/40">
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Amenities</p>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">គ្រឿងបរិក្ខារ</p>
         <Button variant="outline" size="xs" leftIcon={<KeySquare className="h-3.5 w-3.5" />} onClick={onManageAmenities}>
-          Manage
+          គ្រប់គ្រង
         </Button>
       </div>
       {viewAmenities.amenities.length > 0 ? (
@@ -989,7 +989,7 @@ const ViewRoomDetails = ({ room, houseName, roomTypeName, viewAmenities, occupan
           ))}
         </div>
       ) : (
-        <p className="text-xs text-slate-400">No amenities assigned.</p>
+        <p className="text-xs text-slate-400">មិនទាន់កំណត់គ្រឿងបរិក្ខារទេ។</p>
       )}
     </div>
   </div>
@@ -1021,9 +1021,9 @@ const RoomAmenityManager = ({ room, onClose }) => {
     setBusyId(amenityId);
     try {
       await assignAmenity(amenityId);
-      toast.success('Amenity added');
+      toast.success('បានបន្ថែមគ្រឿងបរិក្ខារ');
     } catch (err) {
-      toast.error('Failed to add amenity');
+      toast.error('ការបន្ថែមគ្រឿងបរិក្ខារបរាជ័យ');
     } finally {
       setBusyId(null);
     }
@@ -1033,9 +1033,9 @@ const RoomAmenityManager = ({ room, onClose }) => {
     setBusyId(amenityId);
     try {
       await removeAmenity(amenityId);
-      toast.success('Amenity removed');
+      toast.success('បានដកគ្រឿងបរិក្ខារចេញ');
     } catch (err) {
-      toast.error('Failed to remove amenity');
+      toast.error('ការដកគ្រឿងបរិក្ខារចេញបរាជ័យ');
     } finally {
       setBusyId(null);
     }
@@ -1045,16 +1045,16 @@ const RoomAmenityManager = ({ room, onClose }) => {
     <Modal
       open={!!room}
       onClose={onClose}
-      title={`Amenities - Room ${room.roomNumber}`}
-      description="Configure amenities for this unit."
+      title={`គ្រឿងបរិក្ខារ - បន្ទប់ ${room.roomNumber}`}
+      description="កំណត់រចនាសម្ព័ន្ធគ្រឿងបរិក្ខារសម្រាប់បន្ទប់នេះ។"
     >
       <div className="space-y-4">
         <div>
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Assigned</p>
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">បានកំណត់</p>
           {loading ? (
             <Skeleton className="h-6 w-32" />
           ) : amenities.length === 0 ? (
-            <p className="text-xs text-slate-400">None</p>
+            <p className="text-xs text-slate-400">គ្មាន</p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
               {amenities.map((a) => (
@@ -1071,11 +1071,11 @@ const RoomAmenityManager = ({ room, onClose }) => {
         </div>
 
         <div className="border-t border-slate-100 pt-3 dark:border-gray-800">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Available to Add</p>
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">អាចបន្ថែមបាន</p>
           {loadingAll ? (
             <Skeleton className="h-6 w-32" />
           ) : availableToAssign.length === 0 ? (
-            <p className="text-xs text-slate-400">All assigned</p>
+            <p className="text-xs text-slate-400">បានកំណត់ទាំងអស់</p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
               {availableToAssign.map((a) => (

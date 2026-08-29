@@ -1,6 +1,6 @@
 import { Inbox } from 'lucide-react';
 
-const EmptyState = ({ icon, title = 'No data found', description, action, className = '' }) => {
+const EmptyState = ({ icon, title = 'រកមិនឃើញទិន្នន័យ', description, action, className = '' }) => {
   const Icon = icon || Inbox;
 
   return (

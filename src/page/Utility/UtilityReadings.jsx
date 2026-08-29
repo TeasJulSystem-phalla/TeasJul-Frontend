@@ -73,8 +73,8 @@ export default function UtilityReadings() {
 
   const meterOptions = useMemo(
     () => [
-      { value: '', label: 'All Meters' },
-      ...meters.map((m) => ({ value: String(m.id), label: m.meterNumber || `Meter #${m.id}` })),
+      { value: '', label: 'ម៉ែត្រទាំងអស់' },
+      ...meters.map((m) => ({ value: String(m.id), label: m.meterNumber || `ម៉ែត្រ #${m.id}` })),
     ],
     [meters]
   );
@@ -95,7 +95,7 @@ export default function UtilityReadings() {
 
   const columns = [
     {
-      header: 'Meter',
+      header: 'ម៉ែត្រ',
       render: (row) => (
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-cyan-600 dark:bg-cyan-900/20 dark:text-cyan-400">
@@ -106,15 +106,15 @@ export default function UtilityReadings() {
       ),
     },
     {
-      header: 'Previous',
+      header: 'លើកមុន',
       render: (row) => <span className="text-sm text-slate-600 dark:text-slate-300">{row.previousReading ?? '—'}</span>,
     },
     {
-      header: 'Current',
+      header: 'បច្ចុប្បន្ន',
       render: (row) => <span className="text-sm font-medium text-slate-800 dark:text-white">{row.currentReading}</span>,
     },
     {
-      header: 'Usage',
+      header: 'ការប្រើប្រាស់',
       render: (row) => (
         <Badge variant={(Number(row.usage) || 0) > 0 ? 'info' : 'default'}>
           <TrendingUp className="mr-1 inline h-3 w-3" />
@@ -123,7 +123,7 @@ export default function UtilityReadings() {
       ),
     },
     {
-      header: 'Date',
+      header: 'កាលបរិច្ឆេទ',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
           <Calendar className="h-3.5 w-3.5" />
@@ -132,10 +132,10 @@ export default function UtilityReadings() {
       ),
     },
     {
-      header: 'Actions',
+      header: 'សកម្មភាព',
       render: (row) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <IconButton variant="ghost" size="sm" tooltip="View" icon={<Eye className="h-4 w-4" />} onClick={() => setViewTarget(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="មើល" icon={<Eye className="h-4 w-4" />} onClick={() => setViewTarget(row)} />
         </div>
       ),
     },
@@ -159,9 +159,9 @@ export default function UtilityReadings() {
 
   const validate = () => {
     const errs = {};
-    if (!form.meterId) errs.meterId = 'Meter is required';
-    if (form.currentReading === '' || Number(form.currentReading) < 0) errs.currentReading = 'Current reading must not be negative';
-    if (!form.readingDate) errs.readingDate = 'Reading date is required';
+    if (!form.meterId) errs.meterId = 'ម៉ែត្រត្រូវបានទាមទារ';
+    if (form.currentReading === '' || Number(form.currentReading) < 0) errs.currentReading = 'ការអានម៉ែត្របច្ចុប្បន្នមិនត្រូវជាអវិជ្ជមានទេ';
+    if (!form.readingDate) errs.readingDate = 'កាលបរិច្ឆេទអានម៉ែត្រត្រូវបានទាមទារ';
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -179,11 +179,11 @@ export default function UtilityReadings() {
     setSubmitting(true);
     try {
       await createReading(payload);
-      toast.success('Reading recorded', 'The utility reading has been recorded.');
+      toast.success('ការអានម៉ែត្រត្រូវបានកត់ត្រា', 'ការអានម៉ែត្រប្រើប្រាស់ត្រូវបានកត់ត្រារួចរាល់។');
       setCreateOpen(false);
       resetForm();
     } catch (err) {
-      toast.error('Error', err.response?.data?.message || err.response?.data?.error || 'Failed to record reading.');
+      toast.error('កំហុស', err.response?.data?.message || err.response?.data?.error || 'បរាជ័យក្នុងការកត់ត្រាការអានម៉ែត្រ។');
     } finally {
       setSubmitting(false);
     }
@@ -222,21 +222,21 @@ export default function UtilityReadings() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">Utility Readings</h1>
+          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">ការអានម៉ែត្រប្រើប្រាស់</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Record and review meter readings across your properties.
+            កត់ត្រា និងពិនិត្យការអានម៉ែត្រនៅទូទាំងអចលនទ្រព្យរបស់អ្នក។
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>Refresh</Button>
-          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>Record Reading</Button>
+          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>ធ្វើឱ្យស្រស់</Button>
+          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>កត់ត្រាការអានម៉ែត្រ</Button>
         </div>
       </div>
 
       {error && (
-        <Alert variant="danger" title="Error loading readings" description={error} dismissible>
+        <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកការអានម៉ែត្រ" description={error} dismissible>
           <div className="mt-3">
-            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>Retry</Button>
+            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>ព្យាយាមម្តងទៀត</Button>
           </div>
         </Alert>
       )}
@@ -245,7 +245,7 @@ export default function UtilityReadings() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex-1">
             <Input
-              placeholder="Search by meter id..."
+              placeholder="ស្វែងរកតាមលេខសម្គាល់ម៉ែត្រ..."
               leftIcon={<Search className="h-4 w-4" />}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -254,20 +254,20 @@ export default function UtilityReadings() {
           <div className="w-full sm:w-48">
             <Select options={meterOptions} value={meterFilter} onChange={(e) => setMeterFilter(e.target.value)} />
           </div>
-          <Button variant="outline" size="sm" onClick={applyFilters}>Apply</Button>
-          <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setMeterFilter(''); fetchReadings({}); }}>Clear</Button>
+          <Button variant="outline" size="sm" onClick={applyFilters}>អនុវត្ត</Button>
+          <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setMeterFilter(''); fetchReadings({}); }}>សម្អាត</Button>
         </div>
       )}
 
       {!loading && readings.length === 0 ? (
         <EmptyState
           icon={Activity}
-          title="No readings recorded"
-          description="Record your first meter reading to start tracking usage."
-          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>Record Reading</Button>}
+          title="មិនទាន់មានការអានម៉ែត្រដែលបានកត់ត្រា"
+          description="កត់ត្រាការអានម៉ែត្រដំបូងរបស់អ្នក ដើម្បីចាប់ផ្តើមតាមដានការប្រើប្រាស់។"
+          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>កត់ត្រាការអានម៉ែត្រ</Button>}
         />
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Filter} title="No matches found" description="Try adjusting your search or filter criteria." />
+        <EmptyState icon={Filter} title="រកមិនឃើញទិន្នន័យ" description="សូមព្យាយាមកែតម្រូវការស្វែងរក ឬលក្ខខណ្ឌតម្រងរបស់អ្នក។" />
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:hidden">
@@ -287,11 +287,11 @@ export default function UtilityReadings() {
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-3 text-sm dark:border-gray-800">
                   <div className="text-slate-500 dark:text-slate-400">
-                    <span className="block text-[11px] text-slate-400">Previous</span>
+                    <span className="block text-[11px] text-slate-400">លើកមុន</span>
                     {r.previousReading ?? '—'}
                   </div>
                   <div className="text-slate-500 dark:text-slate-400">
-                    <span className="block text-[11px] text-slate-400">Current</span>
+                    <span className="block text-[11px] text-slate-400">បច្ចុប្បន្ន</span>
                     {r.currentReading}
                   </div>
                 </div>
@@ -314,36 +314,36 @@ export default function UtilityReadings() {
       <Modal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        title="Record Utility Reading"
-        description="Enter the current reading for a meter. Usage is calculated automatically."
+        title="កត់ត្រាការអានម៉ែត្រប្រើប្រាស់"
+        description="បញ្ចូលការអានម៉ែត្របច្ចុប្បន្ន។ ការប្រើប្រាស់ត្រូវបានគណនាដោយស្វ័យប្រវត្តិ។"
         size="md"
         footer={
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={submitting}>Cancel</Button>
+            <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={submitting}>បោះបង់</Button>
             <Button type="submit" form="readingForm" onClick={() => document.getElementById('readingForm')?.requestSubmit()} loading={submitting}>
-              {submitting ? 'Saving...' : 'Record Reading'}
+              {submitting ? 'កំពុងរក្សាទុក...' : 'កត់ត្រាការអានម៉ែត្រ'}
             </Button>
           </div>
         }
       >
         <form id="readingForm" onSubmit={handleSubmit} className="space-y-4">
           <Select
-            label="Meter"
+            label="ម៉ែត្រ"
             required
             name="meterId"
-            options={meters.map((m) => ({ value: String(m.id), label: m.meterNumber || `Meter #${m.id}` }))}
+            options={meters.map((m) => ({ value: String(m.id), label: m.meterNumber || `ម៉ែត្រ #${m.id}` }))}
             value={form.meterId}
             onChange={handleFormChange}
             error={formErrors.meterId}
           />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Current Reading" required type="number" step="0.01" min="0" name="currentReading" value={form.currentReading} onChange={handleFormChange} error={formErrors.currentReading} />
-            <Input label="Reading Date" required type="date" name="readingDate" value={form.readingDate} onChange={handleFormChange} error={formErrors.readingDate} />
+            <Input label="ការអានម៉ែត្របច្ចុប្បន្ន" required type="number" step="0.01" min="0" name="currentReading" value={form.currentReading} onChange={handleFormChange} error={formErrors.currentReading} />
+            <Input label="កាលបរិច្ឆេទអានម៉ែត្រ" required type="date" name="readingDate" value={form.readingDate} onChange={handleFormChange} error={formErrors.readingDate} />
           </div>
         </form>
       </Modal>
 
-      <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title="Reading Details" size="md">
+      <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title="ព័ត៌មានលម្អិតការអានម៉ែត្រ" size="md">
         {viewTarget && (
           <div className="space-y-5">
             <div className="flex items-start justify-between">
@@ -356,14 +356,14 @@ export default function UtilityReadings() {
                   <p className="font-mono text-sm text-slate-500 dark:text-slate-400">#{viewTarget.id}</p>
                 </div>
               </div>
-              <Badge variant="info">Usage: {viewTarget.usage ?? '0'}</Badge>
+              <Badge variant="info">ការប្រើប្រាស់: {viewTarget.usage ?? '0'}</Badge>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="Meter ID" value={viewTarget.meterId} />
-              <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="Reading Date" value={formatDate(viewTarget.readingDate)} />
-              <DetailItem icon={<Activity className="h-4 w-4 text-slate-400" />} label="Previous" value={viewTarget.previousReading ?? '—'} />
-              <DetailItem icon={<Activity className="h-4 w-4 text-slate-400" />} label="Current" value={viewTarget.currentReading} />
+              <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="លេខសម្គាល់ម៉ែត្រ" value={viewTarget.meterId} />
+              <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="កាលបរិច្ឆេទអានម៉ែត្រ" value={formatDate(viewTarget.readingDate)} />
+              <DetailItem icon={<Activity className="h-4 w-4 text-slate-400" />} label="លើកមុន" value={viewTarget.previousReading ?? '—'} />
+              <DetailItem icon={<Activity className="h-4 w-4 text-slate-400" />} label="បច្ចុប្បន្ន" value={viewTarget.currentReading} />
             </div>
           </div>
         )}

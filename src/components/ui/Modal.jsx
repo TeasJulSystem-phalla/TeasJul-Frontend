@@ -72,7 +72,7 @@ const Modal = ({ open, onClose, title, description, children, footer, size = 'md
                 type="button"
                 onClick={onClose}
                 className="rounded-md p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                aria-label="Close"
+                aria-label="បិទ"
               >
                 <X className="h-5 w-5" />
               </button>

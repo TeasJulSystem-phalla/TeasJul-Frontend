@@ -78,16 +78,16 @@ export function RoomTypeFormModal({
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.code.trim()) newErrors.code = 'Code is required';
+    if (!formData.name.trim()) newErrors.name = 'តម្រូវឱ្យបញ្ចូលឈ្មោះ';
+    if (!formData.code.trim()) newErrors.code = 'តម្រូវឱ្យបញ្ចូលលេខកូដ';
     if (!formData.capacity || formData.capacity < 1) {
-      newErrors.capacity = 'Capacity must be at least 1';
+      newErrors.capacity = 'សមត្ថភាពត្រូវតែយ៉ាងតិច ១';
     }
     if (formData.defaultRent < 0) {
-      newErrors.defaultRent = 'Rent cannot be negative';
+      newErrors.defaultRent = 'ថ្លៃជួលមិនអាចជាលេខអវិជ្ជមានបានទេ';
     }
     if (formData.defaultDeposit < 0) {
-      newErrors.defaultDeposit = 'Deposit cannot be negative';
+      newErrors.defaultDeposit = 'ប្រាក់ដាក់ប្រាកដមិនអាចជាលេខអវិជ្ជមានបានទេ';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -110,7 +110,7 @@ export function RoomTypeFormModal({
       onClose();
     } catch (error) {
       if (error.response?.data?.message?.includes('Code must be unique')) {
-        setErrors({ code: 'This code already exists. Please use a different code.' });
+        setErrors({ code: 'លេខកូដនេះមានស្រាប់ហើយ។ សូមប្រើលេខកូដផ្សេងទៀត។' });
       } else {
         onError(error);
       }
@@ -120,8 +120,8 @@ export function RoomTypeFormModal({
   };
 
   const statusOptions = [
-    { value: 'ACTIVE', label: 'Active' },
-    { value: 'INACTIVE', label: 'Inactive' }
+    { value: 'ACTIVE', label: 'សកម្ម' },
+    { value: 'INACTIVE', label: 'អសកម្ម' }
   ];
 
   return (
@@ -139,10 +139,10 @@ export function RoomTypeFormModal({
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-400 bg-clip-text text-transparent">
-                {isEditing ? 'Edit Room Type' : 'Create Room Type'}
+                {isEditing ? 'កែប្រែប្រភេទបន្ទប់' : 'បង្កើតប្រភេទបន្ទប់'}
               </h2>
               <p className="text-gray-400 text-sm mt-1">
-                {isEditing ? 'Update room type details' : 'Add a new room type to your collection'}
+                {isEditing ? 'ធ្វើបច្ចុប្បន្នភាពព័ត៌មាននៃប្រភេទបន្ទប់' : 'បន្ថែមប្រភេទបន្ទប់ថ្មីទៅក្នុងបញ្ជីរបស់អ្នក'}
               </p>
             </div>
             <button
@@ -161,14 +161,14 @@ export function RoomTypeFormModal({
               <div>
                 <Label htmlFor="name" className="text-gray-300 font-semibold flex items-center gap-2">
                   <FileText className="w-4 h-4 text-emerald-400" />
-                  Name <span className="text-red-400">*</span>
+                  ឈ្មោះ <span className="text-red-400">*</span>
                 </Label>
                 <Input
                   id="name"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="e.g., Deluxe Room"
+                  placeholder="ឧ. Deluxe Room"
                   error={errors.name}
                   required
                   className="bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-emerald-500/30"
@@ -179,14 +179,14 @@ export function RoomTypeFormModal({
               <div>
                 <Label htmlFor="code" className="text-gray-300 font-semibold flex items-center gap-2">
                   <Hash className="w-4 h-4 text-emerald-400" />
-                  Code <span className="text-red-400">*</span>
+                  លេខកូដ <span className="text-red-400">*</span>
                 </Label>
                 <Input
                   id="code"
                   name="code"
                   value={formData.code}
                   onChange={handleChange}
-                  placeholder="e.g., DLX-001"
+                  placeholder="ឧ. DLX-001"
                   error={errors.code}
                   required
                   className="bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-emerald-500/30"
@@ -198,14 +198,14 @@ export function RoomTypeFormModal({
             <div>
               <Label htmlFor="description" className="text-gray-300 font-semibold flex items-center gap-2">
                 <FileText className="w-4 h-4 text-emerald-400" />
-                Description
+                ការពិពណ៌នា
               </Label>
               <Textarea
                 id="description"
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Describe the room type..."
+                placeholder="ពិពណ៌នាអំពីប្រភេទបន្ទប់..."
                 rows={3}
                 className="bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-emerald-500/30"
               />
@@ -216,7 +216,7 @@ export function RoomTypeFormModal({
               <div>
                 <Label htmlFor="capacity" className="text-gray-300 font-semibold flex items-center gap-2">
                   <Users className="w-4 h-4 text-emerald-400" />
-                  Capacity <span className="text-red-400">*</span>
+                  សមត្ថភាព <span className="text-red-400">*</span>
                 </Label>
                 <Input
                   id="capacity"
@@ -235,7 +235,7 @@ export function RoomTypeFormModal({
               <div>
                 <Label htmlFor="defaultRent" className="text-gray-300 font-semibold flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-emerald-400" />
-                  Default Rent ($)
+                  តម្លៃជួលលំនាំដើម ($)
                 </Label>
                 <Input
                   id="defaultRent"
@@ -255,7 +255,7 @@ export function RoomTypeFormModal({
               <div>
                 <Label htmlFor="defaultDeposit" className="text-gray-300 font-semibold flex items-center gap-2">
                   <CreditCard className="w-4 h-4 text-emerald-400" />
-                  Default Deposit ($)
+                  ប្រាក់ដាក់ប្រាកដលំនាំដើម ($)
                 </Label>
                 <Input
                   id="defaultDeposit"
@@ -276,7 +276,7 @@ export function RoomTypeFormModal({
             <div>
               <Label htmlFor="status" className="text-gray-300 font-semibold flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
-                Status
+                ស្ថានភាព
               </Label>
               <Select
                 id="status"
@@ -296,7 +296,7 @@ export function RoomTypeFormModal({
               type="button"
               className="border-gray-700 text-gray-300 hover:bg-white/10 hover:border-gray-600 transition-all duration-200"
             >
-              Cancel
+              បោះបង់
             </Button>
             <Button 
               className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all duration-300 transform hover:scale-105"
@@ -306,10 +306,10 @@ export function RoomTypeFormModal({
               {loading ? (
                 <>
                   <Spinner size="sm" className="mr-2 text-white" />
-                  {isEditing ? 'Updating...' : 'Creating...'}
+                  {isEditing ? 'កំពុងធ្វើបច្ចុប្បន្នភាព...' : 'កំពុងបង្កើត...'}
                 </>
               ) : (
-                isEditing ? 'Update Room Type' : 'Create Room Type'
+                isEditing ? 'ធ្វើបច្ចុប្បន្នភាពប្រភេទបន្ទប់' : 'បង្កើតប្រភេទបន្ទប់'
               )}
             </Button>
           </Modal.Footer>

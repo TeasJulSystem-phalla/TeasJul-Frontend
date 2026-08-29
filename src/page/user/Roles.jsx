@@ -124,7 +124,7 @@ export default function Roles() {
   const permissionsByModule = useMemo(() => {
     const map = {};
     for (const p of permissions) {
-      (map[p.module || 'Other'] = map[p.module || 'Other'] || []).push(p);
+      (map[p.module || 'ផ្សេងទៀត'] = map[p.module || 'ផ្សេងទៀត'] || []).push(p);
     }
     return map;
   }, [permissions]);
@@ -155,8 +155,8 @@ export default function Roles() {
 
   const validate = () => {
     const errs = {};
-    if (!form.name.trim()) errs.name = 'Name is required';
-    if (!form.code.trim()) errs.code = 'Code is required';
+    if (!form.name.trim()) errs.name = 'តម្រូវឱ្យបញ្ចូលឈ្មោះ';
+    if (!form.code.trim()) errs.code = 'តម្រូវឱ្យបញ្ចូលលេខកូដ';
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -174,18 +174,18 @@ export default function Roles() {
     try {
       if (roleModal?.mode === 'edit') {
         await updateRole(roleModal.role.id, payload);
-        toast.success('Role updated', `"${payload.name}" has been updated.`);
+        toast.success('បានកែប្រែតួនាទី', `"${payload.name}" ត្រូវបានធ្វើបច្ចុប្បន្នភាព។`);
       } else {
         await createRole(payload);
-        toast.success('Role created', `"${payload.name}" has been created.`);
+        toast.success('បានបង្កើតតួនាទី', `"${payload.name}" ត្រូវបានបង្កើត។`);
       }
       setRoleModal(null);
     } catch (err) {
-      const message = err.response?.data?.message || err.response?.data?.error || 'Operation failed.';
+      const message = err.response?.data?.message || err.response?.data?.error || 'ប្រតិបត្តិការបានបរាជ័យ។';
       if (/name|c/i.test(message)) {
         setFormErrors((prev) => ({ ...prev, code: message }));
       } else {
-        toast.error('Error', message);
+        toast.error('កំហុស', message);
       }
     } finally {
       setSubmitting(false);
@@ -243,11 +243,11 @@ export default function Roles() {
         .filter(([, v]) => v)
         .map(([k]) => Number(k));
       await roleApi.replacePermissions(permModal.id, ids);
-      toast.success('Permissions saved', `Updated permissions for "${permModal.name}".`);
+      toast.success('បានរក្សាទុកសិទ្ធិ', `បានធ្វើបច្ចុប្បន្នភាពសិទ្ធិសម្រាប់ "${permModal.name}"។`);
       setPermModal(null);
       loadRolePermissions(permModal.id);
     } catch (err) {
-      toast.error('Error', err.response?.data?.message || err.response?.data?.error || 'Failed to save permissions.');
+      toast.error('កំហុស', err.response?.data?.message || err.response?.data?.error || 'ការរក្សាទុកសិទ្ធិបានបរាជ័យ។');
     } finally {
       setSavingPerms(false);
     }
@@ -277,10 +277,10 @@ export default function Roles() {
     setAssigning(roleId);
     try {
       await userApi.assignRole(userRoleTarget.id, roleId);
-      toast.success('Role assigned', `Role assigned to the user.`);
+      toast.success('បានកំណត់តួនាទី', `បានកំណត់តួនាទីឱ្យអ្នកប្រើប្រាស់។`);
       await loadUserRoles(userRoleTarget.id);
     } catch (err) {
-      toast.error('Error', err.response?.data?.message || err.response?.data?.error || 'Failed to assign role.');
+      toast.error('កំហុស', err.response?.data?.message || err.response?.data?.error || 'ការកំណត់តួនាទីបានបរាជ័យ។');
     } finally {
       setAssigning(null);
     }
@@ -291,10 +291,10 @@ export default function Roles() {
     setAssigning(roleId);
     try {
       await userApi.removeRole(userRoleTarget.id, roleId);
-      toast.success('Role removed', `Role removed from the user.`);
+      toast.success('បានដកតួនាទីចេញ', `តួនាទីត្រូវបានដកចេញពីអ្នកប្រើប្រាស់។`);
       await loadUserRoles(userRoleTarget.id);
     } catch (err) {
-      toast.error('Error', err.response?.data?.message || err.response?.data?.error || 'Failed to remove role.');
+      toast.error('កំហុស', err.response?.data?.message || err.response?.data?.error || 'ការដកតួនាទីបានបរាជ័យ។');
     } finally {
       setAssigning(null);
     }
@@ -306,10 +306,10 @@ export default function Roles() {
     setDeleting(true);
     try {
       await deleteRole(deleteTarget.id);
-      toast.success('Role deleted', `"${deleteTarget.name}" has been removed.`);
+      toast.success('បានលុបតួនាទី', `"${deleteTarget.name}" ត្រូវបានដកចេញ។`);
       setDeleteTarget(null);
     } catch (err) {
-      toast.error('Delete failed', err.response?.data?.message || err.response?.data?.error || 'Failed to delete role.');
+      toast.error('ការលុបបានបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'ការលុបតួនាទីបានបរាជ័យ។');
     } finally {
       setDeleting(false);
     }
@@ -317,7 +317,7 @@ export default function Roles() {
 
   const columns = [
     {
-      header: 'Role',
+      header: 'តួនាទី',
       render: (row) => (
         <div className="flex items-center gap-3">
           <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white ${pickRoleColor(row.name)}`}>
@@ -331,7 +331,7 @@ export default function Roles() {
       ),
     },
     {
-      header: 'Description',
+      header: 'ការពិពណ៌នា',
       render: (row) => (
         <span className="block max-w-[260px] truncate text-sm text-slate-500 dark:text-slate-400">
           {row.description || '—'}
@@ -339,16 +339,16 @@ export default function Roles() {
       ),
     },
     {
-      header: 'Type',
+      header: 'ប្រភេទ',
       render: (row) =>
         row.isSystemRole ? (
-          <Badge variant="info"><Lock className="mr-1 inline h-3 w-3" /> System</Badge>
+          <Badge variant="info"><Lock className="mr-1 inline h-3 w-3" /> ប្រព័ន្ធ</Badge>
         ) : (
-          <Badge variant="neutral">Custom</Badge>
+          <Badge variant="neutral">ផ្ទាល់ខ្លួន</Badge>
         ),
     },
     {
-      header: 'Created',
+      header: 'កាលបរិច្ឆេទបង្កើត',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
           <Calendar className="h-3.5 w-3.5" />
@@ -357,34 +357,34 @@ export default function Roles() {
       ),
     },
     {
-      header: 'Actions',
+      header: 'សកម្មភាព',
       render: (row) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <IconButton
             variant="ghost"
             size="sm"
-            tooltip="View"
+            tooltip="មើល"
             icon={<Eye className="h-4 w-4" />}
             onClick={() => openView(row)}
           />
           <IconButton
             variant="ghost"
             size="sm"
-            tooltip="Manage permissions"
+            tooltip="គ្រប់គ្រងសិទ្ធិ"
             icon={<KeyRound className="h-4 w-4" />}
             onClick={() => openManagePermissions(row)}
           />
           <IconButton
             variant="ghost"
             size="sm"
-            tooltip="Edit"
+            tooltip="កែប្រែ"
             icon={<Edit className="h-4 w-4" />}
             onClick={() => openEdit(row)}
           />
           <IconButton
             variant="ghost"
             size="sm"
-            tooltip={row.isSystemRole ? 'System roles cannot be deleted' : 'Delete'}
+            tooltip={row.isSystemRole ? 'តួនាទីប្រព័ន្ធមិនអាចលុបបានទេ' : 'លុប'}
             icon={<Trash2 className="h-4 w-4" />}
             disabled={row.isSystemRole}
             className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
@@ -426,40 +426,40 @@ export default function Roles() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">Roles</h1>
+          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">តួនាទី</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Manage roles, permissions, and role assignments across users.
+            គ្រប់គ្រងតួនាទី សិទ្ធិ និងការកំណត់តួនាទីសម្រាប់អ្នកប្រើប្រាស់ទាំងអស់។
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={fetchRoles}>
-            Refresh
+            ផ្ទុកឡើងវិញ
           </Button>
           <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
-            Create Role
+            បង្កើតតួនាទី
           </Button>
         </div>
       </div>
 
-      {error && <Alert variant="danger" title="Error loading roles" description={error} dismissible />}
-      {permissionsError && <Alert variant="warning" title="Error loading permissions" description={permissionsError} dismissible />}
+      {error && <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកតួនាទី" description={error} dismissible />}
+      {permissionsError && <Alert variant="warning" title="កំហុសក្នុងការផ្ទុកសិទ្ធិ" description={permissionsError} dismissible />}
 
       {/* Stats */}
       {roles.length > 0 && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <StatCard
-            label="Total Roles"
+            label="ចំនួនតួនាទីសរុប"
             value={stats.total}
             icon={<Shield className="h-5 w-5 text-slate-600 dark:text-slate-400" />}
           />
           <StatCard
-            label="System"
+            label="ប្រព័ន្ធ"
             value={stats.system}
             icon={<Lock className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
             valueClass="text-blue-700 dark:text-blue-400"
           />
           <StatCard
-            label="Custom"
+            label="ផ្ទាល់ខ្លួន"
             value={stats.custom}
             icon={<ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />}
             valueClass="text-emerald-700 dark:text-emerald-400"
@@ -469,8 +469,8 @@ export default function Roles() {
 
       {/* Tabs */}
       <div className="inline-flex rounded-md border border-slate-200 bg-white p-0.5 dark:border-gray-700 dark:bg-gray-900">
-        <TabButton active={activeTab === 'roles'} onClick={() => setActiveTab('roles')} label="Roles" icon={<Shield className="h-4 w-4" />} />
-        <TabButton active={activeTab === 'users'} onClick={() => setActiveTab('users')} label="User Assignments" icon={<UserCog className="h-4 w-4" />} />
+        <TabButton active={activeTab === 'roles'} onClick={() => setActiveTab('roles')} label="តួនាទី" icon={<Shield className="h-4 w-4" />} />
+        <TabButton active={activeTab === 'users'} onClick={() => setActiveTab('users')} label="ការកំណត់តួនាទីអ្នកប្រើប្រាស់" icon={<UserCog className="h-4 w-4" />} />
       </div>
 
       {activeTab === 'roles' ? (
@@ -480,7 +480,7 @@ export default function Roles() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="flex-1">
                 <Input
-                  placeholder="Search by name, code, or description..."
+                  placeholder="ស្វែងរកតាមឈ្មោះ លេខកូដ ឬការពិពណ៌នា..."
                   leftIcon={<Search className="h-4 w-4" />}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -489,9 +489,9 @@ export default function Roles() {
               <div className="w-full sm:w-48">
                 <Select
                   options={[
-                    { value: 'all', label: 'All Types' },
-                    { value: 'system', label: 'System' },
-                    { value: 'custom', label: 'Custom' },
+                    { value: 'all', label: 'គ្រប់ប្រភេទ' },
+                    { value: 'system', label: 'ប្រព័ន្ធ' },
+                    { value: 'custom', label: 'ផ្ទាល់ខ្លួន' },
                   ]}
                   value={scope}
                   onChange={(e) => setScope(e.target.value)}
@@ -504,16 +504,16 @@ export default function Roles() {
           {!loading && roles.length === 0 ? (
             <EmptyState
               icon={Shield}
-              title="No roles yet"
-              description="Create your first role to start managing access."
+              title="មិនទាន់មានតួនាទី"
+              description="បង្កើតតួនាទីដំបូងរបស់អ្នក ដើម្បីចាប់ផ្តើមគ្រប់គ្រងការចូលប្រើ។"
               action={
                 <Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
-                  Create Role
+                  បង្កើតតួនាទី
                 </Button>
               }
             />
           ) : filtered.length === 0 ? (
-            <EmptyState icon={Filter} title="No matches found" description="Try adjusting your search or filter criteria." />
+            <EmptyState icon={Filter} title="រកមិនឃើញលទ្ធផល" description="សូមព្យាយាមកែតម្រូវលក្ខណៈវិនិច្ឆ័យស្វែងរក ឬតម្រងរបស់អ្នក។" />
           ) : (
             <>
               {/* Mobile cards */}
@@ -530,13 +530,13 @@ export default function Roles() {
                           <p className="font-mono text-xs text-slate-400">{role.code}</p>
                         </div>
                       </div>
-                      {role.isSystemRole ? <Badge variant="info">System</Badge> : <Badge variant="neutral">Custom</Badge>}
+                      {role.isSystemRole ? <Badge variant="info">ប្រព័ន្ធ</Badge> : <Badge variant="neutral">ផ្ទាល់ខ្លួន</Badge>}
                     </div>
-                    <p className="mt-3 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">{role.description || 'No description'}</p>
+                    <p className="mt-3 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">{role.description || 'គ្មានការពិពណ៌នា'}</p>
                     <div className="mt-4 flex items-center gap-1 border-t border-slate-100 pt-3 dark:border-gray-800">
-                      <IconButton variant="ghost" size="sm" tooltip="Permissions" icon={<KeyRound className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openManagePermissions(role); }} />
-                      <IconButton variant="ghost" size="sm" tooltip="Edit" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(role); }} />
-                      <IconButton variant="ghost" size="sm" tooltip={role.isSystemRole ? 'System roles cannot be deleted' : 'Delete'} icon={<Trash2 className="h-4 w-4" />} disabled={role.isSystemRole} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeleteTarget(role); }} />
+                      <IconButton variant="ghost" size="sm" tooltip="សិទ្ធិ" icon={<KeyRound className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openManagePermissions(role); }} />
+                      <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(role); }} />
+                      <IconButton variant="ghost" size="sm" tooltip={role.isSystemRole ? 'តួនាទីប្រព័ន្ធមិនអាចលុបបានទេ' : 'លុប'} icon={<Trash2 className="h-4 w-4" />} disabled={role.isSystemRole} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeleteTarget(role); }} />
                     </div>
                   </div>
                 ))}
@@ -572,27 +572,27 @@ export default function Roles() {
       <Modal
         open={!!roleModal}
         onClose={() => setRoleModal(null)}
-        title={roleModal?.mode === 'edit' ? 'Edit Role' : 'Create Role'}
-        description={roleModal?.mode === 'edit' ? `Editing "${roleModal.role.name}"` : 'Define a new role for access control.'}
+        title={roleModal?.mode === 'edit' ? 'កែប្រែតួនាទី' : 'បង្កើតតួនាទី'}
+        description={roleModal?.mode === 'edit' ? `កំពុងកែប្រែ "${roleModal.role.name}"` : 'កំណត់តួនាទីថ្មីសម្រាប់ការគ្រប់គ្រងការចូលប្រើ។'}
         size="md"
         footer={
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => setRoleModal(null)} disabled={submitting}>Cancel</Button>
+            <Button variant="outline" onClick={() => setRoleModal(null)} disabled={submitting}>បោះបង់</Button>
             <Button type="submit" form="roleForm" onClick={() => document.getElementById('roleForm')?.requestSubmit()} loading={submitting}>
-              {roleModal?.mode === 'edit' ? 'Save Changes' : 'Create Role'}
+              {roleModal?.mode === 'edit' ? 'រក្សាទុកការផ្លាស់ប្តូរ' : 'បង្កើតតួនាទី'}
             </Button>
           </div>
         }
       >
         <form id="roleForm" onSubmit={handleRoleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Name" required name="name" value={form.name} onChange={handleFormChange} placeholder="e.g., Property Manager" error={formErrors.name} />
-            <Input label="Code" required name="code" value={form.code} onChange={handleFormChange} placeholder="e.g., PROP_MANAGER" error={formErrors.code} />
+            <Input label="ឈ្មោះ" required name="name" value={form.name} onChange={handleFormChange} placeholder="ឧ. អ្នកគ្រប់គ្រងអចលនទ្រព្យ" error={formErrors.name} />
+            <Input label="លេខកូដ" required name="code" value={form.code} onChange={handleFormChange} placeholder="ឧ. PROP_MANAGER" error={formErrors.code} />
           </div>
-          <Textarea label="Description" name="description" value={form.description} onChange={handleFormChange} rows={3} placeholder="Describe what this role can do..." />
+          <Textarea label="ការពិពណ៌នា" name="description" value={form.description} onChange={handleFormChange} rows={3} placeholder="រៀបរាប់ពីអ្វីដែលតួនាទីនេះអាចធ្វើបាន..." />
           {roleModal?.mode === 'create' && (
             <Checkbox
-              label="Mark as system role (protected from deletion)"
+              label="កំណត់ជាតួនាទីប្រព័ន្ធ (ការពារពីការលុប)"
               checked={form.isSystemRole}
               onChange={(e) => setForm((prev) => ({ ...prev, isSystemRole: e.target.checked }))}
             />
@@ -601,7 +601,7 @@ export default function Roles() {
             <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
               <p className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4" />
-                The system role flag cannot be changed after creation.
+                ការកំណត់តួនាទីប្រព័ន្ធមិនអាចផ្លាស់ប្តូរបានទេបន្ទាប់ពីបង្កើតរួច។
               </p>
             </div>
           )}
@@ -612,7 +612,7 @@ export default function Roles() {
       <Modal
         open={!!viewRole}
         onClose={() => setViewRole(null)}
-        title="Role Details"
+        title="ព័ត៌មានលម្អិតតួនាទី"
         size="lg"
       >
         {viewRole && (
@@ -627,17 +627,17 @@ export default function Roles() {
                   <p className="font-mono text-sm text-slate-500 dark:text-slate-400">{viewRole.code}</p>
                 </div>
               </div>
-              {viewRole.isSystemRole ? <Badge variant="info"><Lock className="mr-1 inline h-3 w-3" /> System</Badge> : <Badge variant="neutral">Custom</Badge>}
+              {viewRole.isSystemRole ? <Badge variant="info"><Lock className="mr-1 inline h-3 w-3" /> ប្រព័ន្ធ</Badge> : <Badge variant="neutral">ផ្ទាល់ខ្លួន</Badge>}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="Role ID" value={viewRole.id} />
-              <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="Created" value={formatDate(viewRole.createdAt)} />
+              <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="លេខសម្គាល់តួនាទី" value={viewRole.id} />
+              <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="កាលបរិច្ឆេទបង្កើត" value={formatDate(viewRole.createdAt)} />
             </div>
 
             {viewRole.description && (
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-gray-800 dark:bg-gray-800/50">
-                <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Description</p>
+                <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">ការពិពណ៌នា</p>
                 <p className="text-sm text-slate-700 dark:text-slate-300">{viewRole.description}</p>
               </div>
             )}
@@ -645,10 +645,10 @@ export default function Roles() {
             <div>
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  Permissions ({rolePermissions.length})
+                  សិទ្ធិ ({rolePermissions.length})
                 </p>
                 <Button variant="primary" size="sm" leftIcon={<KeyRound className="h-4 w-4" />} onClick={() => { setViewRole(null); openManagePermissions(viewRole); }}>
-                  Manage
+                  គ្រប់គ្រង
                 </Button>
               </div>
               {permissionsLoadingRole ? (
@@ -668,7 +668,7 @@ export default function Roles() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-slate-400 dark:text-slate-500">No permissions assigned to this role yet.</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500">មិនទាន់មានសិទ្ធិណាមួយត្រូវបានកំណត់សម្រាប់តួនាទីនេះទេ។</p>
               )}
             </div>
           </div>
@@ -679,14 +679,14 @@ export default function Roles() {
       <Modal
         open={!!permModal}
         onClose={() => setPermModal(null)}
-        title={`Manage Permissions`}
-        description={permModal ? `Assign permissions for "${permModal.name}".` : undefined}
+        title={`គ្រប់គ្រងសិទ្ធិ`}
+        description={permModal ? `កំណត់សិទ្ធិសម្រាប់ "${permModal.name}"។` : undefined}
         size="xl"
         footer={
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => setPermModal(null)} disabled={savingPerms}>Cancel</Button>
+            <Button variant="outline" onClick={() => setPermModal(null)} disabled={savingPerms}>បោះបង់</Button>
             <Button variant="primary" onClick={savePermissions} loading={savingPerms}>
-              {savingPerms ? 'Saving...' : 'Save Permissions'}
+              {savingPerms ? 'កំពុងរក្សាទុក...' : 'រក្សាទុកសិទ្ធិ'}
             </Button>
           </div>
         }
@@ -700,10 +700,10 @@ export default function Roles() {
         ) : (
           <div className="space-y-5">
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Tick the permissions this role should have. Saving replaces the full set.
+              ធីកសិទ្ធិដែលតួនាទីនេះគួរមាន។ ការរក្សាទុកនឹងជំនួសសំណុំទាំងមូល។
             </p>
             {Object.keys(permissionsByModule).length === 0 ? (
-              <EmptyState icon={Shield} title="No permissions found" description="There are no permissions to assign." />
+              <EmptyState icon={Shield} title="រកមិនឃើញសិទ្ធិ" description="មិនមានសិទ្ធិណាមួយសម្រាប់កំណត់ទេ។" />
             ) : (
               Object.entries(permissionsByModule).map(([module, perms]) => (
                 <div key={module} className="rounded-lg border border-slate-200 p-4 dark:border-gray-800">
@@ -733,10 +733,10 @@ export default function Roles() {
       {/* Delete role */}
       <ConfirmDialog
         open={!!deleteTarget}
-        title="Delete Role"
-        description={`Are you sure you want to delete "${deleteTarget?.name}"? This will unassign it from all users and permissions.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="លុបតួនាទី"
+        description={`តើអ្នកប្រាកដទេថាចង់លុប "${deleteTarget?.name}"? នេះនឹងដកវាចេញពីអ្នកប្រើប្រាស់ និងសិទ្ធិទាំងអស់។`}
+        confirmText="លុប"
+        cancelText="បោះបង់"
         danger
         loading={deleting}
         onConfirm={handleDelete}
@@ -797,11 +797,11 @@ const UserAssignmentsView = ({
       <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
         <div className="flex-1">
           <Select
-            label="Select a user"
-            placeholder="Choose a user"
+            label="ជ្រើសរើសអ្នកប្រើប្រាស់"
+            placeholder="ជ្រើសរើសអ្នកប្រើប្រាស់ម្នាក់"
             options={users.map((u) => ({
               value: String(u.id),
-              label: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username || u.email || `User #${u.id}`,
+              label: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username || u.email || `អ្នកប្រើប្រាស់ #${u.id}`,
             }))}
             value={selectedUserId}
             onChange={(e) => onSelectUser(e.target.value)}
@@ -813,8 +813,8 @@ const UserAssignmentsView = ({
     {!selectedUserId ? (
       <EmptyState
         icon={UserCog}
-        title="Select a user"
-        description="Choose a user above to view and manage their assigned roles."
+        title="ជ្រើសរើសអ្នកប្រើប្រាស់"
+        description="ជ្រើសរើសអ្នកប្រើប្រាស់ខាងលើ ដើម្បីមើល និងគ្រប់គ្រងតួនាទីដែលបានកំណត់របស់ពួកគេ។"
       />
     ) : (
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -822,9 +822,9 @@ const UserAssignmentsView = ({
         <Card>
           <div className="border-b border-slate-100 p-4 dark:border-gray-800">
             <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
-              Assigned Roles
+              តួនាទីដែលបានកំណត់
             </h3>
-            <p className="text-xs text-slate-400">{userRoles.length} role(s) assigned</p>
+            <p className="text-xs text-slate-400">{userRoles.length} តួនាទីត្រូវបានកំណត់</p>
           </div>
           <div className="p-4">
             {userRolesLoading ? (
@@ -839,12 +839,12 @@ const UserAssignmentsView = ({
                     <div className="flex items-center gap-2.5">
                       <ShieldCheck className="h-4 w-4 text-indigo-500" />
                       <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{role.name}</span>
-                      {role.isSystemRole && <Badge variant="info">System</Badge>}
+                      {role.isSystemRole && <Badge variant="info">ប្រព័ន្ធ</Badge>}
                     </div>
                     <IconButton
                       variant="ghost"
                       size="sm"
-                      tooltip="Remove role"
+                      tooltip="ដកតួនាទីចេញ"
                       icon={<Trash2 className="h-4 w-4" />}
                       className="text-red-600 dark:text-red-400"
                       disabled={assigning === role.id}
@@ -854,7 +854,7 @@ const UserAssignmentsView = ({
                 ))}
               </ul>
             ) : (
-              <p className="py-6 text-center text-sm text-slate-400">No roles assigned yet.</p>
+              <p className="py-6 text-center text-sm text-slate-400">មិនទាន់មានតួនាទីដែលបានកំណត់ទេ។</p>
             )}
           </div>
         </Card>
@@ -862,8 +862,8 @@ const UserAssignmentsView = ({
         {/* Assign roles */}
         <Card>
           <div className="border-b border-slate-100 p-4 dark:border-gray-800">
-            <h3 className="text-sm font-semibold text-slate-800 dark:text-white">Available Roles</h3>
-            <p className="text-xs text-slate-400">Add a role to this user</p>
+            <h3 className="text-sm font-semibold text-slate-800 dark:text-white">តួនាទីដែលអាចកំណត់បាន</h3>
+            <p className="text-xs text-slate-400">បន្ថែមតួនាទីសម្រាប់អ្នកប្រើប្រាស់នេះ</p>
           </div>
           <div className="p-4">
             {availableRoles.length > 0 ? (
@@ -876,13 +876,13 @@ const UserAssignmentsView = ({
                       <span className="font-mono text-xs text-slate-400">{role.code}</span>
                     </div>
                     <Button variant="outline" size="sm" leftIcon={<Plus className="h-4 w-4" />} disabled={assigning === role.id} loading={assigning === role.id} onClick={() => onAssign(role.id)}>
-                      Assign
+                      កំណត់
                     </Button>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="py-6 text-center text-sm text-slate-400">This user already has all available roles.</p>
+              <p className="py-6 text-center text-sm text-slate-400">អ្នកប្រើប្រាស់នេះមានតួនាទីដែលអាចកំណត់បានទាំងអស់ហើយ។</p>
             )}
           </div>
         </Card>
