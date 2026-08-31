@@ -1006,7 +1006,7 @@ const RoomAmenityManager = ({ room, onClose }) => {
     if (!room) return;
     setLoadingAll(true);
     roomApi
-      .getAllAmenities()
+      .getMyAmenities()
       .then(setAllAmenities)
       .catch(() => setAllAmenities([]))
       .finally(() => setLoadingAll(false));

@@ -34,6 +34,9 @@ export const roomApi = {
   getMyAmenities: (status) =>
     api.get("/amenities", { params: status ? { status } : {} }).then((res) => res.data),
 
+  getAllAmenities: (status) =>
+    api.get("/amenities", { params: status ? { status } : {} }).then((res) => res.data),
+
   getAmenityById: (id) =>
     api.get(`/amenities/${id}`).then((res) => res.data),
 
