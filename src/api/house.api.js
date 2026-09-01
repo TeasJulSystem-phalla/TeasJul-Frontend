@@ -7,6 +7,18 @@ export const houseApi = {
   getHouseById: (id) =>
     api.get(`/houses/${id}`).then((res) => res.data),
 
+  getHouseSummary: (houseId) =>
+    api.get(`/houses/${houseId}/summary`).then((res) => res.data),
+
+  getHouseRooms: (houseId, params) =>
+    api.get(`/houses/${houseId}/rooms`, { params }).then((res) => res.data),
+
+  getHouseTenants: (houseId, params) =>
+    api.get(`/houses/${houseId}/tenants`, { params }).then((res) => res.data),
+
+  getHouseContracts: (houseId, params) =>
+    api.get(`/houses/${houseId}/contracts`, { params }).then((res) => res.data),
+
   createHouse: (data) =>
     api.post("/houses", data).then((res) => res.data),
 
@@ -18,6 +30,9 @@ export const houseApi = {
 
   getHouseUsers: (houseId) =>
     api.get(`/houses/${houseId}/access`).then((res) => res.data),
+
+  getAccessCandidates: (houseId) =>
+    api.get(`/houses/${houseId}/access/candidates`).then((res) => res.data),
 
   grantAccess: (houseId, userId) =>
     api.post(`/houses/${houseId}/access`, { userId }).then((res) => res.data),

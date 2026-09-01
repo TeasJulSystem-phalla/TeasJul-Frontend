@@ -25,9 +25,8 @@ import {
   CheckCircle2,
   XCircle,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useTenants, useEmergencyContacts } from '../../hooks/useTenants.js';
-import { useUsers } from '../../hooks/useUsers.js';
-import { useAuthStore } from '../../store/auth.store.js';
 import { useToast } from '../../components/ui/Toast.jsx';
 import {
   Card,
@@ -37,7 +36,6 @@ import {
   Alert,
   Modal,
   Input,
-  Textarea,
   Select,
   IconButton,
   ConfirmDialog,
@@ -51,41 +49,12 @@ const STATUS_VARIANT = {
   INACTIVE: 'neutral',
 };
 
-const GENDER_OPTIONS = [
-  { value: 'MALE', label: 'ប្រុស' },
-  { value: 'FEMALE', label: 'ស្រី' },
-  { value: 'OTHER', label: 'ផ្សេងទៀត' },
-];
-
-const OCCUPATION_OPTIONS = [
-  { value: 'STUDENT', label: 'សិស្ស' },
-  { value: 'EMPLOYEE', label: 'បុគ្គលិក' },
-  { value: 'OTHER', label: 'ផ្សេងទៀត' },
-];
-
 const STATUS_OPTIONS = [
   { value: '', label: 'ស្ថានភាពទាំងអស់' },
   { value: 'ACTIVE', label: 'សកម្ម (ទំនេរ)' },
   { value: 'RENTING', label: 'កំពុងជួលផ្ទះ' },
   { value: 'INACTIVE', label: 'អសកម្ម' },
 ];
-
-const EMPTY_FORM = {
-  userId: '',
-  tenantCode: '',
-  firstName: '',
-  lastName: '',
-  gender: 'OTHER',
-  dateOfBirth: '',
-  phone: '',
-  email: '',
-  occupationType: 'OTHER',
-  occupation: '',
-  schoolOrCompany: '',
-  idType: '',
-  idNumber: '',
-  address: '',
-};
 
 const EMPTY_CONTACT = {
   name: '',
@@ -109,19 +78,14 @@ export default function Tenants() {
     error,
     fetchTenants,
     getTenant,
-    createTenant,
-    updateTenant,
     deactivateTenant,
   } = useTenants();
-  const { users } = useUsers();
-  const currentUser = useAuthStore((s) => s.user);
   const toast = useToast();
+  const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState(null);
   const [viewTarget, setViewTarget] = useState(null);
   const [viewData, setViewData] = useState(null);
   const [viewLoading, setViewLoading] = useState(false);
@@ -129,10 +93,6 @@ export default function Tenants() {
   const [deactivating, setDeactivating] = useState(false);
 
   const [contactTarget, setContactTarget] = useState(null); // tenant being managed
-
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [formErrors, setFormErrors] = useState({});
-  const [submitting, setSubmitting] = useState(false);
 
   const refresh = useCallback(() => fetchTenants(), [fetchTenants]);
 
@@ -162,15 +122,6 @@ export default function Tenants() {
 
   const getStatusBadge = (status) => (
     <Badge variant={STATUS_VARIANT[status] || 'default'}>{status || '—'}</Badge>
-  );
-
-  const userOptions = useMemo(
-    () =>
-      users.map((u) => ({
-        value: u.id,
-        label: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username || u.email || `អ្នកប្រើប្រាស់ #${u.id}`,
-      })),
-    [users]
   );
 
   const columns = [
@@ -242,7 +193,7 @@ export default function Tenants() {
       render: (row) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <IconButton variant="ghost" size="sm" tooltip="មើល" icon={<Eye className="h-4 w-4" />} onClick={() => openView(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => navigate(`/tenants/${row.id}/edit`)} />
           <IconButton variant="ghost" size="sm" tooltip="ទំនាក់ទំនង" icon={<Contact className="h-4 w-4" />} onClick={() => setContactTarget(row)} disabled={row.status !== 'ACTIVE'} />
           {row.status === 'ACTIVE' && (
             <IconButton variant="ghost" size="sm" tooltip="បិទដំណើរការ" icon={<Power className="h-4 w-4" />} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300" onClick={() => setDeactivateTarget(row)} />
@@ -252,93 +203,7 @@ export default function Tenants() {
     },
   ];
 
-  // ---- Form ----
-  const resetForm = () => {
-    setForm({ ...EMPTY_FORM, userId: currentUser?.id ?? '' });
-    setFormErrors({});
-  };
-
-  const handleCreateOpen = () => {
-    resetForm();
-    setCreateOpen(true);
-  };
-
-  const openEdit = (t) => {
-    setEditTarget(t);
-    setForm({
-      userId: t.userId ?? currentUser?.id ?? '',
-      tenantCode: t.tenantCode || '',
-      firstName: t.firstName || '',
-      lastName: t.lastName || '',
-      gender: t.gender || 'OTHER',
-      dateOfBirth: t.dateOfBirth || '',
-      phone: t.phone || '',
-      email: t.email || '',
-      occupationType: t.occupationType || 'OTHER',
-      occupation: t.occupation || '',
-      schoolOrCompany: t.schoolOrCompany || '',
-      idType: t.idType || '',
-      idNumber: t.idNumber || '',
-      address: t.address || '',
-    });
-    setFormErrors({});
-  };
-
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    if (formErrors[name]) setFormErrors((prev) => ({ ...prev, [name]: undefined }));
-  };
-
-  const validate = () => {
-    const errs = {};
-    if (!form.userId) errs.userId = 'តម្រូវឱ្យជ្រើសរើសអ្នកប្រើប្រាស់';
-    if (!form.firstName.trim()) errs.firstName = 'តម្រូវឱ្យបញ្ចូលនាមត្រកូល';
-    if (!form.lastName.trim()) errs.lastName = 'តម្រូវឱ្យបញ្ចូលគោត្តនាម';
-    if (!form.phone.trim()) errs.phone = 'តម្រូវឱ្យបញ្ចូលលេខទូរស័ព្ទ';
-    if (!editTarget && !form.tenantCode.trim()) errs.tenantCode = 'តម្រូវឱ្យបញ្ចូលលេខកូដអ្នកជួល';
-    setFormErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
-
-    const base = {
-      firstName: form.firstName.trim(),
-      lastName: form.lastName.trim(),
-      gender: form.gender,
-      dateOfBirth: form.dateOfBirth || null,
-      phone: form.phone.trim(),
-      email: form.email.trim() || null,
-      occupationType: form.occupationType,
-      occupation: form.occupation.trim() || null,
-      schoolOrCompany: form.schoolOrCompany.trim() || null,
-      idType: form.idType.trim() || null,
-      idNumber: form.idNumber.trim() || null,
-      address: form.address.trim() || null,
-    };
-
-    setSubmitting(true);
-    try {
-      if (editTarget) {
-        await updateTenant(editTarget.id, base);
-        toast.success('បានកែប្រែអ្នកជួល', `${fullName({ ...form, id: editTarget.id })} ត្រូវបានធ្វើបច្ចុប្បន្នភាព។`);
-        setEditTarget(null);
-      } else {
-        await createTenant({ ...base, userId: Number(form.userId), tenantCode: form.tenantCode.trim() });
-        toast.success('បានបង្កើតអ្នកជួល', 'បានបន្ថែមអ្នកជួលថ្មី។');
-        setCreateOpen(false);
-      }
-      resetForm();
-    } catch (err) {
-      toast.error('កំហុស', err.response?.data?.message || err.response?.data?.error || 'ប្រតិបត្តិការបានបរាជ័យ។');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
+  // ---- View ----
   const openView = async (t) => {
     setViewTarget(t);
     setViewData(t);
@@ -412,7 +277,7 @@ export default function Tenants() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>ផ្ទុកឡើងវិញ</Button>
-          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតអ្នកជួល</Button>
+          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate('/tenants/new')}>បង្កើតអ្នកជួល</Button>
         </div>
       </div>
 
@@ -452,7 +317,7 @@ export default function Tenants() {
           icon={UsersIcon}
           title="មិនទាន់មានអ្នកជួល"
           description="បង្កើតប្រវត្តិរូបអ្នកជួលដំបូងរបស់អ្នក ដើម្បីចាប់ផ្តើម។"
-          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតអ្នកជួល</Button>}
+          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate('/tenants/new')}>បង្កើតអ្នកជួល</Button>}
         />
       ) : filtered.length === 0 ? (
         <EmptyState icon={Filter} title="រកមិនឃើញលទ្ធផល" description="សូមព្យាយាមកែតម្រូវលក្ខណៈវិនិច្ឆ័យស្វែងរក ឬតម្រងរបស់អ្នក។" />
@@ -483,7 +348,7 @@ export default function Tenants() {
                   )}
                 </div>
                 <div className="mt-4 flex items-center gap-1 border-t border-slate-100 pt-3 dark:border-gray-800">
-                  <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(t); }} />
+                  <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); navigate(`/tenants/${t.id}/edit`); }} />
                   <IconButton variant="ghost" size="sm" tooltip="ទំនាក់ទំនង" icon={<Contact className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); setContactTarget(t); }} disabled={t.status !== 'ACTIVE'} />
                   {t.status === 'ACTIVE' && (
                     <IconButton variant="ghost" size="sm" tooltip="បិទដំណើរការ" icon={<Power className="h-4 w-4" />} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeactivateTarget(t); }} />
@@ -499,70 +364,6 @@ export default function Tenants() {
           </Card>
         </>
       )}
-
-      {/* Create/Edit modal */}
-      <Modal
-        open={createOpen || !!editTarget}
-        onClose={() => { setCreateOpen(false); setEditTarget(null); }}
-        title={editTarget ? 'កែប្រែអ្នកជួល' : 'បង្កើតអ្នកជួល'}
-        description={editTarget ? `កំពុងកែប្រែ ${fullName(editTarget)}` : 'បន្ថែមប្រវត្តិរូបអ្នកជួលថ្មី។'}
-        size="lg"
-        footer={
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => { setCreateOpen(false); setEditTarget(null); }} disabled={submitting}>បោះបង់</Button>
-            <Button type="submit" form="tenantForm" onClick={() => document.getElementById('tenantForm')?.requestSubmit()} loading={submitting}>
-              {editTarget ? 'រក្សាទុកការផ្លាស់ប្តូរ' : 'បង្កើតអ្នកជួល'}
-            </Button>
-          </div>
-        }
-      >
-        <form id="tenantForm" onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">គណនី</p>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {editTarget ? (
-                <Input label="លេខកូដអ្នកជួល" disabled value={form.tenantCode} />
-              ) : (
-                <Input label="លេខកូដអ្នកជួល" required name="tenantCode" value={form.tenantCode} onChange={handleFormChange} placeholder="ឧ. TN-0001" error={formErrors.tenantCode} />
-              )}
-              <Select
-                label="គណនីអ្នកប្រើប្រាស់"
-                required={!editTarget}
-                name="userId"
-                options={userOptions}
-                value={form.userId}
-                onChange={handleFormChange}
-                placeholder={editTarget ? 'មិនអាចផ្លាស់ប្តូរបានទេ' : 'ជ្រើសរើសអ្នកប្រើប្រាស់'}
-                error={formErrors.userId}
-              />
-            </div>
-          </div>
-
-          <div>
-            <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">ព័ត៌មានផ្ទាល់ខ្លួន</p>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input label="នាមត្រកូល" required name="firstName" value={form.firstName} onChange={handleFormChange} error={formErrors.firstName} />
-              <Input label="គោត្តនាម" required name="lastName" value={form.lastName} onChange={handleFormChange} error={formErrors.lastName} />
-              <Select label="ភេទ" name="gender" options={GENDER_OPTIONS} value={form.gender} onChange={handleFormChange} />
-              <Input label="ថ្ងៃខែឆ្នាំកំណើត" type="date" name="dateOfBirth" value={form.dateOfBirth} onChange={handleFormChange} />
-              <Input label="លេខទូរស័ព្ទ" required name="phone" value={form.phone} onChange={handleFormChange} placeholder="ឧ. 0812-3456-789" error={formErrors.phone} />
-              <Input label="អ៊ីមែល" type="email" name="email" value={form.email} onChange={handleFormChange} placeholder="email@example.com" />
-              <Select label="ប្រភេទមុខរបរ" name="occupationType" options={OCCUPATION_OPTIONS} value={form.occupationType} onChange={handleFormChange} />
-              <Input label="មុខរបរ" name="occupation" value={form.occupation} onChange={handleFormChange} placeholder="ឧ. វិស្វករកម្មវិធី" />
-            </div>
-          </div>
-
-          <div>
-            <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">សាលារៀន / ក្រុមហ៊ុន</p>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Input label="សាលារៀន ឬក្រុមហ៊ុន" name="schoolOrCompany" value={form.schoolOrCompany} onChange={handleFormChange} />
-              <Input label="ប្រភេទអត្តសញ្ញាណប័ណ្ណ" name="idType" value={form.idType} onChange={handleFormChange} placeholder="ឧ. NIK លិខិតឆ្លងដែន" />
-              <Input label="លេខអត្តសញ្ញាណប័ណ្ណ" name="idNumber" value={form.idNumber} onChange={handleFormChange} />
-              <Textarea label="អាសយដ្ឋាន" name="address" value={form.address} onChange={handleFormChange} rows={2} placeholder="អាសយដ្ឋានបច្ចុប្បន្ន..." />
-            </div>
-          </div>
-        </form>
-      </Modal>
 
       {/* View modal */}
       <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title="ព័ត៌មានលម្អិតអ្នកជួល" description={viewData ? `អ្នកជួល ${viewData.tenantCode}` : undefined} size="lg">
@@ -588,7 +389,7 @@ export default function Tenants() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" leftIcon={<Edit className="h-4 w-4" />} onClick={() => { openEdit(viewData); setViewTarget(null); }}>កែប្រែ</Button>
+              <Button variant="outline" size="sm" leftIcon={<Edit className="h-4 w-4" />} onClick={() => { const id = viewData.id; setViewTarget(null); navigate(`/tenants/${id}/edit`); }}>កែប្រែ</Button>
               <Button variant="outline" size="sm" leftIcon={<Contact className="h-4 w-4" />} onClick={() => { setContactTarget(viewData); setViewTarget(null); }} disabled={viewData.status !== 'ACTIVE'}>ទំនាក់ទំនងសង្គ្រោះបន្ទាន់</Button>
               {viewData.status === 'ACTIVE' && (
                 <Button variant="danger" size="sm" leftIcon={<Power className="h-4 w-4" />} onClick={() => { setDeactivateTarget(viewData); setViewTarget(null); }}>បិទដំណើរការ</Button>

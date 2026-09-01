@@ -4,15 +4,20 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import Dashboard from '../page/Dashboard';
 import Placeholder from '../page/Placeholder';
 import Properties from '../page/Room/Properties';
+import HouseDetailPage from '../page/House/HouseDetailPage';
+import HouseAccessPage from '../page/House/HouseAccessPage';
 import Users from '../page/user/Users';
 import Profile from '../page/user/Profile';
 import LoginPage from '../page/auth/LoginPage';
+import TenantInvitePage from '../page/auth/TenantInvitePage';
 import UiShowcase from '../components/ui/UiShowcase';
 import RoomTypesPage from '../page/Room/RoomTypePage';
 import RolesPage from '../page/user/Roles';
 import RoomsPage from '../page/Room/Rooms';
 import AmenitiesPage from '../page/Room/Amenities';
 import TenantsPage from '../page/user/Tenants';
+import TenantFormPage from '../page/user/TenantFormPage';
+import TenantInvitationsPage from '../page/user/TenantInvitations';
 import ContractsPage from '../page/ContractDetail/Contracts';
 import ContractEditorPage from '../page/ContractDetail/ContractEditorPage';
 import ContractDetailPage from '../page/ContractDetail/ContractDetailPage';
@@ -28,11 +33,14 @@ const AppRoutes = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/tenant/invite" element={<TenantInvitePage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/properties" element={<Properties />} />
+            <Route path="/properties/:id" element={<HouseDetailPage />} />
+            <Route path="/access" element={<HouseAccessPage />} />
             <Route path="/users" element={<Users />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/roomtype" element={<RoomTypesPage />} />
@@ -40,6 +48,9 @@ const AppRoutes = () => {
             <Route path="/rooms" element={<RoomsPage />} />
             <Route path="/amenities" element={<AmenitiesPage />} />
             <Route path="/tenants" element={<TenantsPage />} />
+            <Route path="/tenants/new" element={<TenantFormPage />} />
+            <Route path="/tenants/:id/edit" element={<TenantFormPage />} />
+            <Route path="/tenant-invitations" element={<TenantInvitationsPage />} />
             <Route path="/contracts" element={<ContractsPage />} />
             <Route path="/contracts/new" element={<ContractEditorPage />} />
             <Route path="/contracts/:id/edit" element={<ContractEditorPage />} />

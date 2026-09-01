@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Building2,
   Plus,
@@ -13,6 +14,7 @@ import {
   Filter,
 } from "lucide-react";
 import { useHouses } from "../../hooks/useHouses";
+import { useMyRoles } from "../../hooks/useMyRoles";
 import useToast from "../../components/ui/Toast";
 import Skeleton from "../../components/ui/Skeleton";
 import Alert from "../../components/ui/Alert";
@@ -60,7 +62,11 @@ const EMPTY_FORM = {
 
 const Properties = () => {
   const { houses, loading, error, fetchHouses, createHouse, updateHouse, deleteHouse } = useHouses();
+  const { isOwner, isManager } = useMyRoles();
   const toast = useToast();
+  const navigate = useNavigate();
+
+  const readOnly = isManager && !isOwner;
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -259,9 +265,11 @@ const Properties = () => {
           >
             ធ្វើឱ្យស្រស់
           </Button>
-          <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
-            បន្ថែមអចលនទ្រព្យ
-          </Button>
+          {!readOnly && (
+            <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
+              បន្ថែមអចលនទ្រព្យ
+            </Button>
+          )}
         </div>
       </div>
 
@@ -297,9 +305,11 @@ const Properties = () => {
           title="មិនទាន់មានអចលនទ្រព្យទេ"
           description="ចាប់ផ្តើមដោយបន្ថែមអចលនទ្រព្យដំបូងរបស់អ្នក។"
           action={
-            <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
-              បន្ថែមអចលនទ្រព្យ
-            </Button>
+            !readOnly ? (
+              <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
+                បន្ថែមអចលនទ្រព្យ
+              </Button>
+            ) : null
           }
         />
       ) : filtered.length === 0 ? (
@@ -351,28 +361,32 @@ const Properties = () => {
                         <div className="absolute right-0 z-20 mt-1 w-40 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                           <button
                             onClick={() => {
-                              setViewTarget(house);
                               setMenuOpen(null);
+                              navigate(`/properties/${house.id}`);
                             }}
                             className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
                           >
                             <Eye className="h-4 w-4" /> មើលព័ត៌មានលម្អិត
                           </button>
-                          <button
-                            onClick={() => openEdit(house)}
-                            className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
-                          >
-                            <Edit3 className="h-4 w-4" /> កែប្រែ
-                          </button>
-                          <button
-                            onClick={() => {
-                              setDeleteTarget(house);
-                              setMenuOpen(null);
-                            }}
-                            className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                          >
-                            <Trash2 className="h-4 w-4" /> លុប
-                          </button>
+                          {!readOnly && (
+                            <>
+                              <button
+                                onClick={() => openEdit(house)}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
+                              >
+                                <Edit3 className="h-4 w-4" /> កែប្រែ
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setDeleteTarget(house);
+                                  setMenuOpen(null);
+                                }}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                              >
+                                <Trash2 className="h-4 w-4" /> លុប
+                              </button>
+                            </>
+                          )}
                         </div>
                       </>
                     )}

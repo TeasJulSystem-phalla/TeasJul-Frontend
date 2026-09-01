@@ -19,6 +19,8 @@ import {
   DoorOpen,
   Sparkles,
   Layers,
+  KeyRound,
+  MailPlus,
 } from 'lucide-react';
 
 const NAV_GROUPS = [
@@ -31,6 +33,7 @@ const NAV_GROUPS = [
       { to: '/roomtype', label: 'ប្រភេទបន្ទប់', icon: Layers },
       { to: '/amenities', label: 'គ្រឿងបរិក្ខារ', icon: Sparkles },
       { to: '/tenants', label: 'អ្នកជួល', icon: Users },
+      { to: '/tenant-invitations', label: 'អញ្ជើញអ្នកជួល', icon: MailPlus },
       { to: '/contracts', label: 'កិច្ចសន្យា', icon: FileText },
     ],
   },
@@ -40,6 +43,7 @@ const NAV_GROUPS = [
       { to: '/users', label: 'អ្នកប្រើប្រាស់', icon: UserCircle },
       { to: '/roles', label: 'តួនាទី', icon: Shield },
       { to: '/profile', label: 'ប្រវត្តិរបស់ខ្ញុំ', icon: UserCircle },
+      { to: '/access', label: 'ការចូលដំណើរការផ្ទះ', icon: KeyRound },
       { to: '/finance', label: 'ហិរញ្ញវត្ថុ', icon: Wallet },
       { to: '/utilities', label: 'ប្រើប្រាស់ទឹកភ្លើង', icon: Zap },
       { to: '/utilities/meters', label: 'ម៉ែត្រប្រើប្រាស់', icon: Zap },

@@ -4,11 +4,17 @@ export const userApi = {
   getAllUsers: () =>
     api.get("/v1/users").then((res) => res.data),
 
+  searchAvailableForTenant: (params) =>
+    api.get("/v1/users/available-for-tenant", { params }).then((res) => res.data),
+
   getCurrentUser: () =>
     api.get("/v1/users/me").then((res) => res.data),
 
   getMyAccessibleHouses: () =>
     api.get("/v1/users/me/houses").then((res) => res.data),
+
+  getMyRoles: () =>
+    api.get("/v1/users/me/roles").then((res) => res.data),
 
   getUserById: (id) =>
     api.get(`/v1/users/${id}`).then((res) => res.data),

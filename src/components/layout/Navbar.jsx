@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, PanelLeft, Search, Bell, X, ChevronDown, User, Settings, LogOut, HelpCircle, Home } from 'lucide-react';
 import ThemeToggle from '../common/ThemeToggle';
+import { useAuthStore } from '../../store/auth.store';
 
 const NOTIFICATIONS = [
   { id: 1, title: 'ទទួលបានការទូទាត់', detail: 'សុខ ដារ៉ា បានបង់ថ្លៃផ្ទះសម្រាប់បន្ទប់ 4B', time: '២នាទីមុន', unread: true },
@@ -41,6 +42,8 @@ const dropdownPanelClass =
 
 const Navbar = ({ toggleSidebar, isCollapsed }) => {
   const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const [isMobileSearch, setIsMobileSearch] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -51,6 +54,26 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
   useClickOutside(profileRef, () => setIsProfileOpen(false));
 
   const unreadCount = NOTIFICATIONS.filter((n) => n.unread).length;
+
+  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.username || 'User';
+  const email = user?.email || '';
+  const initials = fullName
+    .split(' ')
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const handleNavigate = (path) => {
+    setIsProfileOpen(false);
+    navigate(path);
+  };
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 flex h-16 items-center border-b border-slate-200 bg-white transition-colors print:hidden dark:border-gray-800 dark:bg-gray-900">
@@ -159,13 +182,13 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
               aria-label="គណនី"
             >
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-gray-700 to-gray-900 text-[13px] font-semibold text-white">
-                AD
+                {initials || 'U'}
               </span>
               <span className="hidden text-left md:block">
                 <span className="block text-[13px] font-semibold leading-tight text-slate-800 dark:text-white">
-                  Alex Davis
+                  {fullName}
                 </span>
-                <span className="block text-[11px] leading-tight text-slate-400 dark:text-slate-500">អ្នកគ្រប់គ្រងប្រព័ន្ធ</span>
+                <span className="block text-[11px] leading-tight text-slate-400 dark:text-slate-500">{user?.username}</span>
               </span>
               <ChevronDown className="hidden h-4 w-4 text-slate-400 dark:text-slate-500 md:block" />
             </button>
@@ -176,14 +199,14 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
               className={`w-60 ${dropdownPanelClass}`}
             >
               <div className="border-b border-slate-100 px-4 py-3 dark:border-gray-800">
-                <p className="text-sm font-semibold text-slate-800 dark:text-white">Alex Davis</p>
-                <p className="truncate text-[12px] text-slate-400 dark:text-slate-500">alex.davis@rentalhub.com</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-white">{fullName}</p>
+                <p className="truncate text-[12px] text-slate-400 dark:text-slate-500">{email || user?.username}</p>
               </div>
               <ul className="p-1.5">
                 {[
-                  { icon: User, label: 'ប្រវត្តិរបស់ខ្ញុំ', onClick: () => navigate('/profile') },
-                  { icon: Settings, label: 'ការកំណត់គណនី' },
-                  { icon: HelpCircle, label: 'មជ្ឈមណ្ឌលជំនួយ' },
+                  { icon: User, label: 'ប្រវត្តិរបស់ខ្ញុំ', onClick: () => handleNavigate('/profile') },
+                  { icon: Settings, label: 'ការកំណត់គណនី', onClick: () => handleNavigate('/settings') },
+                  { icon: HelpCircle, label: 'មជ្ឈមណ្ឌលជំនួយ', onClick: () => handleNavigate('/help') },
                 ].map(({ icon: Icon, label, onClick }) => (
                   <li key={label}>
                     <button
@@ -197,7 +220,10 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
                 ))}
               </ul>
               <div className="border-t border-slate-100 p-1.5 dark:border-gray-800">
-                <button className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10">
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-red-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
+                >
                   <LogOut className="h-4 w-4" />
                   ចេញពីប្រព័ន្ធ
                 </button>

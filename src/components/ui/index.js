@@ -7,6 +7,7 @@ export { default as Alert } from './Alert';
 export { default as Modal } from './Modal';
 export { default as Input } from './Input';
 export { default as Select } from './Select';
+export { default as AsyncUserSelect } from './AsyncUserSelect';
 export { default as Textarea } from './Textarea';
 export { default as IconButton } from './IconButton';
 export { default as Label } from './Label';
