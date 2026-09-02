@@ -42,10 +42,16 @@ const STATUS_OPTIONS = [
   { value: 'INACTIVE', label: 'អសកម្ម' },
 ];
 
+const BILLING_METHOD_OPTIONS = [
+  { value: 'METERED', label: 'Metered (METERED)' },
+  { value: 'FIXED', label: 'Fixed (FIXED)' },
+];
+
 const EMPTY_FORM = {
   name: '',
   code: '',
   unit: '',
+  billingMethod: 'METERED',
 };
 
 const formatDate = (dateStr) => {
@@ -132,6 +138,14 @@ export default function UtilityTypes() {
       ),
     },
     {
+      header: 'វិធីសាស្រ្តប្រាក់កម្រ',
+      render: (row) => (
+        <Badge variant={row.billingMethod === 'FIXED' ? 'info' : 'default'}>
+          {row.billingMethod === 'METERED' ? 'Metered' : row.billingMethod === 'FIXED' ? 'Fixed' : row.billingMethod || '—'}
+        </Badge>
+      ),
+    },
+    {
       header: 'ស្ថានភាព',
       render: (row) => getStatusBadge(row.status),
     },
@@ -176,7 +190,7 @@ export default function UtilityTypes() {
 
   const openEdit = (t) => {
     setEditTarget(t);
-    setForm({ name: t.name || '', code: t.code || '', unit: t.unit || '' });
+    setForm({ name: t.name || '', code: t.code || '', unit: t.unit || '', billingMethod: t.billingMethod || 'METERED' });
     setFormErrors({});
   };
 
@@ -203,6 +217,7 @@ export default function UtilityTypes() {
       name: form.name.trim(),
       code: form.code.trim(),
       unit: form.unit.trim(),
+      billingMethod: form.billingMethod || 'METERED',
     };
 
     setSubmitting(true);
@@ -345,6 +360,9 @@ export default function UtilityTypes() {
                     <Scale className="h-4 w-4 text-slate-400" />
                     {t.unit || '—'}
                   </span>
+                  <Badge variant={t.billingMethod === 'FIXED' ? 'info' : 'default'}>
+                    {t.billingMethod === 'METERED' ? 'Metered' : t.billingMethod === 'FIXED' ? 'Fixed' : t.billingMethod || '—'}
+                  </Badge>
                   <div className="flex items-center gap-1">
                     <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(t); }} />
                     <IconButton variant="ghost" size="sm" tooltip="បិទដំណើរការ" icon={<Trash2 className="h-4 w-4" />} disabled={t.status === 'INACTIVE'} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeactivateTarget(t); }} />
@@ -386,7 +404,18 @@ export default function UtilityTypes() {
             <Input label="ឈ្មោះ" required name="name" value={form.name} onChange={handleFormChange} placeholder="ឧ. អគ្គិសនី" error={formErrors.name} />
             <Input label="កូដ" required name="code" value={form.code} onChange={handleFormChange} placeholder="ឧ. ELECTRIC" error={formErrors.code} />
           </div>
-          <Input label="ឯកតា" required name="unit" value={form.unit} onChange={handleFormChange} placeholder="ឧ. kWh, m³, m³" error={formErrors.unit} />
+          <Input label="ឯកតា" required name="unit" value={form.unit} onChange={handleFormChange} placeholder="ឧ. kWh, m³" error={formErrors.unit} />
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              វិធីសាស្រ្តប្រាក់កម្រ <span className="text-red-500">*</span>
+            </label>
+            <Select
+              name="billingMethod"
+              value={form.billingMethod}
+              onChange={handleFormChange}
+              options={BILLING_METHOD_OPTIONS}
+            />
+          </div>
         </form>
       </Modal>
 
@@ -409,6 +438,7 @@ export default function UtilityTypes() {
             <div className="grid grid-cols-2 gap-3">
               <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="លេខសម្គាល់ប្រភេទ" value={viewTarget.id} />
               <DetailItem icon={<Scale className="h-4 w-4 text-slate-400" />} label="ឯកតា" value={viewTarget.unit || '—'} />
+              <DetailItem icon={<CheckCircle2 className="h-4 w-4 text-slate-400" />} label="វិធីសាស្រ្តប្រាក់កម្រ" value={viewTarget.billingMethod === 'METERED' ? 'Metered (METERED)' : viewTarget.billingMethod === 'FIXED' ? 'Fixed (FIXED)' : viewTarget.billingMethod || '—'} />
               <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="កាលបរិច្ឆេទបង្កើត" value={formatDate(viewTarget.createdAt)} />
               <DetailItem icon={<CheckCircle2 className="h-4 w-4 text-slate-400" />} label="ស្ថានភាព" value={viewTarget.status} />
             </div>

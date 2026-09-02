@@ -567,8 +567,9 @@ const TenantSection = ({ contractId }) => {
   );
 
   const availableTenants = useMemo(() => {
+    const allowedStatuses = ['ACTIVE', 'PENDING'];
     return (tenants || []).filter((t) => {
-      if (t.status !== 'ACTIVE') return false;
+      if (!allowedStatuses.includes(t.status)) return false;
       if (alreadyAssignedThisContract.has(t.id)) return false;
       if (activelyRentingTenantIds.has(t.id)) return false;
       return true;
@@ -576,7 +577,14 @@ const TenantSection = ({ contractId }) => {
   }, [tenants, alreadyAssignedThisContract, activelyRentingTenantIds]);
 
   const tenantOptions = useMemo(
-    () => availableTenants.map((t) => ({ value: t.id, label: `${fullName(t)} (${t.tenantCode})` })),
+    () =>
+      availableTenants.map((t) => ({
+        value: t.id,
+        label:
+          t.status === 'PENDING'
+            ? `${fullName(t)} (${t.tenantCode}) · [រង់ចាំ]`
+            : `${fullName(t)} (${t.tenantCode}) · [សកម្ម]`,
+      })),
     [availableTenants]
   );
 
@@ -661,19 +669,50 @@ const TenantSection = ({ contractId }) => {
         <form onSubmit={handleAdd} className="space-y-4">
           {availableTenants.length === 0 ? (
             <div className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-              មិនមានអ្នកជួលដែលមិនទាន់ត្រូវបានចាត់តាំងទេ។ អ្នកជួលសកម្មទាំងអស់កំពុងជួលផ្ទះ ឬបន្ទប់ផ្សេងទៀត។
+              មិនមានអ្នកជួលដែលនៅទំនេរទេ។ អ្នកជួលទាំងអស់ (សកម្ម ឬ រង់ចាំ) កំពុងជួលផ្ទះ ឬបន្ទប់ផ្សេងទៀត ឬត្រូវបានចាត់តាំងហើយ។
             </div>
           ) : (
-            <Select
-              label="ជ្រើសរើសអ្នកជួលដែលនៅទំនេរ"
-              required
-              name="tenantId"
-              options={tenantOptions}
-              value={form.tenantId}
-              onChange={handleChange}
-              error={formErrors.tenantId}
-              placeholder="ជ្រើសរើសអ្នកជួល (ដែលមិនទាន់ត្រូវបានចាត់តាំង)"
-            />
+            <div className="space-y-2">
+              <Select
+                label="ជ្រើសរើសអ្នកជួល (សកម្ម ឬ រង់ចាំ)"
+                required
+                name="tenantId"
+                options={tenantOptions}
+                value={form.tenantId}
+                onChange={handleChange}
+                error={formErrors.tenantId}
+                placeholder="ជ្រើសរើសអ្នកជួល..."
+              />
+              {/* Show status badge for selected tenant */}
+              {form.tenantId && (() => {
+                const sel = availableTenants.find((t) => String(t.id) === String(form.tenantId));
+                if (!sel) return null;
+                return (
+                  <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs dark:border-gray-700 dark:bg-gray-800">
+                    <span className="text-slate-500 dark:text-slate-400">ស្ថានភាព:</span>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                        sel.status === 'PENDING'
+                          ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                          : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                      }`}
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${
+                        sel.status === 'PENDING' ? 'bg-amber-500' : 'bg-emerald-500'
+                      }`} />
+                      {sel.status === 'PENDING' ? 'រង់ចាំ (PENDING)' : 'សកម្ម (ACTIVE)'}
+                    </span>
+                    <span className="ml-auto font-medium text-slate-700 dark:text-slate-300">{sel.tenantCode}</span>
+                  </div>
+                );
+              })()}
+              {/* Pending tenants note */}
+              {availableTenants.some((t) => t.status === 'PENDING') && (
+                <p className="text-[11px] text-amber-600 dark:text-amber-400">
+                  * អ្នកជួលដែលមានស្ថានភាព <strong>រង់ចាំ [PENDING]</strong> ជាអ្នកដែលបានចុះឈ្មោះតាម link ជូនដំណឹង ប៉ុន្តែមិនទាន់ត្រូវបានចាត់តាំងទៅកិច្ចសន្យានៅឡើយ។
+                </p>
+              )}
+            </div>
           )}
 
           <Input label="ថ្ងៃចូលរួម" type="date" name="joinedAt" value={form.joinedAt} onChange={handleChange} />

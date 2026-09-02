@@ -3,6 +3,7 @@ import { userApi } from "../api/user.api";
 
 const ROLE_OWNER = "OWNER";
 const ROLE_MANAGER = "MANAGER";
+const ROLE_TENANT = "TENANT";
 
 export function useMyRoles() {
   const [roles, setRoles] = useState([]);
@@ -33,6 +34,18 @@ export function useMyRoles() {
   const codes = roles.map((r) => r.code);
   const isOwner = codes.includes(ROLE_OWNER);
   const isManager = codes.includes(ROLE_MANAGER);
+  const isTenant = codes.includes(ROLE_TENANT);
+  const hasAdminAccess = isOwner || isManager;
 
-  return { roles, codes, isOwner, isManager, loading, error, fetchRoles };
+  return {
+    roles,
+    codes,
+    isOwner,
+    isManager,
+    isTenant,
+    hasAdminAccess,
+    loading,
+    error,
+    fetchRoles,
+  };
 }

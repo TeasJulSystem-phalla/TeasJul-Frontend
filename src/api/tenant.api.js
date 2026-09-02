@@ -17,6 +17,13 @@ export const tenantApi = {
   deactivateTenant: (id) =>
     api.patch(`/v1/tenants/${id}/deactivate`).then((res) => res.data),
 
+  // ---- Tenant portal (`/api/v1/tenants/me`) ----
+  getMe: () => api.get("/v1/tenants/me").then((res) => res.data),
+
+  updateMe: (data) => api.put("/v1/tenants/me", data).then((res) => res.data),
+
+  getMyUtilities: () => api.get("/v1/tenants/me/utilities").then((res) => res.data),
+
   // ---- Emergency Contacts (`/api/v1/tenants/{tenantId}/emergency-contacts`) ----
   getEmergencyContacts: (tenantId) =>
     api.get(`/v1/tenants/${tenantId}/emergency-contacts`).then((res) => res.data),

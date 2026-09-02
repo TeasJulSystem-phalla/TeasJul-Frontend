@@ -40,6 +40,27 @@ export function useUtilityReadings() {
     return created;
   }, []);
 
+  const getMonthlySheet = useCallback(async (houseId, year, month) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await utilityReadingApi.getMonthlySheet(houseId, year, month);
+      setReadings(data);
+      return data;
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          "Failed to load the monthly reading sheet."
+      );
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const saveMonthlySheet = useCallback((data) => utilityReadingApi.saveMonthlySheet(data), []);
+
   useEffect(() => {
     fetchReadings();
   }, [fetchReadings]);
@@ -55,5 +76,7 @@ export function useUtilityReadings() {
     setSize,
     fetchReadings,
     createReading,
+    getMonthlySheet,
+    saveMonthlySheet,
   };
 }

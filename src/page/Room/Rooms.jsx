@@ -27,11 +27,14 @@ import {
   UserCheck,
   ChevronRight,
   FilePlus,
+  Zap,
 } from 'lucide-react';
 import { useRooms, useRoomAmenities } from '../../hooks/useRooms.js';
 import { useHouses } from '../../hooks/useHouses.js';
 import { useRoomTypes } from '../../hooks/useRoomType.js';
 import { useRoomOccupants } from '../../hooks/useRoomOccupants.js';
+import { useRoomUtilities } from '../../hooks/useRoomUtilities.js';
+import { useUtilityTypes } from '../../hooks/useUtilityTypes.js';
 import { roomApi } from '../../api/room.api.js';
 import { useToast } from '../../components/ui/Toast.jsx';
 import {
@@ -130,6 +133,7 @@ export default function Rooms() {
   const [viewLoading, setViewLoading] = useState(false);
 
   const [amenityTarget, setAmenityTarget] = useState(null);
+  const [utilityTarget, setUtilityTarget] = useState(null);
   const viewAmenities = useRoomAmenities(viewData?.id);
 
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -321,6 +325,7 @@ export default function Rooms() {
           )}
           <IconButton variant="ghost" size="sm" tooltip="មើលព័ត៌មានលម្អិត" icon={<Eye className="h-4 w-4" />} onClick={() => handleOpenView(row)} />
           <IconButton variant="ghost" size="sm" tooltip="គ្រឿងបរិក្ខារ" icon={<KeySquare className="h-4 w-4" />} onClick={() => setAmenityTarget(row)} />
+          <IconButton variant="ghost" size="sm" tooltip="ប្រភេទប្រើប្រាស់" icon={<Zap className="h-4 w-4" />} onClick={() => setUtilityTarget(row)} />
           <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)} />
           <IconButton variant="ghost" size="sm" tooltip="លុប" icon={<Trash2 className="h-4 w-4 text-red-600 dark:text-red-400 hover:text-red-700" />} onClick={() => setDeleteTarget(row)} />
         </div>
@@ -732,6 +737,7 @@ export default function Rooms() {
                       </Button>
                     )}
                     <IconButton variant="ghost" size="sm" tooltip="គ្រឿងបរិក្ខារ" icon={<KeySquare className="h-4 w-4" />} onClick={() => setAmenityTarget(room)} />
+                    <IconButton variant="ghost" size="sm" tooltip="ប្រភេទប្រើប្រាស់" icon={<Zap className="h-4 w-4" />} onClick={() => setUtilityTarget(room)} />
                     <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(room)} />
                     <IconButton variant="ghost" size="sm" tooltip="លុប" icon={<Trash2 className="h-4 w-4 text-red-500" />} onClick={() => setDeleteTarget(room)} />
                   </div>
@@ -819,6 +825,9 @@ export default function Rooms() {
 
       {/* Amenity manager */}
       <RoomAmenityManager room={amenityTarget} onClose={() => setAmenityTarget(null)} />
+
+      {/* Utility manager */}
+      <RoomUtilityManager room={utilityTarget} onClose={() => setUtilityTarget(null)} />
 
       {/* Delete Confirmation */}
       <ConfirmDialog
@@ -1088,6 +1097,114 @@ const RoomAmenityManager = ({ room, onClose }) => {
                 >
                   <Plus className="h-3 w-3" />
                   {a.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+const RoomUtilityManager = ({ room, onClose }) => {
+  const { utilities, loading, fetchUtilities, assignUtility, removeUtility } = useRoomUtilities(room?.id);
+  const { types, fetchTypes } = useUtilityTypes();
+  const [loadingTypes, setLoadingTypes] = useState(false);
+  const [busyId, setBusyId] = useState(null);
+  const toast = useToast();
+
+  useEffect(() => {
+    if (!room) return;
+    fetchUtilities();
+    setLoadingTypes(true);
+    fetchTypes({ page: 0, size: 100, status: 'ACTIVE' })
+      .finally(() => setLoadingTypes(false));
+  }, [room, fetchUtilities, fetchTypes]);
+
+  if (!room) return null;
+
+  const assignedIds = new Set(utilities.map((u) => u.utilityTypeId));
+  const availableToAssign = types.filter((t) => !assignedIds.has(t.id));
+
+  const handleAssign = async (typeId) => {
+    setBusyId(typeId);
+    try {
+      await assignUtility(typeId);
+      toast.success('បានបន្ថែមប្រភេទប្រើប្រាស់');
+    } catch {
+      toast.error('ការបន្ថែមប្រភេទប្រើប្រាស់បរាជ័យ');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleRemove = async (typeId) => {
+    setBusyId(typeId);
+    try {
+      await removeUtility(typeId);
+      toast.success('បានដកប្រភេទប្រើប្រាស់ចេញ');
+    } catch {
+      toast.error('ការដកប្រភេទប្រើប្រាស់ចេញបរាជ័យ');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const getBillingMethodLabel = (m) =>
+    m === 'METERED' ? 'Metered' : m === 'FIXED' ? 'Fixed' : m || '—';
+
+  return (
+    <Modal
+      open={!!room}
+      onClose={onClose}
+      title={`ប្រភេទប្រើប្រាស់ - បន្ទប់ ${room.roomNumber}`}
+      description="កំណត់ប្រភេទប្រើប្រាស់ដែលបង្កើតវិក្រិត្យសម្រាប់បន្ទប់នេះ។"
+    >
+      <div className="space-y-4">
+        <div>
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">បានកំណត់</p>
+          {loading ? (
+            <Skeleton className="h-6 w-32" />
+          ) : utilities.length === 0 ? (
+            <p className="text-xs text-slate-400">គ្មាន</p>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {utilities.map((u) => (
+                <span key={u.utilityTypeId} className="inline-flex items-center gap-1.5 rounded bg-slate-100 px-2.5 py-1 text-xs text-slate-700 dark:bg-gray-800 dark:text-slate-200">
+                  <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                  {u.utilityTypeName}
+                  <Badge variant={u.billingMethod === 'FIXED' ? 'info' : 'default'} className="ml-1">
+                    {getBillingMethodLabel(u.billingMethod)}
+                  </Badge>
+                  <button type="button" disabled={busyId === u.utilityTypeId} onClick={() => handleRemove(u.utilityTypeId)} className="text-slate-400 hover:text-red-500 ml-1">
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="border-t border-slate-100 pt-3 dark:border-gray-800">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">អាចបន្ថែមបាន</p>
+          {loadingTypes ? (
+            <Skeleton className="h-6 w-32" />
+          ) : availableToAssign.length === 0 ? (
+            <p className="text-xs text-slate-400">បានកំណត់ទាំងអស់</p>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {availableToAssign.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  disabled={busyId === t.id}
+                  onClick={() => handleAssign(t.id)}
+                  className="inline-flex items-center gap-1 rounded border border-dashed border-slate-300 px-2.5 py-1 text-xs text-slate-600 hover:border-slate-400 dark:border-gray-700 dark:text-slate-300"
+                >
+                  <Plus className="h-3 w-3" />
+                  {t.name}
+                  <span className="ml-1 text-[10px] text-slate-400">({getBillingMethodLabel(t.billingMethod)})</span>
                 </button>
               ))}
             </div>

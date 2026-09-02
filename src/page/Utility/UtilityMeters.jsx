@@ -8,7 +8,7 @@ import {
   Eye,
   Gauge,
   Building2,
-  Hash,
+  DoorClosed,
   Calendar,
   Filter,
   Plug,
@@ -16,6 +16,7 @@ import {
 import { useUtilityMeters } from '../../hooks/useUtilityMeters.js';
 import { useHouses } from '../../hooks/useHouses.js';
 import { useUtilityTypes } from '../../hooks/useUtilityTypes.js';
+import { useRooms } from '../../hooks/useRooms.js';
 import { useToast } from '../../components/ui/Toast.jsx';
 import {
   Card,
@@ -75,6 +76,7 @@ export default function UtilityMeters() {
   } = useUtilityMeters();
   const { houses } = useHouses();
   const { types } = useUtilityTypes();
+  const { rooms } = useRooms();
   const toast = useToast();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -111,8 +113,19 @@ export default function UtilityMeters() {
 
   const houseMap = useMemo(() => Object.fromEntries(houses.map((h) => [String(h.id), h])), [houses]);
 
+  const roomMap = useMemo(() => Object.fromEntries(rooms.map((r) => [String(r.id), r])), [rooms]);
+
+  const roomOptions = useMemo(() => {
+    if (!form.houseId) return [];
+    return rooms
+      .filter((r) => String(r.houseId) === String(form.houseId))
+      .map((r) => ({ value: String(r.id), label: r.roomNumber || r.name || `បន្ទប់ #${r.id}` }));
+  }, [rooms, form.houseId]);
+
   const getHouseName = (houseId) => houseMap[String(houseId)]?.name || houseId || '—';
   const getTypeName = (typeId) => typeMap[String(typeId)]?.name || typeId || '—';
+  const getRoomName = (roomId) =>
+    roomId != null ? roomMap[String(roomId)]?.roomNumber || roomMap[String(roomId)]?.name || `#${roomId}` : '—';
 
   const filtered = useMemo(() => {
     let result = meters;
@@ -161,6 +174,15 @@ export default function UtilityMeters() {
         <span className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
           <Building2 className="h-4 w-4 text-slate-400" />
           {getHouseName(row.houseId)}
+        </span>
+      ),
+    },
+    {
+      header: 'បន្ទប់',
+      render: (row) => (
+        <span className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
+          <DoorClosed className="h-4 w-4 text-slate-400" />
+          {getRoomName(row.roomId)}
         </span>
       ),
     },
@@ -222,13 +244,15 @@ export default function UtilityMeters() {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value, ...(name === 'houseId' ? { roomId: '' } : {}) }));
     if (formErrors[name]) setFormErrors((prev) => ({ ...prev, [name]: undefined }));
+    if (name === 'houseId' && formErrors.roomId) setFormErrors((prev) => ({ ...prev, roomId: undefined }));
   };
 
   const validate = () => {
     const errs = {};
     if (!form.houseId) errs.houseId = 'អចលនទ្រព្យត្រូវបានទាមទារ';
+    if (!form.roomId) errs.roomId = 'បន្ទប់ត្រូវបានទាមទារ';
     if (!form.utilityTypeId) errs.utilityTypeId = 'ប្រភេទប្រើប្រាស់ត្រូវបានទាមទារ';
     if (!form.meterNumber.trim()) errs.meterNumber = 'លេខម៉ែត្រត្រូវបានទាមទារ';
     setFormErrors(errs);
@@ -429,7 +453,27 @@ export default function UtilityMeters() {
       >
         <form id="utilityMeterForm" onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Select label="អចលនទ្រព្យ" required name="houseId" options={houseOptions.filter((o) => o.value !== '')} value={form.houseId} onChange={handleFormChange} error={formErrors.houseId} />
+            <Select
+              label="អចលនទ្រព្យ"
+              required
+              name="houseId"
+              options={houseOptions.filter((o) => o.value !== '')}
+              value={form.houseId}
+              onChange={handleFormChange}
+              error={formErrors.houseId}
+            />
+            <Select
+              label="បន្ទប់"
+              required
+              name="roomId"
+              options={roomOptions}
+              value={form.roomId}
+              onChange={handleFormChange}
+              error={formErrors.roomId}
+              disabled={!form.houseId}
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Select
               label="ប្រភេទប្រើប្រាស់"
               required
@@ -439,8 +483,8 @@ export default function UtilityMeters() {
               onChange={handleFormChange}
               error={formErrors.utilityTypeId}
             />
+            <Input label="លេខម៉ែត្រ" required name="meterNumber" value={form.meterNumber} onChange={handleFormChange} placeholder="ឧ. EL-001" error={formErrors.meterNumber} />
           </div>
-          <Input label="លេខម៉ែត្រ" required name="meterNumber" value={form.meterNumber} onChange={handleFormChange} placeholder="ឧ. EL-001" error={formErrors.meterNumber} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input label="កាលបរិច្ឆេទដំឡើង" type="date" name="installedAt" value={form.installedAt} onChange={handleFormChange} />
             <Select
@@ -477,7 +521,7 @@ export default function UtilityMeters() {
             <div className="grid grid-cols-2 gap-3">
               <DetailItem icon={<Plug className="h-4 w-4 text-slate-400" />} label="ប្រភេទប្រើប្រាស់" value={getTypeName(viewTarget.utilityTypeId)} />
               <DetailItem icon={<Building2 className="h-4 w-4 text-slate-400" />} label="អចលនទ្រព្យ" value={getHouseName(viewTarget.houseId)} />
-              <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="លេខសម្គាល់បន្ទប់" value={viewTarget.roomId || '—'} />
+              <DetailItem icon={<DoorClosed className="h-4 w-4 text-slate-400" />} label="បន្ទប់" value={getRoomName(viewTarget.roomId)} />
               <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="បានដំឡើង" value={formatDate(viewTarget.installedAt)} />
             </div>
           </div>

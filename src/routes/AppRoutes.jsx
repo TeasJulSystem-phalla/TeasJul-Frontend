@@ -1,6 +1,9 @@
 import { Routes, Route, BrowserRouter } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import ProtectedRoute from '../components/ProtectedRoute';
+import AdminRoute from '../components/AdminRoute';
+import TenantRoute from '../components/TenantRoute';
+import TenantLayout from '../components/tenant/TenantLayout';
 import Dashboard from '../page/Dashboard';
 import Placeholder from '../page/Placeholder';
 import Properties from '../page/Room/Properties';
@@ -27,6 +30,14 @@ import UtilityReadingsPage from '../page/Utility/UtilityReadings';
 import UtilityRatesPage from '../page/Utility/UtilityRates';
 import MaintenanceRequestsPage from '../page/Maintenance/MaintenanceRequests';
 import MaintenanceCategoriesPage from '../page/Maintenance/MaintenanceCategories';
+import TenantHomePage from '../page/tenant/TenantHomePage';
+import TenantProfilePage from '../page/tenant/TenantProfilePage';
+import TenantMaintenancePage from '../page/tenant/TenantMaintenancePage';
+import TenantPaymentsPage from '../page/tenant/TenantPaymentsPage';
+import TenantUtilitiesPage from '../page/tenant/TenantUtilitiesPage';
+import Invoices from '../page/Invoice/Invoices';
+import GenerateInvoice from '../page/Invoice/GenerateInvoice';
+import InvoiceDetail from '../page/Invoice/InvoiceDetail';
 
 const AppRoutes = () => {
   return (
@@ -36,37 +47,52 @@ const AppRoutes = () => {
         <Route path="/tenant/invite" element={<TenantInvitePage />} />
 
         <Route element={<ProtectedRoute />}>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/properties" element={<Properties />} />
-            <Route path="/properties/:id" element={<HouseDetailPage />} />
-            <Route path="/access" element={<HouseAccessPage />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/roomtype" element={<RoomTypesPage />} />
-            <Route path="/roles" element={<RolesPage />} />
-            <Route path="/rooms" element={<RoomsPage />} />
-            <Route path="/amenities" element={<AmenitiesPage />} />
-            <Route path="/tenants" element={<TenantsPage />} />
-            <Route path="/tenants/new" element={<TenantFormPage />} />
-            <Route path="/tenants/:id/edit" element={<TenantFormPage />} />
-            <Route path="/tenant-invitations" element={<TenantInvitationsPage />} />
-            <Route path="/contracts" element={<ContractsPage />} />
-            <Route path="/contracts/new" element={<ContractEditorPage />} />
-            <Route path="/contracts/:id/edit" element={<ContractEditorPage />} />
-            <Route path="/contracts/:id" element={<ContractDetailPage />} />
-            <Route path="/finance" element={<Placeholder title="ហិរញ្ញវត្ថុ" />} />
-            <Route path="/utilities" element={<UtilityTypesPage />} />
-            <Route path="/utilities/meters" element={<UtilityMetersPage />} />
-            <Route path="/utilities/readings" element={<UtilityReadingsPage />} />
-            <Route path="/utilities/rates" element={<UtilityRatesPage />} />
-            <Route path="/maintenance" element={<MaintenanceRequestsPage />} />
-            <Route path="/maintenance/categories" element={<MaintenanceCategoriesPage />} />
-            <Route path="/assistant" element={<Placeholder title="ជំនួយការ AI" />} />
-            <Route path="/settings" element={<Placeholder title="ការកំណត់" />} />
-            <Route path="/help" element={<Placeholder title="ជំនួយ និងការគាំទ្រ" />} />
-            <Route path="/ui-showcase" element={<UiShowcase />} />
-            <Route path="*" element={<Placeholder title="រកមិនឃើញទំព័រ" />} />
+          <Route element={<AdminRoute />}>
+            <Route element={<Layout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/properties" element={<Properties />} />
+              <Route path="/properties/:id" element={<HouseDetailPage />} />
+              <Route path="/access" element={<HouseAccessPage />} />
+              <Route path="/users" element={<Users />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/roomtype" element={<RoomTypesPage />} />
+              <Route path="/roles" element={<RolesPage />} />
+              <Route path="/rooms" element={<RoomsPage />} />
+              <Route path="/amenities" element={<AmenitiesPage />} />
+              <Route path="/tenants" element={<TenantsPage />} />
+              <Route path="/tenants/new" element={<TenantFormPage />} />
+              <Route path="/tenants/:id/edit" element={<TenantFormPage />} />
+              <Route path="/tenant-invitations" element={<TenantInvitationsPage />} />
+              <Route path="/contracts" element={<ContractsPage />} />
+              <Route path="/contracts/new" element={<ContractEditorPage />} />
+              <Route path="/contracts/:id/edit" element={<ContractEditorPage />} />
+              <Route path="/contracts/:id" element={<ContractDetailPage />} />
+              <Route path="/finance" element={<Placeholder title="ហិរញ្ញវត្ថុ" />} />
+              <Route path="/utilities" element={<UtilityTypesPage />} />
+              <Route path="/utilities/meters" element={<UtilityMetersPage />} />
+              <Route path="/utilities/readings" element={<UtilityReadingsPage />} />
+              <Route path="/utilities/rates" element={<UtilityRatesPage />} />
+              <Route path="/invoices" element={<Invoices />} />
+              <Route path="/invoices/generate" element={<GenerateInvoice />} />
+              <Route path="/invoices/:id" element={<InvoiceDetail />} />
+              <Route path="/maintenance" element={<MaintenanceRequestsPage />} />
+              <Route path="/maintenance/categories" element={<MaintenanceCategoriesPage />} />
+              <Route path="/assistant" element={<Placeholder title="ជំនួយការ AI" />} />
+              <Route path="/settings" element={<Placeholder title="ការកំណត់" />} />
+              <Route path="/help" element={<Placeholder title="ជំនួយ និងការគាំទ្រ" />} />
+              <Route path="/ui-showcase" element={<UiShowcase />} />
+              <Route path="*" element={<Placeholder title="រកមិនឃើញទំព័រ" />} />
+            </Route>
+          </Route>
+
+          <Route element={<TenantRoute />}>
+            <Route element={<TenantLayout />}>
+              <Route path="/tenant" element={<TenantHomePage />} />
+              <Route path="/tenant/profile" element={<TenantProfilePage />} />
+              <Route path="/tenant/maintenance" element={<TenantMaintenancePage />} />
+              <Route path="/tenant/payments" element={<TenantPaymentsPage />} />
+              <Route path="/tenant/utilities" element={<TenantUtilitiesPage />} />
+            </Route>
           </Route>
         </Route>
       </Routes>

@@ -37,11 +37,14 @@ html {
   }
 
   #contract-document,
-  #contract-document * {
+  #contract-document *,
+  #invoice-document,
+  #invoice-document * {
     visibility: visible;
   }
 
-  #contract-document {
+  #contract-document,
+  #invoice-document {
     position: absolute;
     left: 0;
     top: 0;
@@ -54,7 +57,8 @@ html {
     background: #fff !important;
   }
 
-  #contract-document .print\:hidden {
+  #contract-document .print\:hidden,
+  #invoice-document .print\:hidden {
     display: none !important;
   }
 }

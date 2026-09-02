@@ -21,6 +21,7 @@ import {
   Layers,
   KeyRound,
   MailPlus,
+  Receipt,
 } from 'lucide-react';
 
 const NAV_GROUPS = [
@@ -47,8 +48,9 @@ const NAV_GROUPS = [
       { to: '/finance', label: 'ហិរញ្ញវត្ថុ', icon: Wallet },
       { to: '/utilities', label: 'ប្រើប្រាស់ទឹកភ្លើង', icon: Zap },
       { to: '/utilities/meters', label: 'ម៉ែត្រប្រើប្រាស់', icon: Zap },
-      { to: '/utilities/readings', label: 'ការអានម៉ែត្រ', icon: Zap },
+      { to: '/utilities/readings', label: 'ការអានម៉ែត្រប្រចាំខែ', icon: Zap },
       { to: '/utilities/rates', label: 'តម្លៃប្រើប្រាស់', icon: Zap },
+      { to: '/invoices', label: 'វិក្កយបត្រ', icon: Receipt },
       { to: '/maintenance', label: 'ការជួសជុល', icon: Wrench },
       { to: '/maintenance/categories', label: 'ប្រភេទការជួសជុល', icon: Wrench },
     ],

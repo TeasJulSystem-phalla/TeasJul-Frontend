@@ -15,4 +15,11 @@ export const maintenanceRequestApi = {
 
   changeStatus: (id, status) =>
     api.patch(`/v1/maintenance-requests/${id}/status`, { status }).then((res) => res.data),
+
+  // ---- Tenant portal (`/api/v1/maintenance-requests/my`) ----
+  getMyTenantRequests: () =>
+    api.get("/v1/maintenance-requests/my").then((res) => res.data),
+
+  createMyRequest: (data) =>
+    api.post("/v1/maintenance-requests/my", data).then((res) => res.data),
 };
