@@ -1,9 +1,11 @@
-import { Routes, Route, BrowserRouter } from 'react-router-dom';
+import { Routes, Route, BrowserRouter, Navigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import ProtectedRoute from '../components/ProtectedRoute';
 import AdminRoute from '../components/AdminRoute';
 import TenantRoute from '../components/TenantRoute';
+import ManagerRoute from '../components/ManagerRoute';
 import TenantLayout from '../components/tenant/TenantLayout';
+import ManagerLayout from '../components/manager/ManagerLayout';
 import Dashboard from '../page/Dashboard';
 import Placeholder from '../page/Placeholder';
 import Properties from '../page/Room/Properties';
@@ -35,9 +37,13 @@ import TenantProfilePage from '../page/tenant/TenantProfilePage';
 import TenantMaintenancePage from '../page/tenant/TenantMaintenancePage';
 import TenantPaymentsPage from '../page/tenant/TenantPaymentsPage';
 import TenantUtilitiesPage from '../page/tenant/TenantUtilitiesPage';
+import TenantDashboardPage from '../page/tenant/TenantDashboardPage';
+import TenantInvoiceDetailPage from '../page/tenant/TenantInvoiceDetailPage';
 import Invoices from '../page/Invoice/Invoices';
 import GenerateInvoice from '../page/Invoice/GenerateInvoice';
 import InvoiceDetail from '../page/Invoice/InvoiceDetail';
+import PaymentsPage from '../page/Finance/PaymentsPage';
+import PaymentMethodsPage from '../page/Finance/PaymentMethodsPage';
 
 const AppRoutes = () => {
   return (
@@ -67,7 +73,9 @@ const AppRoutes = () => {
               <Route path="/contracts/new" element={<ContractEditorPage />} />
               <Route path="/contracts/:id/edit" element={<ContractEditorPage />} />
               <Route path="/contracts/:id" element={<ContractDetailPage />} />
-              <Route path="/finance" element={<Placeholder title="ហិរញ្ញវត្ថុ" />} />
+              <Route path="/finance" element={<Navigate to="/finance/payments" replace />} />
+              <Route path="/finance/payments" element={<PaymentsPage />} />
+              <Route path="/finance/payment-methods" element={<PaymentMethodsPage />} />
               <Route path="/utilities" element={<UtilityTypesPage />} />
               <Route path="/utilities/meters" element={<UtilityMetersPage />} />
               <Route path="/utilities/readings" element={<UtilityReadingsPage />} />
@@ -85,13 +93,47 @@ const AppRoutes = () => {
             </Route>
           </Route>
 
+          <Route element={<ManagerRoute />}>
+            <Route element={<ManagerLayout />}>
+              <Route path="/manager" element={<Dashboard />} />
+              <Route path="/manager/properties" element={<Properties />} />
+              <Route path="/manager/properties/:id" element={<HouseDetailPage />} />
+              <Route path="/manager/access" element={<HouseAccessPage />} />
+              <Route path="/manager/profile" element={<Profile />} />
+              <Route path="/manager/rooms" element={<RoomsPage />} />
+              <Route path="/manager/tenants" element={<TenantsPage />} />
+              <Route path="/manager/tenants/new" element={<TenantFormPage />} />
+              <Route path="/manager/tenants/:id/edit" element={<TenantFormPage />} />
+              <Route path="/manager/contracts" element={<ContractsPage />} />
+              <Route path="/manager/contracts/new" element={<ContractEditorPage />} />
+              <Route path="/manager/contracts/:id/edit" element={<ContractEditorPage />} />
+              <Route path="/manager/contracts/:id" element={<ContractDetailPage />} />
+              <Route path="/manager/utilities" element={<UtilityTypesPage />} />
+              <Route path="/manager/utilities/meters" element={<UtilityMetersPage />} />
+              <Route path="/manager/utilities/readings" element={<UtilityReadingsPage />} />
+              <Route path="/manager/utilities/rates" element={<UtilityRatesPage />} />
+              <Route path="/manager/invoices" element={<Invoices />} />
+              <Route path="/manager/invoices/generate" element={<GenerateInvoice />} />
+              <Route path="/manager/invoices/:id" element={<InvoiceDetail />} />
+              <Route path="/manager/finance/payments" element={<PaymentsPage />} />
+              <Route path="/manager/finance/payment-methods" element={<PaymentMethodsPage />} />
+              <Route path="/manager/maintenance" element={<MaintenanceRequestsPage />} />
+              <Route path="/manager/maintenance/categories" element={<MaintenanceCategoriesPage />} />
+              <Route path="/manager/help" element={<Placeholder title="ជំនួយ និងការគាំទ្រ" />} />
+              <Route path="/manager/*" element={<Placeholder title="រកមិនឃើញទំព័រ" />} />
+            </Route>
+          </Route>
+
           <Route element={<TenantRoute />}>
             <Route element={<TenantLayout />}>
               <Route path="/tenant" element={<TenantHomePage />} />
+              <Route path="/tenant/dashboard" element={<TenantDashboardPage />} />
               <Route path="/tenant/profile" element={<TenantProfilePage />} />
               <Route path="/tenant/maintenance" element={<TenantMaintenancePage />} />
               <Route path="/tenant/payments" element={<TenantPaymentsPage />} />
+              <Route path="/payments" element={<Navigate to="/tenant/payments" replace />} />
               <Route path="/tenant/utilities" element={<TenantUtilitiesPage />} />
+              <Route path="/tenant/invoices/:invoiceId" element={<TenantInvoiceDetailPage />} />
             </Route>
           </Route>
         </Route>

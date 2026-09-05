@@ -17,7 +17,9 @@ import {
 import InvoicePreviewModal from './InvoicePreviewModal';
 import RealInvoiceDocument from './RealInvoiceDocument';
 import { invoiceApi } from '../../api/invoice.api';
+import { paymentApi } from '../../api/payment.api';
 import { useToast } from '../../components/ui/Toast.jsx';
+import { useBasePath } from '../../hooks/useBasePath.js';
 import {
   Card,
   Button,
@@ -26,6 +28,7 @@ import {
   Skeleton,
   Modal,
   Input,
+  Select,
   ConfirmDialog,
 } from '../../components/ui/index.js';
 
@@ -68,6 +71,7 @@ export default function InvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const basePath = useBasePath();
 
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -76,6 +80,8 @@ export default function InvoiceDetail() {
   const [cancelling, setCancelling] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [paymentMethodId, setPaymentMethodId] = useState('');
   const [paying, setPaying] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -106,14 +112,35 @@ export default function InvoiceDetail() {
     }
   };
 
+  const openPaymentModal = async () => {
+    setPaymentAmount('');
+    setPaymentMethodId('');
+    setPaymentOpen(true);
+    try {
+      const data = await paymentApi.listPaymentMethods();
+      setPaymentMethods((data || []).filter((m) => m.status === 'ACTIVE'));
+    } catch {
+      setPaymentMethods([]);
+    }
+  };
+
   const handleRecordPayment = async () => {
-    if (!paymentAmount || Number(paymentAmount) <= 0) return;
+    if (!paymentMethodId) {
+      toast.info('ជ្រើសរើសវិធីសាស្ត្រ', 'សូមជ្រើសរើសវិធីសាស្ត្រទូទាត់។');
+      return;
+    }
     setPaying(true);
     try {
-      const updated = await invoiceApi.recordPayment(id, Number(paymentAmount));
+      await paymentApi.recordManualPayment({
+        invoiceId: Number(id),
+        paymentMethodId: Number(paymentMethodId),
+        amount: paymentAmount ? Number(paymentAmount) : undefined,
+      });
+      const updated = await invoiceApi.getInvoiceById(id);
       setInvoice(updated);
       setPaymentOpen(false);
       setPaymentAmount('');
+      setPaymentMethodId('');
       toast.success('បានកត់ត្រាការទូទាត់', 'ការទូទាត់បានកត់ត្រាដោយជោគជ័យ។');
     } catch (err) {
       toast.error('ការបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'មិនអាចកត់ត្រាបានទេ។');
@@ -150,7 +177,7 @@ export default function InvoiceDetail() {
   if (error) {
     return (
       <div className="space-y-4">
-        <button onClick={() => navigate('/invoices')} className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+        <button onClick={() => navigate(`${basePath}/invoices`)} className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
           <ArrowLeft className="h-4 w-4" /> ត្រលប់ទៅបញ្ជីវិក្កយបត្រ
         </button>
         <Alert variant="danger" title="កំហុស" description={error} />
@@ -168,7 +195,7 @@ export default function InvoiceDetail() {
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate('/invoices')}
+            onClick={() => navigate(`${basePath}/invoices`)}
             className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-gray-800"
             aria-label="ត្រលប់"
           >

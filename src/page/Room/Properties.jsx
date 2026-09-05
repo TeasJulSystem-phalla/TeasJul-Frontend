@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useHouses } from "../../hooks/useHouses";
 import { useMyRoles } from "../../hooks/useMyRoles";
+import { useBasePath } from "../../hooks/useBasePath.js";
 import useToast from "../../components/ui/Toast";
 import Skeleton from "../../components/ui/Skeleton";
 import Alert from "../../components/ui/Alert";
@@ -65,6 +66,7 @@ const Properties = () => {
   const { isOwner, isManager } = useMyRoles();
   const toast = useToast();
   const navigate = useNavigate();
+  const basePath = useBasePath();
 
   const readOnly = isManager && !isOwner;
 
@@ -362,7 +364,7 @@ const Properties = () => {
                           <button
                             onClick={() => {
                               setMenuOpen(null);
-                              navigate(`/properties/${house.id}`);
+                              navigate(`${basePath}/properties/${house.id}`);
                             }}
                             className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
                           >

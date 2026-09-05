@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTenants, useEmergencyContacts } from '../../hooks/useTenants.js';
+import { useBasePath } from '../../hooks/useBasePath.js';
 import { useToast } from '../../components/ui/Toast.jsx';
 import {
   Card,
@@ -47,12 +48,14 @@ const STATUS_VARIANT = {
   ACTIVE: 'success',
   RENTING: 'info',
   INACTIVE: 'neutral',
+  PENDING: 'warning',
 };
 
 const STATUS_OPTIONS = [
   { value: '', label: 'ស្ថានភាពទាំងអស់' },
   { value: 'ACTIVE', label: 'សកម្ម (ទំនេរ)' },
   { value: 'RENTING', label: 'កំពុងជួលផ្ទះ' },
+  { value: 'PENDING', label: 'រង់ចាំ (មិនទាន់មានកិច្ចសន្យា)' },
   { value: 'INACTIVE', label: 'អសកម្ម' },
 ];
 
@@ -82,6 +85,7 @@ export default function Tenants() {
   } = useTenants();
   const toast = useToast();
   const navigate = useNavigate();
+  const basePath = useBasePath();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -193,7 +197,7 @@ export default function Tenants() {
       render: (row) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <IconButton variant="ghost" size="sm" tooltip="មើល" icon={<Eye className="h-4 w-4" />} onClick={() => openView(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => navigate(`/tenants/${row.id}/edit`)} />
+          <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => navigate(`${basePath}/tenants/${row.id}/edit`)} />
           <IconButton variant="ghost" size="sm" tooltip="ទំនាក់ទំនង" icon={<Contact className="h-4 w-4" />} onClick={() => setContactTarget(row)} disabled={row.status !== 'ACTIVE'} />
           {row.status === 'ACTIVE' && (
             <IconButton variant="ghost" size="sm" tooltip="បិទដំណើរការ" icon={<Power className="h-4 w-4" />} className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300" onClick={() => setDeactivateTarget(row)} />
@@ -277,7 +281,7 @@ export default function Tenants() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>ផ្ទុកឡើងវិញ</Button>
-          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate('/tenants/new')}>បង្កើតអ្នកជួល</Button>
+          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate(`${basePath}/tenants/new`)}>បង្កើតអ្នកជួល</Button>
         </div>
       </div>
 
@@ -317,7 +321,7 @@ export default function Tenants() {
           icon={UsersIcon}
           title="មិនទាន់មានអ្នកជួល"
           description="បង្កើតប្រវត្តិរូបអ្នកជួលដំបូងរបស់អ្នក ដើម្បីចាប់ផ្តើម។"
-          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate('/tenants/new')}>បង្កើតអ្នកជួល</Button>}
+          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate(`${basePath}/tenants/new`)}>បង្កើតអ្នកជួល</Button>}
         />
       ) : filtered.length === 0 ? (
         <EmptyState icon={Filter} title="រកមិនឃើញលទ្ធផល" description="សូមព្យាយាមកែតម្រូវលក្ខណៈវិនិច្ឆ័យស្វែងរក ឬតម្រងរបស់អ្នក។" />
@@ -348,7 +352,7 @@ export default function Tenants() {
                   )}
                 </div>
                 <div className="mt-4 flex items-center gap-1 border-t border-slate-100 pt-3 dark:border-gray-800">
-                  <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); navigate(`/tenants/${t.id}/edit`); }} />
+                  <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); navigate(`${basePath}/tenants/${t.id}/edit`); }} />
                   <IconButton variant="ghost" size="sm" tooltip="ទំនាក់ទំនង" icon={<Contact className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); setContactTarget(t); }} disabled={t.status !== 'ACTIVE'} />
                   {t.status === 'ACTIVE' && (
                     <IconButton variant="ghost" size="sm" tooltip="បិទដំណើរការ" icon={<Power className="h-4 w-4" />} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeactivateTarget(t); }} />
@@ -389,7 +393,7 @@ export default function Tenants() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" leftIcon={<Edit className="h-4 w-4" />} onClick={() => { const id = viewData.id; setViewTarget(null); navigate(`/tenants/${id}/edit`); }}>កែប្រែ</Button>
+              <Button variant="outline" size="sm" leftIcon={<Edit className="h-4 w-4" />} onClick={() => { const id = viewData.id; setViewTarget(null); navigate(`${basePath}/tenants/${id}/edit`); }}>កែប្រែ</Button>
               <Button variant="outline" size="sm" leftIcon={<Contact className="h-4 w-4" />} onClick={() => { setContactTarget(viewData); setViewTarget(null); }} disabled={viewData.status !== 'ACTIVE'}>ទំនាក់ទំនងសង្គ្រោះបន្ទាន់</Button>
               {viewData.status === 'ACTIVE' && (
                 <Button variant="danger" size="sm" leftIcon={<Power className="h-4 w-4" />} onClick={() => { setDeactivateTarget(viewData); setViewTarget(null); }}>បិទដំណើរការ</Button>

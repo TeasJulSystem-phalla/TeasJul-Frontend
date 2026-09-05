@@ -18,6 +18,7 @@ import {
   useRoomTypes,
 } from '../../hooks/useRoomType';
 import { useHouseDetail } from '../../hooks/useHouseDetail';
+import { useBasePath } from '../../hooks/useBasePath.js';
 import {
   Card,
   Button,
@@ -88,6 +89,7 @@ const StatCard = ({ icon: Icon, label, value, iconBg, iconColor }) => (
 export default function HouseDetailPage() {
   const { id } = useParams();
   const houseId = Number(id);
+  const basePath = useBasePath();
 
   const { roomTypes } = useRoomTypes();
 
@@ -309,7 +311,7 @@ export default function HouseDetailPage() {
     return (
       <div className="space-y-6">
         <Link
-          to="/properties"
+          to={`${basePath}/properties`}
           className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
         >
           <ArrowLeft className="h-4 w-4" /> ត្រឡប់ទៅអចលនទ្រព្យ
@@ -321,7 +323,7 @@ export default function HouseDetailPage() {
           action={
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={refreshAll}>ព្យាយាមម្តងទៀត</Button>
-              <Link to="/properties">
+              <Link to={`${basePath}/properties`}>
                 <Button variant="primary" size="sm">ទៅកាន់អចលនទ្រព្យ</Button>
               </Link>
             </div>
@@ -337,7 +339,7 @@ export default function HouseDetailPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Link
-            to="/properties"
+            to={`${basePath}/properties`}
             className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
           >
             <ArrowLeft className="h-4 w-4" /> ត្រឡប់ទៅអចលនទ្រព្យ

@@ -9,9 +9,13 @@ import {
   Building2,
   Users,
   DollarSign,
+  Download,
 } from 'lucide-react';
 import { useInvoices } from '../../hooks/useInvoices.js';
 import { useHouses } from '../../hooks/useHouses.js';
+import { useBasePath } from '../../hooks/useBasePath.js';
+import { useToast } from '../../components/ui/Toast.jsx';
+import BulkInvoicePreviewModal from './BulkInvoicePreviewModal.jsx';
 import {
   Card,
   Button,
@@ -71,12 +75,24 @@ export default function Invoices() {
   const navigate = useNavigate();
   const { invoices, loading, error, page, totalPages, setPage, fetchInvoices } = useInvoices();
   const { houses } = useHouses();
+  const toast = useToast();
+  const basePath = useBasePath();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [houseFilter, setHouseFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [monthFilter, setMonthFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('');
+
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  const handleBulkDownload = () => {
+    if (invoices.length === 0) {
+      toast.info('គ្មានវិក្កយបត្រ', 'មិនមានវិក្កយបត្រដើម្បីទាញយកទេ។');
+      return;
+    }
+    setPreviewOpen(true);
+  };
 
   const houseOptions = useMemo(
     () => [
@@ -171,7 +187,7 @@ export default function Invoices() {
             size="sm"
             tooltip="មើល"
             icon={<Eye className="h-4 w-4" />}
-            onClick={() => navigate(`/invoices/${row.id}`)}
+            onClick={() => navigate(`${basePath}/invoices/${row.id}`)}
           />
         </div>
       ),
@@ -188,8 +204,16 @@ export default function Invoices() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<Download className="h-4 w-4" />}
+            onClick={handleBulkDownload}
+          >
+            ទាញយក PDF ទាំងអស់
+          </Button>
           <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => fetchInvoices({})}>ធ្វើឱ្យស្រស់</Button>
-          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate('/invoices/generate')}>បង្កើតវិក្កយបត្រ</Button>
+          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate(`${basePath}/invoices/generate`)}>បង្កើតវិក្កយបត្រ</Button>
         </div>
       </div>
 
@@ -202,7 +226,7 @@ export default function Invoices() {
           icon={FileText}
           title="មិនទាន់មានវិក្កយបត្រ"
           description="បង្កើតវិក្កយបត្រប្រចាំខែដំបូងរបស់អ្នក ដើម្បីចាប់ផ្តើមទូទាត់។"
-          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate('/invoices/generate')}>បង្កើតវិក្កយបត្រ</Button>}
+          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate(`${basePath}/invoices/generate`)}>បង្កើតវិក្កយបត្រ</Button>}
         />
       ) : (
         <>
@@ -243,6 +267,14 @@ export default function Invoices() {
           )}
         </>
       )}
+
+      <BulkInvoicePreviewModal
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        invoices={invoices}
+        billingYear={yearFilter ? Number(yearFilter) : undefined}
+        billingMonth={monthFilter ? Number(monthFilter) : undefined}
+      />
     </div>
   );
 }

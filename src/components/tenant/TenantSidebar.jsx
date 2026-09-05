@@ -13,10 +13,11 @@ import {
 import { useAuthStore } from '../../store/auth.store';
 
 const NAV_ITEMS = [
-  { to: '/tenant', label: 'ទំព័រដើម', icon: LayoutDashboard },
+  { to: '/tenant', label: 'ទំព័រដើម', icon: LayoutDashboard, end: true },
+  { to: '/tenant/dashboard', label: 'ផ្ទាំងគ្រប់គ្រង', icon: Home },
   { to: '/tenant/profile', label: 'ប្រវត្តិរបស់ខ្ញុំ', icon: UserCircle },
   { to: '/tenant/maintenance', label: 'ការជួសជុល', icon: Wrench },
-  { to: '/tenant/payments', label: 'ការទូទាត់', icon: Wallet },
+  { to: '/tenant/payments', label: 'ការទូទាត់ (Payments)', icon: Wallet },
   { to: '/tenant/utilities', label: 'ទឹក និងភ្លើង', icon: Zap },
 ];
 
@@ -90,7 +91,7 @@ const TenantSidebar = ({ isOpen, onClose, isCollapsed }) => {
                 <li key={item.to}>
                   <NavLink
                     to={item.to}
-                    end={item.to === '/tenant'}
+                    end={item.end ?? item.to === '/tenant'}
                     onClick={handleNavigate}
                     title={isCollapsed ? item.label : undefined}
                     className={({ isActive }) =>

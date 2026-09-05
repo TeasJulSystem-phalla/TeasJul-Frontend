@@ -10,6 +10,22 @@ import {
   MapPin,
   BedDouble,
   Edit3,
+  ChevronRight,
+  Camera,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Home,
+  Key,
+  Users,
+  Star,
+  Activity,
+  Globe,
+  Smartphone,
+  MailCheck,
+  Fingerprint,
+  CalendarDays,
+  Clock4,
 } from "lucide-react";
 import { userApi } from "../../api/user.api";
 import useToast from "../../components/ui/Toast";
@@ -21,25 +37,34 @@ import Input from "../../components/ui/Input";
 import Modal from "../../components/ui/Modal";
 
 const STATUS_VARIANT = {
-  ACTIVE: "success",
-  INACTIVE: "danger",
-  LOCKED: "warning",
+  ACTIVE: { color: "emerald", icon: CheckCircle, label: "សកម្ម" },
+  INACTIVE: { color: "gray", icon: XCircle, label: "អសកម្ម" },
+  LOCKED: { color: "amber", icon: AlertCircle, label: "ចាក់សោ" },
+  PENDING: { color: "blue", icon: Clock, label: "កំពុងរង់ចាំ" },
+};
+
+const HOUSE_STATUS_VARIANT = {
+  ACTIVE: { color: "emerald", icon: CheckCircle, label: "សកម្ម" },
+  INACTIVE: { color: "gray", icon: XCircle, label: "អសកម្ម" },
+  MAINTENANCE: { color: "amber", icon: AlertCircle, label: "ថែទាំ" },
+  FULL: { color: "blue", icon: Users, label: "ពេញ" },
 };
 
 const AVATAR_COLORS = [
-  "bg-blue-500",
-  "bg-emerald-500",
-  "bg-violet-500",
-  "bg-amber-500",
-  "bg-rose-500",
-  "bg-cyan-500",
-  "bg-pink-500",
-  "bg-indigo-500",
-  "bg-teal-500",
-  "bg-orange-500",
+  "from-blue-400 to-blue-500",
+  "from-emerald-400 to-emerald-500",
+  "from-violet-400 to-violet-500",
+  "from-amber-400 to-amber-500",
+  "from-rose-400 to-rose-500",
+  "from-cyan-400 to-cyan-500",
+  "from-pink-400 to-pink-500",
+  "from-indigo-400 to-indigo-500",
+  "from-teal-400 to-teal-500",
+  "from-orange-400 to-orange-500",
 ];
 
 const getAvatarColor = (str) => {
+  if (!str) return AVATAR_COLORS[0];
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -54,33 +79,61 @@ const getInitials = (firstName, lastName) => {
 };
 
 const getFullName = (user) => {
-  return [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username;
+  if (!user) return "";
+  return [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || "User";
 };
 
 const formatRelativeTime = (dateStr) => {
   if (!dateStr) return null;
-  const now = new Date();
-  const date = new Date(dateStr);
-  const diffMs = now - date;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-  const diffWeeks = Math.floor(diffDays / 7);
-  const diffMonths = Math.floor(diffDays / 30);
+  try {
+    const now = new Date();
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return null;
+    
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    const diffWeeks = Math.floor(diffDays / 7);
+    const diffMonths = Math.floor(diffDays / 30);
 
-  if (diffMins < 1) return "ទើបតែឥឡូវនេះ";
-  if (diffMins < 60) return `${diffMins} នាទីមុន`;
-  if (diffHours < 24) return `${diffHours} ម៉ោងមុន`;
-  if (diffDays < 7) return `${diffDays} ថ្ងៃមុន`;
-  if (diffWeeks < 4) return `${diffWeeks} សប្តាហ៍មុន`;
-  return `${diffMonths} ខែមុន`;
+    if (diffMins < 1) return "ទើបតែឥឡូវនេះ";
+    if (diffMins < 60) return `${diffMins} នាទីមុន`;
+    if (diffHours < 24) return `${diffHours} ម៉ោងមុន`;
+    if (diffDays < 7) return `${diffDays} ថ្ងៃមុន`;
+    if (diffWeeks < 4) return `${diffWeeks} សប្តាហ៍មុន`;
+    return `${diffMonths} ខែមុន`;
+  } catch {
+    return null;
+  }
 };
 
-const HOUSE_STATUS_VARIANT = {
-  ACTIVE: "success",
-  INACTIVE: "danger",
-  MAINTENANCE: "warning",
+const formatUserId = (id) => {
+  if (!id) return "—";
+  const idStr = String(id);
+  return idStr.length > 8 ? `#${idStr.slice(0, 8)}` : `#${idStr}`;
 };
+
+const InfoItem = ({ icon: Icon, label, value, subValue }) => (
+  <div className="group flex items-start gap-3 p-3 rounded-lg bg-white/60 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800/60 transition-all duration-200 border border-slate-100/60 dark:border-slate-700/40 hover:border-slate-200 dark:hover:border-slate-600">
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-700/50 text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors">
+      <Icon className="h-4 w-4" />
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
+        {label}
+      </p>
+      <p className="text-sm text-slate-700 dark:text-slate-200 truncate">
+        {value || "—"}
+      </p>
+      {subValue && (
+        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+          {subValue}
+        </p>
+      )}
+    </div>
+  </div>
+);
 
 const Profile = () => {
   const toast = useToast();
@@ -104,7 +157,7 @@ const Profile = () => {
         userApi.getMyAccessibleHouses().catch(() => []),
       ]);
       setUser(userData);
-      setHouses(housesData);
+      setHouses(Array.isArray(housesData) ? housesData : []);
     } catch (err) {
       const message =
         err.response?.data?.message ||
@@ -121,6 +174,7 @@ const Profile = () => {
   }, []);
 
   const openEdit = () => {
+    if (!user) return;
     setEditForm({
       firstName: user.firstName || "",
       lastName: user.lastName || "",
@@ -140,21 +194,25 @@ const Profile = () => {
 
   const validateEdit = () => {
     const errs = {};
-    if (!editForm.firstName.trim()) errs.firstName = "តម្រូវឱ្យបញ្ចូលនាមត្រកូល";
-    if (!editForm.lastName.trim()) errs.lastName = "តម្រូវឱ្យបញ្ចូលគោត្តនាម";
+    if (!editForm.firstName?.trim()) errs.firstName = "តម្រូវឱ្យបញ្ចូលនាមត្រកូល";
+    if (!editForm.lastName?.trim()) errs.lastName = "តម្រូវឱ្យបញ្ចូលគោត្តនាម";
     setEditErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
   const handleEditSubmit = async () => {
     if (!validateEdit()) return;
+    if (!user?.id) {
+      toast.error("កំហុស", "មិនអាចកំណត់អត្តសញ្ញាណអ្នកប្រើប្រាស់បានទេ");
+      return;
+    }
     setEditLoading(true);
     try {
       const payload = {
         firstName: editForm.firstName.trim(),
         lastName: editForm.lastName.trim(),
-        phone: editForm.phone.trim() || null,
-        avatar: editForm.avatar.trim() || null,
+        phone: editForm.phone?.trim() || null,
+        avatar: editForm.avatar?.trim() || null,
       };
       const updated = await userApi.updateUser(user.id, payload);
       setUser(updated);
@@ -173,37 +231,46 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-8 w-32" />
-        <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+      <div className="space-y-6 animate-pulse">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-9 w-32 rounded-lg" />
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
           <div className="flex items-center gap-4">
             <Skeleton className="h-20 w-20 rounded-full" />
-            <div>
-              <Skeleton className="h-5 w-40" />
-              <Skeleton className="mt-1.5 h-3 w-28" />
-              <Skeleton className="mt-2 h-5 w-16 rounded-full" />
+            <div className="flex-1">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="mt-1.5 h-3 w-32" />
+              <div className="mt-2 flex gap-2">
+                <Skeleton className="h-5 w-16 rounded-full" />
+                <Skeleton className="h-5 w-20 rounded-full" />
+              </div>
             </div>
           </div>
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Skeleton className="h-16 rounded-lg" />
-            <Skeleton className="h-16 rounded-lg" />
-            <Skeleton className="h-16 rounded-lg" />
-            <Skeleton className="h-16 rounded-lg" />
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 rounded-lg" />
+            ))}
           </div>
         </div>
-        <Skeleton className="h-6 w-40" />
+        <Skeleton className="h-7 w-48" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-xl border border-slate-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-10 w-10 rounded-lg" />
-                <div>
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="mt-1.5 h-3 w-20" />
+            <div key={i} className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-lg" />
+                  <div>
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="mt-1 h-3 w-16" />
+                  </div>
                 </div>
+                <Skeleton className="h-5 w-14 rounded-full" />
               </div>
-              <Skeleton className="mt-3 h-3.5 w-48" />
-              <Skeleton className="mt-2 h-5 w-20 rounded-full" />
+              <Skeleton className="mt-3 h-3 w-40" />
+              <Skeleton className="mt-2 h-3 w-28" />
+              <Skeleton className="mt-2 h-3 w-full" />
             </div>
           ))}
         </div>
@@ -223,224 +290,313 @@ const Profile = () => {
   if (!user) return null;
 
   const avatarColor = getAvatarColor(
-    (user.firstName || "") + (user.lastName || "") + user.username
+    (user.firstName || "") + (user.lastName || "") + (user.username || "")
   );
 
+  const statusInfo = STATUS_VARIANT[user.status] || STATUS_VARIANT.ACTIVE;
+  const StatusIcon = statusInfo.icon;
+
+  const totalHouses = Array.isArray(houses) ? houses.length : 0;
+  const activeHouses = Array.isArray(houses) ? houses.filter(h => h?.status === "ACTIVE").length : 0;
+  const totalRooms = Array.isArray(houses) 
+    ? houses.reduce((acc, h) => acc + (h?.totalRooms || 0), 0) 
+    : 0;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">ប្រវត្តិរូប</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+            ប្រវត្តិរូប
+            <span className="text-xs font-normal text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-2.5 py-0.5 rounded-full">
+              {user.role || "អ្នកប្រើប្រាស់"}
+            </span>
+          </h1>
+          <p className="text-sm text-slate-400 dark:text-slate-500 mt-0.5">
+            គ្រប់គ្រងព័ត៌មានផ្ទាល់ខ្លួន និងសិទ្ធិចូលប្រើផ្ទះ
+          </p>
+        </div>
         <Button
           variant="outline"
           size="sm"
           leftIcon={<Edit3 className="h-4 w-4" />}
           onClick={openEdit}
+          className="border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
         >
           កែប្រែប្រវត្តិរូប
         </Button>
       </div>
 
-      {/* Profile card */}
-      <div className="rounded-xl border border-slate-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-        {/* Cover / avatar section */}
-        <div className="relative">
-          <div className="h-28 rounded-t-xl bg-gradient-to-r from-slate-800 to-slate-600 dark:from-gray-800 dark:to-gray-700" />
-          <div className="relative -mt-12 px-6 pb-6">
-            <div className="flex items-end gap-4">
+      {/* Profile Card */}
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/90 shadow-sm overflow-hidden">
+        {/* Cover */}
+        <div className="relative h-24 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600">
+          <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-white dark:from-slate-800/90 to-transparent" />
+        </div>
+
+        {/* Avatar & Name */}
+        <div className="relative -mt-12 px-6 pb-4">
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="relative">
               {user.avatar ? (
                 <img
                   src={user.avatar}
                   alt={getFullName(user)}
-                  className="h-24 w-24 rounded-full object-cover ring-4 ring-white dark:ring-gray-900"
+                  className="h-20 w-20 rounded-full object-cover ring-2 ring-white dark:ring-slate-800 shadow-sm"
                 />
               ) : (
                 <div
-                  className={`flex h-24 w-24 items-center justify-center rounded-full text-2xl font-bold text-white shadow-lg ${avatarColor}`}
+                  className={`flex h-20 w-20 items-center justify-center rounded-full text-xl font-bold text-white shadow-sm bg-gradient-to-br ${avatarColor} ring-2 ring-white dark:ring-slate-800`}
                 >
                   {getInitials(user.firstName, user.lastName)}
                 </div>
               )}
-              <div className="min-w-0 pb-1">
-                <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+            </div>
+
+            <div className="flex-1 min-w-0 pb-0.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-xl font-semibold text-slate-800 dark:text-white">
                   {getFullName(user)}
                 </h2>
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-${statusInfo.color}-50 dark:bg-${statusInfo.color}-900/20 text-${statusInfo.color}-600 dark:text-${statusInfo.color}-400 border border-${statusInfo.color}-200/50 dark:border-${statusInfo.color}-800/30`}>
+                  <StatusIcon className="h-3 w-3" />
+                  {statusInfo.label}
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 mt-0.5">
                 <p className="text-sm text-slate-400 dark:text-slate-500">
-                  @{user.username}
+                  @{user.username || "គ្មានឈ្មោះ"}
                 </p>
+                <span className="text-xs text-slate-300 dark:text-slate-600">|</span>
+                <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">
+                  <MailCheck className="h-3.5 w-3.5" />
+                  <span>{user.email || "—"}</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-3 mt-1.5">
+                <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  <span>
+                    ចូលរួម {user.createdAt ? new Date(user.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">
+                  <Clock4 className="h-3.5 w-3.5" />
+                  <span>សកម្ម {user.lastLoginAt ? formatRelativeTime(user.lastLoginAt) : "—"}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Info grid */}
-        <div className="grid grid-cols-1 gap-4 border-t border-slate-100 px-6 py-5 sm:grid-cols-2 dark:border-gray-800">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-gray-800">
-              <Mail className="h-4.5 w-4.5 text-slate-500" />
+        {/* Stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 px-6 pb-4">
+          {[
+            { icon: Home, label: "ផ្ទះសរុប", value: totalHouses },
+            { icon: Key, label: "សិទ្ធិចូលប្រើ", value: activeHouses },
+            { icon: Users, label: "បន្ទប់សរុប", value: totalRooms },
+            { icon: Star, label: "កម្រិត", value: "មាស" },
+          ].map((stat, i) => (
+            <div key={i} className="bg-slate-50/70 dark:bg-slate-700/30 rounded-lg p-2.5 text-center border border-slate-100/50 dark:border-slate-700/30">
+              <stat.icon className="h-4 w-4 mx-auto text-slate-400 dark:text-slate-500" />
+              <p className="text-base font-semibold text-slate-700 dark:text-slate-200 mt-0.5">{stat.value}</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">{stat.label}</p>
             </div>
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">អ៊ីមែល</p>
-              <p className="text-sm text-slate-700 dark:text-slate-200">{user.email || "—"}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-gray-800">
-              <Phone className="h-4.5 w-4.5 text-slate-500" />
-            </div>
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">លេខទូរស័ព្ទ</p>
-              <p className="text-sm text-slate-700 dark:text-slate-200">{user.phone || "—"}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-gray-800">
-              <Shield className="h-4.5 w-4.5 text-slate-500" />
-            </div>
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">ស្ថានភាព</p>
-              <Badge variant={STATUS_VARIANT[user.status] || "default"} className="mt-1">
-                {user.status}
-              </Badge>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-gray-800">
-              <Clock className="h-4.5 w-4.5 text-slate-500" />
-            </div>
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">ការចូលចុងក្រោយ</p>
-              <p className="text-sm text-slate-700 dark:text-slate-200">
-                {user.lastLoginAt ? formatRelativeTime(user.lastLoginAt) : "—"}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-gray-800">
-              <Calendar className="h-4.5 w-4.5 text-slate-500" />
-            </div>
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">បានចូលរួម</p>
-              <p className="text-sm text-slate-700 dark:text-slate-200">
-                {user.createdAt ? new Date(user.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "—"}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-gray-800">
-              <User className="h-4.5 w-4.5 text-slate-500" />
-            </div>
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">ការធ្វើបច្ចុប្បន្នភាពចុងក្រោយ</p>
-              <p className="text-sm text-slate-700 dark:text-slate-200">
-                {user.updatedAt ? formatRelativeTime(user.updatedAt) : "—"}
-              </p>
-            </div>
-          </div>
+          ))}
+        </div>
+
+        {/* Info Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 px-6 pb-5 pt-3 border-t border-slate-100 dark:border-slate-700/50">
+          <InfoItem icon={Mail} label="អ៊ីមែល" value={user.email} />
+          <InfoItem icon={Smartphone} label="លេខទូរស័ព្ទ" value={user.phone} />
+          <InfoItem 
+            icon={Shield} 
+            label="ស្ថានភាព" 
+            value={statusInfo.label} 
+            subValue={user.updatedAt ? `ចាប់តាំងពី ${formatRelativeTime(user.updatedAt)}` : null} 
+          />
+          <InfoItem icon={Globe} label="តួនាទី" value={user.role || "អ្នកប្រើប្រាស់"} />
+          <InfoItem icon={Fingerprint} label="ID អ្នកប្រើប្រាស់" value={formatUserId(user.id)} />
+          <InfoItem 
+            icon={Activity} 
+            label="ស្ថានភាពចុងក្រោយ" 
+            value={user.lastLoginAt ? formatRelativeTime(user.lastLoginAt) : "—"} 
+          />
         </div>
       </div>
 
-      {/* Accessible houses */}
+      {/* Houses Section */}
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-slate-800 dark:text-white">
-          ផ្ទះដែលខ្ញុំអាចចូលប្រើបាន
-        </h2>
-        {houses.length === 0 ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-gray-900">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+            <div>
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-white">
+                ផ្ទះដែលខ្ញុំអាចចូលប្រើបាន
+              </h2>
+              <p className="text-sm text-slate-400 dark:text-slate-500">
+                {totalHouses} ផ្ទះ
+              </p>
+            </div>
+          </div>
+          <span className="text-xs text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full">
+            <Key className="inline h-3 w-3 mr-1" />
+            {activeHouses} សកម្ម
+          </span>
+        </div>
+
+        {!Array.isArray(houses) || houses.length === 0 ? (
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/90 p-8 text-center">
             <Building2 className="mx-auto h-10 w-10 text-slate-300 dark:text-slate-600" />
-            <p className="mt-3 text-sm text-slate-400 dark:text-slate-500">
+            <h3 className="mt-3 text-base font-medium text-slate-600 dark:text-slate-300">
+              មិនទាន់មានផ្ទះ
+            </h3>
+            <p className="mt-1 text-sm text-slate-400 dark:text-slate-500">
               អ្នកមិនទាន់មានសិទ្ធិចូលប្រើផ្ទះណាមួយនៅឡើយទេ។
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {houses.map((house) => (
-              <div
-                key={house.id}
-                className="rounded-xl border border-slate-200 bg-white transition-all hover:border-slate-300 hover:shadow-md hover:shadow-slate-900/5 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 dark:hover:shadow-black/20"
-              >
-                <div className="p-5">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
-                        <Building2 className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {houses.map((house) => {
+              if (!house) return null;
+              const status = HOUSE_STATUS_VARIANT[house.status] || HOUSE_STATUS_VARIANT.ACTIVE;
+              const StatusIcon = status.icon;
+              const available = house.availableRooms || 0;
+              const total = house.totalRooms || 0;
+              const occupancy = total > 0 ? Math.round((available / total) * 100) : 0;
+
+              return (
+                <div
+                  key={house.id || Math.random()}
+                  className="group rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/90 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+                >
+                  <div className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`h-10 w-10 rounded-lg bg-${status.color}-50 dark:bg-${status.color}-900/20 flex items-center justify-center text-${status.color}-500 dark:text-${status.color}-400`}>
+                          <Building2 className="h-4.5 w-4.5" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-slate-800 dark:text-white">
+                            {house.name || "គ្មានឈ្មោះ"}
+                          </h3>
+                          {house.code && (
+                            <p className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                              {house.code}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-[15px] font-semibold text-slate-800 dark:text-white">
-                          {house.name}
-                        </h3>
-                        {house.code && (
-                          <p className="text-[12px] font-mono text-slate-400 dark:text-slate-500">
-                            {house.code}
-                          </p>
-                        )}
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-${status.color}-50 dark:bg-${status.color}-900/20 text-${status.color}-600 dark:text-${status.color}-400 border border-${status.color}-200/50 dark:border-${status.color}-800/30`}>
+                        <StatusIcon className="h-2.5 w-2.5" />
+                        {status.label}
+                      </span>
+                    </div>
+
+                    {house.address && (
+                      <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                        <MapPin className="h-3 w-3 shrink-0 text-slate-400 dark:text-slate-500" />
+                        <span className="truncate">{house.address}</span>
+                      </div>
+                    )}
+
+                    <div className="mt-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                        <BedDouble className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
+                        <span>
+                          <span className="font-medium">{available}</span>
+                          <span className="text-slate-400 dark:text-slate-500">/{total}</span>
+                          <span className="text-[10px] text-slate-400 dark:text-slate-500 ml-0.5">បន្ទប់</span>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-12 h-1 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full bg-${status.color}-400 rounded-full transition-all duration-500`}
+                            style={{ width: `${occupancy}%` }}
+                          />
+                        </div>
+                        <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500">
+                          {occupancy}%
+                        </span>
                       </div>
                     </div>
-                    <Badge variant={HOUSE_STATUS_VARIANT[house.status] || "default"}>
-                      {house.status}
-                    </Badge>
-                  </div>
 
-                  {house.address && (
-                    <div className="mt-3 flex items-center gap-1.5 text-[13px] text-slate-500 dark:text-slate-400">
-                      <MapPin className="h-3.5 w-3.5 shrink-0" />
-                      <span className="truncate">{house.address}</span>
+                    {house.description && (
+                      <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                        {house.description}
+                      </p>
+                    )}
+
+                    <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-700/50 flex items-center justify-between">
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500">
+                        <Calendar className="inline h-3 w-3 mr-1" />
+                        {house.createdAt ? new Date(house.createdAt).toLocaleDateString() : "—"}
+                      </p>
+                      <button className="text-[10px] font-medium text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors flex items-center gap-0.5">
+                        មើល
+                        <ChevronRight className="h-3 w-3" />
+                      </button>
                     </div>
-                  )}
-
-                  <div className="mt-3 flex items-center gap-1.5 text-[13px] text-slate-600 dark:text-slate-300">
-                    <BedDouble className="h-4 w-4 text-slate-400 dark:text-slate-500" />
-                    <span>
-                      {house.availableRooms}/{house.totalRooms} បន្ទប់
-                    </span>
                   </div>
-
-                  {house.description && (
-                    <p className="mt-2 line-clamp-2 text-[13px] text-slate-500 dark:text-slate-400">
-                      {house.description}
-                    </p>
-                  )}
                 </div>
-
-                <div className="border-t border-slate-100 px-5 py-2.5 dark:border-gray-800">
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                    បង្កើតនៅ {new Date(house.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Edit profile modal */}
+      {/* Edit Modal */}
       <Modal
         open={editModal}
         onClose={() => setEditModal(false)}
-        title="កែប្រែប្រវត្តិរូប"
+        title={
+          <div className="flex items-center gap-2">
+            <Edit3 className="h-4 w-4 text-slate-400" />
+            <div>
+              <h3 className="text-base font-semibold text-slate-800 dark:text-white">កែប្រែប្រវត្តិរូប</h3>
+              <p className="text-xs text-slate-400 dark:text-slate-500 font-normal">
+                ធ្វើបច្ចុប្បន្នភាពព័ត៌មានផ្ទាល់ខ្លួន
+              </p>
+            </div>
+          </div>
+        }
         size="md"
         footer={
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => setEditModal(false)} disabled={editLoading}>
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditModal(false)}
+              disabled={editLoading}
+            >
               បោះបង់
             </Button>
-            <Button onClick={handleEditSubmit} loading={editLoading}>
-              រក្សាទុកការផ្លាស់ប្តូរ
+            <Button
+              size="sm"
+              onClick={handleEditSubmit}
+              loading={editLoading}
+              className="bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-500 text-white"
+            >
+              <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+              រក្សាទុក
             </Button>
           </div>
         }
       >
         <div className="space-y-4">
-          <div className="flex items-center gap-4">
+          {/* Avatar Preview */}
+          <div className="flex items-center gap-4 p-3 bg-slate-50/50 dark:bg-slate-700/30 rounded-lg border border-slate-200 dark:border-slate-700">
             {user.avatar ? (
               <img
                 src={user.avatar}
                 alt={getFullName(user)}
-                className="h-16 w-16 rounded-full object-cover"
+                className="h-14 w-14 rounded-full object-cover ring-2 ring-white dark:ring-slate-800"
               />
             ) : (
               <div
-                className={`flex h-16 w-16 items-center justify-center rounded-full text-lg font-bold text-white ${avatarColor}`}
+                className={`flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold text-white bg-gradient-to-br ${avatarColor}`}
               >
                 {getInitials(user.firstName, user.lastName)}
               </div>
@@ -449,40 +605,53 @@ const Profile = () => {
               <p className="text-sm font-semibold text-slate-800 dark:text-white">
                 {getFullName(user)}
               </p>
-              <p className="text-[12px] text-slate-400 dark:text-slate-500">
-                @{user.username}
+              <p className="text-xs text-slate-400 dark:text-slate-500">
+                @{user.username || "គ្មានឈ្មោះ"}
+              </p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                <Mail className="inline h-3 w-3 mr-1" />
+                {user.email || "—"}
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Input
               label="នាមត្រកូល"
               required
-              placeholder="នាមត្រកូល"
+              placeholder="បញ្ចូលនាមត្រកូល"
               value={editForm.firstName}
               onChange={(e) => handleEditChange("firstName", e.target.value)}
               error={editErrors.firstName}
+              className="text-sm"
             />
             <Input
               label="គោត្តនាម"
               required
-              placeholder="គោត្តនាម"
+              placeholder="បញ្ចូលគោត្តនាម"
               value={editForm.lastName}
               onChange={(e) => handleEditChange("lastName", e.target.value)}
               error={editErrors.lastName}
+              className="text-sm"
             />
           </div>
+
           <Input
             label="លេខទូរស័ព្ទ"
-            placeholder="លេខទូរស័ព្ទ"
+            placeholder="បញ្ចូលលេខទូរស័ព្ទ"
             value={editForm.phone}
             onChange={(e) => handleEditChange("phone", e.target.value)}
+            className="text-sm"
+            leftIcon={<Phone className="h-3.5 w-3.5 text-slate-400" />}
           />
+
           <Input
             label="URL រូបភាពតំណាង"
             placeholder="https://example.com/avatar.jpg"
             value={editForm.avatar}
             onChange={(e) => handleEditChange("avatar", e.target.value)}
+            className="text-sm"
+            leftIcon={<Camera className="h-3.5 w-3.5 text-slate-400" />}
           />
         </div>
       </Modal>

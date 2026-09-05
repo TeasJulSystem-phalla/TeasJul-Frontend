@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useContracts } from '../../hooks/useContracts.js';
 import { useRooms } from '../../hooks/useRooms.js';
+import { useBasePath } from '../../hooks/useBasePath.js';
 import { useToast } from '../../components/ui/Toast.jsx';
 import {
   Button,
@@ -93,6 +94,7 @@ export default function Contracts() {
   const { rooms } = useRooms();
   const navigate = useNavigate();
   const toast = useToast();
+  const basePath = useBasePath();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -180,8 +182,8 @@ export default function Contracts() {
     setActiveTab('');
   };
 
-  const openDetail = (c) => navigate(`/contracts/${c.id}`);
-  const openEdit = (c) => navigate(`/contracts/${c.id}/edit`);
+  const openDetail = (c) => navigate(`${basePath}/contracts/${c.id}`);
+  const openEdit = (c) => navigate(`${basePath}/contracts/${c.id}/edit`);
 
   const handleTabChange = (status) => {
     setActiveTab(status);
@@ -253,7 +255,7 @@ export default function Contracts() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>ធ្វើស្រស់</Button>
-          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate('/contracts/new')}>បង្កើតកិច្ចសន្យា</Button>
+          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate(`${basePath}/contracts/new`)}>បង្កើតកិច្ចសន្យា</Button>
         </div>
       </div>
 
@@ -397,7 +399,7 @@ export default function Contracts() {
           icon={FileText}
           title="មិនទាន់មានកិច្ចសន្យានៅឡើយទេ"
           description="បង្កើតកិច្ចសន្យាជួលដំបូងរបស់អ្នក ដើម្បីចាប់ផ្តើមតាមដានអ្នកជួល ប្រាក់កក់ និងការបន្តកិច្ចសន្យា។"
-          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate('/contracts/new')}>បង្កើតកិច្ចសន្យា</Button>}
+          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate(`${basePath}/contracts/new`)}>បង្កើតកិច្ចសន្យា</Button>}
         />
       ) : filtered.length === 0 ? (
         <EmptyState

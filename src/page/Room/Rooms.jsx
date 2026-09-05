@@ -37,6 +37,7 @@ import { useRoomUtilities } from '../../hooks/useRoomUtilities.js';
 import { useUtilityTypes } from '../../hooks/useUtilityTypes.js';
 import { roomApi } from '../../api/room.api.js';
 import { useToast } from '../../components/ui/Toast.jsx';
+import { useBasePath } from '../../hooks/useBasePath.js';
 import {
   Card,
   Button,
@@ -120,6 +121,7 @@ export default function Rooms() {
   const { roomTypes } = useRoomTypes();
   const { occupants: roomOccupants, loading: occupantsLoading } = useRoomOccupants();
   const toast = useToast();
+  const basePath = useBasePath();
 
   const [viewMode, setViewMode] = useState('grid');
   const [searchTerm, setSearchTerm] = useState('');
@@ -239,7 +241,7 @@ export default function Rooms() {
   };
 
   const handleCreateContractForRoom = (roomId) => {
-    navigate(`/contracts/new?roomId=${roomId}`);
+    navigate(`${basePath}/contracts/new?roomId=${roomId}`);
   };
 
   const columns = [

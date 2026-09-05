@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Save, UserRound, FileText, IdCard } from 'lucide-react';
 import { useTenants } from '../../hooks/useTenants.js';
+import { useBasePath } from '../../hooks/useBasePath.js';
 import { useToast } from '../../components/ui/Toast.jsx';
 import {
   Button,
@@ -66,6 +67,7 @@ export default function TenantFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = !!id && id !== 'new';
+  const basePath = useBasePath();
 
   const { getTenant, createTenant, updateTenant } = useTenants();
   const toast = useToast();
@@ -181,7 +183,7 @@ export default function TenantFormPage() {
         await createTenant(payload);
         toast.success('បានបង្កើតអ្នកជួល', 'បានបន្ថែមអ្នកជួលថ្មី។');
       }
-      navigate('/tenants');
+      navigate(`${basePath}/tenants`);
     } catch (err) {
       toast.error(
         'កំហុស',
@@ -199,7 +201,7 @@ export default function TenantFormPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Link to="/tenants" className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400">
+          <Link to={`${basePath}/tenants`} className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400">
             <ArrowLeft className="h-4 w-4" /> ត្រឡប់ទៅអ្នកជួល
           </Link>
           <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">

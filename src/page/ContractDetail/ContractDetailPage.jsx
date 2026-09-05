@@ -26,6 +26,7 @@ import { useRoomAmenities } from '../../hooks/useRooms';
 import { useHouses } from '../../hooks/useHouses';
 import { useRoomTypes } from '../../hooks/useRoomType';
 import { useAuthStore } from '../../store/auth.store';
+import { useBasePath } from '../../hooks/useBasePath.js';
 import { EmptyState, Button, Skeleton, Badge } from '../../components/ui/index.js';
 import ContractDetailView from './ContractDetailView';
 import {
@@ -52,6 +53,7 @@ const docTitle = (contract, ext = '') =>
 export default function ContractDetailPage() {
   const { id } = useParams();
   const contractId = Number(id);
+  const basePath = useBasePath();
 
   const { getContract } = useContracts();
   const { tenants } = useTenants();
@@ -202,7 +204,7 @@ export default function ContractDetailPage() {
     return (
       <div className="space-y-6">
         <Link
-          to="/contracts"
+          to={`${basePath}/contracts`}
           className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
         >
           <ArrowLeft className="h-4 w-4" /> ត្រឡប់ទៅកិច្ចសន្យា
@@ -214,7 +216,7 @@ export default function ContractDetailPage() {
           action={
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={load}>ព្យាយាមម្តងទៀត</Button>
-              <Link to="/contracts">
+              <Link to={`${basePath}/contracts`}>
                 <Button variant="primary" size="sm">ទៅកាន់កិច្ចសន្យា</Button>
               </Link>
             </div>
@@ -230,7 +232,7 @@ export default function ContractDetailPage() {
       <div className="flex flex-col gap-4 print:hidden lg:flex-row lg:items-center lg:justify-between">
         <div>
           <Link
-            to="/contracts"
+            to={`${basePath}/contracts`}
             className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
           >
             <ArrowLeft className="h-4 w-4" /> ត្រឡប់ទៅកិច្ចសន្យា
@@ -286,7 +288,7 @@ export default function ContractDetailPage() {
               <Button variant="primary" size="sm" leftIcon={<FileText className="h-4 w-4" />} onClick={handleDownloadPdf}>
                 ទាញយក PDF
               </Button>
-              <Link to={`/contracts/${contract?.id}/edit`}>
+              <Link to={`${basePath}/contracts/${contract?.id}/edit`}>
                 <Button variant="secondary" size="sm" leftIcon={<FileText className="h-4 w-4" />}>
                   កែសម្រួល
                 </Button>

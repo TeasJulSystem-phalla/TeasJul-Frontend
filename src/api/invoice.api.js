@@ -7,6 +7,9 @@ export const invoiceApi = {
   generate: (data) =>
     api.post("/invoices/generate", data).then((res) => res.data),
 
+  generateBulk: (data) =>
+    api.post("/invoices/generate-bulk", data).then((res) => res.data),
+
   getInvoices: (params) =>
     api.get("/invoices", { params }).then((res) => res.data),
 

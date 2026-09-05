@@ -1,5 +1,6 @@
 // src/components/layout/Sidebar.jsx
 import { NavLink } from 'react-router-dom';
+import { useMyRoles } from '../../hooks/useMyRoles';
 import {
   LayoutDashboard,
   Building2,
@@ -22,6 +23,7 @@ import {
   KeyRound,
   MailPlus,
   Receipt,
+  CreditCard,
 } from 'lucide-react';
 
 const NAV_GROUPS = [
@@ -45,7 +47,8 @@ const NAV_GROUPS = [
       { to: '/roles', label: 'តួនាទី', icon: Shield },
       { to: '/profile', label: 'ប្រវត្តិរបស់ខ្ញុំ', icon: UserCircle },
       { to: '/access', label: 'ការចូលដំណើរការផ្ទះ', icon: KeyRound },
-      { to: '/finance', label: 'ហិរញ្ញវត្ថុ', icon: Wallet },
+      { to: '/finance/payments', label: 'ការទូទាត់ (Payments)', icon: Wallet },
+      { to: '/finance/payment-methods', label: 'វិធីសាស្ត្រទូទាត់', icon: CreditCard },
       { to: '/utilities', label: 'ប្រើប្រាស់ទឹកភ្លើង', icon: Zap },
       { to: '/utilities/meters', label: 'ម៉ែត្រប្រើប្រាស់', icon: Zap },
       { to: '/utilities/readings', label: 'ការអានម៉ែត្រប្រចាំខែ', icon: Zap },
@@ -118,9 +121,22 @@ const SidebarLink = ({ item, isCollapsed, onNavigate }) => {
 };
 
 const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
+  const { isTenant } = useMyRoles();
+
   const handleNavigate = () => {
     if (window.innerWidth < 1024) onClose();
   };
+
+  const visibleGroups = NAV_GROUPS.map((group) => {
+    if (group.label === 'ការគ្រប់គ្រង') {
+      const items = [...group.items];
+      if (isTenant && !items.some((it) => it.to === '/tenant/payments')) {
+        items.push({ to: '/tenant/payments', label: 'ការទូទាត់ (Payments)', icon: Wallet });
+      }
+      return { ...group, items };
+    }
+    return group;
+  });
 
   return (
     <>
@@ -154,7 +170,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
         </button>
 
         <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
-          {NAV_GROUPS.map((group) => (
+          {visibleGroups.map((group) => (
             <div key={group.label}>
               {!isCollapsed && (
                 <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">

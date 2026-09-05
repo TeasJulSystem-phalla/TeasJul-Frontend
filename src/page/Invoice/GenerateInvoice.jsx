@@ -9,12 +9,19 @@ import {
   Eye,
   ArrowLeft,
   Plug,
+  Layers,
+  Download,
+  CheckCircle2,
+  XCircle,
+  Info,
 } from 'lucide-react';
 import { useInvoices } from '../../hooks/useInvoices.js';
 import { useContracts } from '../../hooks/useContracts.js';
 import { useHouses } from '../../hooks/useHouses.js';
 import { useRooms } from '../../hooks/useRooms.js';
+import { useBasePath } from '../../hooks/useBasePath.js';
 import { useToast } from '../../components/ui/Toast.jsx';
+import BulkInvoicePreviewModal from './BulkInvoicePreviewModal.jsx';
 import {
   Card,
   Button,
@@ -44,12 +51,23 @@ const ITEM_LABELS = {
 
 export default function GenerateInvoice() {
   const navigate = useNavigate();
-  const { preview, generate } = useInvoices();
+  const { preview, generate, generateBulk } = useInvoices();
   const { contracts, loading: loadingContracts, fetchContracts } = useContracts();
   const { houses } = useHouses();
   const { rooms } = useRooms();
   const toast = useToast();
+  const basePath = useBasePath();
 
+  // Bulk generation state
+  const [bulkMonth, setBulkMonth] = useState(String(new Date().getMonth() + 1));
+  const [bulkYear, setBulkYear] = useState(String(new Date().getFullYear()));
+  const [bulkDiscount, setBulkDiscount] = useState('');
+  const [bulkGenerating, setBulkGenerating] = useState(false);
+  const [bulkResult, setBulkResult] = useState(null);
+  const [bulkError, setBulkError] = useState(null);
+  const [downloadPreviewOpen, setDownloadPreviewOpen] = useState(false);
+
+  // Single generation state
   const [contractId, setContractId] = useState('');
   const [billingYear, setBillingYear] = useState(String(new Date().getFullYear()));
   const [billingMonth, setBillingMonth] = useState(String(new Date().getMonth() + 1));
@@ -138,12 +156,43 @@ export default function GenerateInvoice() {
         dueDate: dueDate || null,
       });
       toast.success('បានបង្កើតវិក្កយបត្រ', `វិក្កយបត្រ ${created.invoiceNo} ត្រូវបានបង្កើតរួចរាល់។`);
-      navigate(`/invoices/${created.id}`);
+      navigate(`${basePath}/invoices/${created.id}`);
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data?.error || 'ការបង្កើតវិក្កយបត្របរាជ័យ។');
     } finally {
       setGenerating(false);
     }
+  };
+
+  // Bulk generation handler - creates one invoice per active contract for the month
+  const handleBulkGenerate = async () => {
+    setBulkError(null);
+    setBulkResult(null);
+    setBulkGenerating(true);
+    try {
+      const result = await generateBulk({
+        billingYear: Number(bulkYear),
+        billingMonth: Number(bulkMonth),
+        discount: bulkDiscount ? Number(bulkDiscount) : null,
+      });
+      setBulkResult(result);
+      if (result.createdCount > 0) {
+        toast.success('បានបង្កើតវិក្កយបត្រទាំងអស់', `បានបង្កើត ${result.createdCount} វិក្កយបត្រ សម្រាប់ខែ ${bulkMonth}/${bulkYear}។`);
+        fetchContracts();
+      } else if (result.skippedCount > 0 || result.errorCount > 0) {
+        toast.info('មិនមានវិក្កយបត្រថ្មី', 'វិក្កយបត្រទាំងអស់សម្រាប់ខែនេះត្រូវបានបង្កើតរួចហើយ ឬក៏មានបញ្ហា។');
+      }
+    } catch (err) {
+      setBulkError(err.response?.data?.message || err.response?.data?.error || 'ការបង្កើតវិក្កយបត្រទាំងអស់បរាជ័យ។');
+    } finally {
+      setBulkGenerating(false);
+    }
+  };
+
+  // Download all the invoices created by the bulk action (preview first)
+  const handleBulkDownload = () => {
+    if (!bulkResult || bulkResult.createdInvoices.length === 0) return;
+    setDownloadPreviewOpen(true);
   };
 
   if (loadingContracts) {
@@ -163,7 +212,7 @@ export default function GenerateInvoice() {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <button
-          onClick={() => navigate('/invoices')}
+          onClick={() => navigate(`${basePath}/invoices`)}
           className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-gray-800"
           aria-label="ត្រលប់"
         >
@@ -181,6 +230,131 @@ export default function GenerateInvoice() {
         <Alert variant="danger" title="កំហុស" description={error} dismissible onDismiss={() => setError(null)} />
       )}
 
+      {/* ── BULK GENERATION CARD ─────────────────────────────────────── */}
+      <Card className="border-2 border-blue-200 p-6 dark:border-blue-900">
+        <div className="mb-4 flex items-center gap-2">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+            <Layers className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-white">បង្កើតវិក្កយបត្រទាំងអស់ក្នុងពេលតែម្តង</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              បង្កើតវិក្កយបត្រសម្រាប់គ្រប់កិច្ចសន្យាដែលកំពុងសកម្ម (ACTIVE) សម្រាប់រយៈពេលមួយខែ។ កិច្ចសន្យានីមួយៗមានតែមួយវិក្កយបត្រប៉ុណ្ណោះ។
+            </p>
+          </div>
+        </div>
+
+        {bulkError && (
+          <Alert variant="danger" title="កំហុស" description={bulkError} dismissible onDismiss={() => setBulkError(null)} />
+        )}
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <Select
+              label="ខែ"
+              required
+              name="bulkMonth"
+              options={monthOptions}
+              value={bulkMonth}
+              onChange={(e) => { setBulkMonth(e.target.value); setBulkResult(null); }}
+            />
+            <Select
+              label="ឆ្នាំ"
+              required
+              name="bulkYear"
+              options={yearOptions}
+              value={bulkYear}
+              onChange={(e) => { setBulkYear(e.target.value); setBulkResult(null); }}
+            />
+            <Input
+              label="បញ្ចុះតម្លៃ ($)"
+              type="number"
+              min="0"
+              step="0.01"
+              name="bulkDiscount"
+              value={bulkDiscount}
+              onChange={(e) => { setBulkDiscount(e.target.value); setBulkResult(null); }}
+              placeholder="0.00"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="primary"
+              leftIcon={<Layers className="h-4 w-4" />}
+              onClick={handleBulkGenerate}
+              loading={bulkGenerating}
+              className="!bg-blue-600 hover:!bg-blue-700"
+            >
+              បង្កើតវិក្កយបត្រទាំងអស់ (ខែ {bulkMonth}/{bulkYear})
+            </Button>
+
+            {bulkResult && bulkResult.createdInvoices.length > 0 && (
+              <Button
+                variant="outline"
+                leftIcon={<Download className="h-4 w-4" />}
+                onClick={handleBulkDownload}
+              >
+                {`ទាញយក PDF ទាំងអស់ (${bulkResult.createdInvoices.length})`}
+              </Button>
+            )}
+          </div>
+
+          {bulkResult && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-900 dark:bg-emerald-900/20">
+                <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <div>
+                  <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">បានបង្កើត</p>
+                  <p className="text-lg font-bold text-emerald-800 dark:text-emerald-300">{bulkResult.createdCount}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-900/20">
+                <Info className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">បានរំលង (មានស្រាប់)</p>
+                  <p className="text-lg font-bold text-amber-800 dark:text-amber-300">{bulkResult.skippedCount}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 dark:border-rose-900 dark:bg-rose-900/20">
+                <XCircle className="h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
+                <div>
+                  <p className="text-sm font-semibold text-rose-700 dark:text-rose-400">បរាជ័យ</p>
+                  <p className="text-lg font-bold text-rose-800 dark:text-rose-300">{bulkResult.errorCount}</p>
+                </div>
+              </div>
+
+              {bulkResult.skippedReasons.length > 0 && (
+                <div className="sm:col-span-3">
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-gray-700 dark:bg-gray-800/50">
+                    <p className="mb-1 text-xs font-semibold text-slate-500 dark:text-slate-400">ហេតុផលបានរំលង:</p>
+                    <ul className="space-y-0.5 text-xs text-slate-600 dark:text-slate-300">
+                      {bulkResult.skippedReasons.map((reason, idx) => (
+                        <li key={idx}>• {reason}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+              {bulkResult.errors.length > 0 && (
+                <div className="sm:col-span-3">
+                  <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 dark:border-rose-900 dark:bg-rose-900/20">
+                    <p className="mb-1 text-xs font-semibold text-rose-500">បញ្ហា:</p>
+                    <ul className="space-y-0.5 text-xs text-rose-700 dark:text-rose-300">
+                      {bulkResult.errors.map((reason, idx) => (
+                        <li key={idx}>• {reason}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* ── SINGLE GENERATION CARD ───────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card className="p-6">
           <h2 className="mb-4 text-lg font-semibold text-slate-800 dark:text-white">ព័ត៌មានវិក្កយបត្រ</h2>
@@ -340,6 +514,14 @@ export default function GenerateInvoice() {
           </Card>
         )}
       </div>
+
+      <BulkInvoicePreviewModal
+        open={downloadPreviewOpen}
+        onClose={() => setDownloadPreviewOpen(false)}
+        invoices={bulkResult?.createdInvoices || []}
+        billingYear={Number(bulkYear)}
+        billingMonth={Number(bulkMonth)}
+      />
     </div>
   );
 }

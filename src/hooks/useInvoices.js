@@ -44,6 +44,11 @@ export function useInvoices() {
     return created;
   }, []);
 
+  const generateBulk = useCallback(async (data) => {
+    const result = await invoiceApi.generateBulk(data);
+    return result;
+  }, []);
+
   const markPaid = useCallback(async (id) => {
     const updated = await invoiceApi.markPaid(id);
     setInvoices((prev) => prev.map((i) => (i.id === id ? updated : i)));
@@ -79,6 +84,7 @@ export function useInvoices() {
     fetchInvoices,
     preview,
     generate,
+    generateBulk,
     markPaid,
     updateStatus,
     cancel,

@@ -6,371 +6,201 @@ import {
   StyleSheet,
 } from '@react-pdf/renderer';
 
-// ─── Colour palette ───────────────────────────────────────────────────────────
-const BRAND   = '#1e293b'; // slate-800
-const ACCENT  = '#3b82f6'; // blue-500
-const MUTED   = '#64748b'; // slate-500
-const LIGHT   = '#f8fafc'; // slate-50
-const BORDER  = '#e2e8f0'; // slate-200
-const GREEN   = '#16a34a'; // green-600
-const RED     = '#dc2626'; // red-600
-const AMBER   = '#d97706'; // amber-600
-const CYAN    = '#0891b2'; // cyan-600
-const WHITE   = '#ffffff';
+// ─── Palette (formal black-on-white) ──────────────────────────────────────────
+const INK   = '#000000';
+const MUTED = '#475569'; // slate-600
+const FAINT = '#64748b'; // slate-500
+const ROW   = '#f1f5f9'; // slate-100
+const DASH  = '#cbd5e1'; // slate-300
 
-// ─── Status colours ───────────────────────────────────────────────────────────
-const STATUS_COLOR = {
-  DRAFT:     { bg: '#f1f5f9', text: '#475569' },
-  PENDING:   { bg: '#fffbeb', text: AMBER },
-  PARTIAL:   { bg: '#eff6ff', text: CYAN },
-  PAID:      { bg: '#f0fdf4', text: GREEN },
-  OVERDUE:   { bg: '#fef2f2', text: RED },
-  CANCELLED: { bg: '#f1f5f9', text: '#475569' },
-};
-
-const STATUS_LABELS = {
-  DRAFT:     'Draft',
-  PENDING:   'Pending',
-  PARTIAL:   'Partially Paid',
-  PAID:      'Paid',
-  OVERDUE:   'Overdue',
-  CANCELLED: 'Cancelled',
+const STATUS_TEXT = {
+  DRAFT:     'សេចក្តីព្រាង (DRAFT)',
+  PENDING:   'រង់ចាំទូទាត់ (PENDING)',
+  PARTIAL:   'បានបង់មួយផ្នែក (PARTIAL)',
+  PAID:      'បានទូទាត់រួចរាល់ (PAID)',
+  OVERDUE:   'ហួសកាលកំណត់ (OVERDUE)',
+  CANCELLED: 'បានលុបចោល (CANCELLED)',
 };
 
 const ITEM_LABELS = {
-  RENT:        'Room Rent',
-  ELECTRICITY: 'Electricity',
-  WATER:       'Water',
-  INTERNET:    'Internet',
-  PARKING:     'Parking',
-  OTHER:       'Other',
-};
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const fmtCurrency = (v) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
-    Number(v) || 0,
-  );
-
-const fmtDate = (v) => {
-  if (!v) return '—';
-  return new Date(v).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  RENT:        'ថ្លៃឈ្នួលបន្ទប់ស្នាក់នៅ',
+  ELECTRICITY: 'ថ្លៃប្រើប្រាស់អគ្គិសនី',
+  WATER:       'ថ្លៃប្រើប្រាស់ទឹកស្អាត',
+  INTERNET:    'ថ្លៃសេវាអ៊ីនធឺណិត',
+  PARKING:     'ថ្លៃសេវាចំណតយានយន្ត',
+  GARBAGE:     'ថ្លៃសេវាប្រមូលសំរាម',
+  OTHER:       'ថ្លៃសេវាផ្សេងៗ',
 };
 
 const MONTH_NAMES = [
-  'January','February','March','April','May','June',
-  'July','August','September','October','November','December',
+  'មករា','កុម្ភៈ','មីនា','មេសា','ឧសភា','មិថុនា',
+  'កក្កដា','សីហា','កញ្ញា','តុលា','វិច្ឆិកា','ធ្នូ',
 ];
+
+const fmtUSD = (v) =>
+  new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+  }).format(Number(v) || 0);
+
+const fmtKHR = (v) => {
+  const khr = Math.round((Number(v) || 0) * 4100);
+  return new Intl.NumberFormat('km-KH').format(khr) + ' ៛';
+};
+
+const fmtDate = (v) => {
+  if (!v) return '—';
+  const d = new Date(v);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dd}/${mm}/${d.getFullYear()}`;
+};
+
+const fmtDateKhmer = (v) => {
+  if (!v) return '—';
+  const d = new Date(v);
+  return `ថ្ងៃទី ${String(d.getDate()).padStart(2, '0')} ខែ ${MONTH_NAMES[d.getMonth()]} ឆ្នាំ ${d.getFullYear()}`;
+};
+
+function numberToKhmerWords(num) {
+  const n = Math.floor(Number(num) || 0);
+  if (n === 0) return 'សូន្យដុល្លារអាមេរិកគត់';
+
+  const d = ['', 'មួយ', 'ពីរ', 'បី', 'បួន', 'ប្រាំ', 'ប្រាំមួយ', 'ប្រាំពីរ', 'ប្រាំបី', 'ប្រាំបួន'];
+  const t = ['', 'ដប់', 'ម្ភៃ', 'សាមសិប', 'សែសិប', 'ហាសិប', 'ហុកសិប', 'ចិតសិប', 'ប៉ែតសិប', 'កៅសិប'];
+
+  const three = (val) => {
+    let r = '';
+    const h = Math.floor(val / 100);
+    const ten = Math.floor((val % 100) / 10);
+    const u = val % 10;
+    if (h > 0) r += d[h] + 'រយ';
+    if (ten > 0) {
+      r += t[ten];
+      if (u > 0) r += d[u];
+    } else if (u > 0) {
+      r += d[u];
+    }
+    return r;
+  };
+
+  let w = '';
+  const th = Math.floor(n / 1000);
+  const rem = n % 1000;
+  if (th > 0) w += three(th) + 'ពាន់';
+  if (rem > 0) w += three(rem);
+
+  const cents = Math.round(((Number(num) || 0) - n) * 100);
+  if (cents > 0) w += ' ដុល្លារ និង ' + three(cents) + ' សេន';
+  else w += ' ដុល្លារអាមេរិកគត់';
+
+  return w;
+}
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   page: {
-    fontFamily: 'Helvetica',
-    backgroundColor: WHITE,
-    paddingTop: 40,
-    paddingBottom: 50,
-    paddingHorizontal: 44,
-    fontSize: 9,
-    color: BRAND,
-    lineHeight: 1.5,
+    fontFamily: 'Khmer',
+    backgroundColor: '#ffffff',
+    padding: 36,
+    fontSize: 9.5,
+    color: INK,
   },
+  border: { borderWidth: 1, borderColor: INK },
 
-  // ── Header band ─────────────────────────────────────────────────
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 28,
-  },
-  logoBlock: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  logoBox: {
-    width: 36,
-    height: 36,
-    backgroundColor: BRAND,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoInitial: {
-    color: WHITE,
-    fontSize: 16,
-    fontFamily: 'Helvetica-Bold',
-    marginTop: -2,
-  },
-  brandName: {
-    fontSize: 16,
-    fontFamily: 'Helvetica-Bold',
-    color: BRAND,
-  },
-  brandSub: {
-    fontSize: 8,
-    color: MUTED,
-    marginTop: 1,
-  },
-  invoiceMeta: {
-    alignItems: 'flex-end',
-  },
-  invoiceTitle: {
-    fontSize: 22,
-    fontFamily: 'Helvetica-Bold',
-    color: ACCENT,
-    letterSpacing: 1,
-  },
-  invoiceNo: {
-    fontSize: 10,
-    fontFamily: 'Helvetica-Bold',
-    color: BRAND,
-    marginTop: 4,
-  },
-  invoiceDate: {
-    fontSize: 8,
-    color: MUTED,
-    marginTop: 2,
-  },
+  /* Header */
+  header: { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 2, borderBottomColor: INK, paddingBottom: 12 },
+  company: { flex: 7, paddingRight: 12 },
+  companyName: { fontSize: 13, fontWeight: 700 },
+  companyLatin: { fontSize: 9, fontWeight: 700, marginTop: 2, letterSpacing: 1 },
+  companyAddress: { fontSize: 8, color: MUTED, marginTop: 6, lineHeight: 1.5 },
+  meta: { flex: 5, alignItems: 'flex-end' },
+  titleBox: { borderWidth: 2, borderColor: INK, paddingVertical: 6, paddingHorizontal: 22, backgroundColor: ROW, alignItems: 'center' },
+  titleKhmer: { fontSize: 17, fontWeight: 700 },
+  titleLatin: { fontSize: 9, fontWeight: 700, letterSpacing: 2, marginTop: 1 },
+  metaLine: { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: DASH, paddingVertical: 3, marginTop: 6, minWidth: 200 },
+  metaLabel: { fontSize: 8, color: MUTED },
+  metaValue: { fontSize: 8.5, fontWeight: 700 },
 
-  // ── Divider ─────────────────────────────────────────────────────
-  divider: {
-    height: 1,
-    backgroundColor: BORDER,
-    marginBottom: 20,
-  },
-  accentDivider: {
-    height: 3,
-    backgroundColor: ACCENT,
-    borderRadius: 2,
-    marginBottom: 20,
-  },
+  /* Info grid */
+  infoGrid: { flexDirection: 'row', borderWidth: 1, borderColor: INK, marginTop: 14 },
+  infoCol: { flex: 7, padding: 10, borderRightWidth: 1, borderRightColor: INK },
+  infoColRight: { flex: 5, padding: 10 },
+  infoTitle: { fontSize: 8.5, fontWeight: 700, borderBottomWidth: 1, borderBottomColor: '#cbd5e1', paddingBottom: 4, marginBottom: 6 },
+  infoRow: { flexDirection: 'row', marginBottom: 3 },
+  infoK: { width: 150, fontSize: 8.5, color: MUTED },
+  infoV: { flex: 1, fontSize: 8.5, fontWeight: 700 },
+  status: { fontSize: 8.5, fontWeight: 700 },
 
-  // ── Info row (Bill To / Invoice Details) ────────────────────────
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-    gap: 16,
-  },
-  infoBox: {
-    flex: 1,
-    backgroundColor: LIGHT,
-    borderRadius: 8,
-    padding: 14,
-    borderLeft: `3px solid ${ACCENT}`,
-  },
-  infoBoxRight: {
-    flex: 1,
-    backgroundColor: LIGHT,
-    borderRadius: 8,
-    padding: 14,
-    borderLeft: `3px solid ${BORDER}`,
-  },
-  infoLabel: {
-    fontSize: 7,
-    fontFamily: 'Helvetica-Bold',
-    color: MUTED,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginBottom: 6,
-  },
-  infoValue: {
-    fontSize: 10,
-    fontFamily: 'Helvetica-Bold',
-    color: BRAND,
-    marginBottom: 2,
-  },
-  infoText: {
-    fontSize: 8.5,
-    color: MUTED,
-    marginBottom: 2,
-  },
+  /* Items table */
+  tableWrap: { borderWidth: 1, borderColor: INK, marginTop: 12 },
+  thRow: { flexDirection: 'row', backgroundColor: ROW, borderBottomWidth: 1.5, borderBottomColor: INK },
+  th: { fontSize: 8, fontWeight: 700, paddingVertical: 6, paddingHorizontal: 6 },
+  thC: { fontSize: 8, fontWeight: 700, paddingVertical: 6, paddingHorizontal: 6, textAlign: 'center' },
+  thR: { fontSize: 8, fontWeight: 700, paddingVertical: 6, paddingHorizontal: 6, textAlign: 'right' },
+  tr: { flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: '#94a3b8' },
+  trAlt: { backgroundColor: '#f8fafc' },
+  trLast: { borderBottomWidth: 0 },
+  cell: { fontSize: 8, color: INK, paddingVertical: 5, paddingHorizontal: 6 },
+  cellC: { fontSize: 8, color: INK, paddingVertical: 5, paddingHorizontal: 6, textAlign: 'center' },
+  cellR: { fontSize: 8, color: INK, paddingVertical: 5, paddingHorizontal: 6, textAlign: 'right' },
+  cellBold: { fontSize: 8, fontWeight: 700, color: INK, paddingVertical: 5, paddingHorizontal: 6 },
+  cellBoldR: { fontSize: 8, fontWeight: 700, color: INK, paddingVertical: 5, paddingHorizontal: 6, textAlign: 'right' },
+  itemMeta: { fontSize: 7, color: MUTED, marginTop: 1 },
+  emptyCell: { fontSize: 8, paddingVertical: 5, textAlign: 'center', color: '#ffffff' },
 
-  // ── Status badge ────────────────────────────────────────────────
-  statusBadge: {
-    marginTop: 6,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 20,
-  },
-  statusText: {
-    fontSize: 7.5,
-    fontFamily: 'Helvetica-Bold',
-    letterSpacing: 0.5,
-  },
+  /* Totals */
+  totalCol: { flexDirection: 'row', marginTop: 4 },
+  totalLeft: { flex: 1, borderWidth: 1, borderColor: INK, padding: 8 },
+  totalRight: { width: 250, borderWidth: 1, borderColor: INK, marginLeft: 6 },
+  totalLeftTitle: { fontSize: 8, fontWeight: 700 },
+  wordsLine: { fontSize: 8.5, marginTop: 4, textDecoration: 'underline' },
+  payInfoTitle: { fontSize: 8, fontWeight: 700, marginTop: 6, borderTopWidth: 0.5, borderTopColor: '#cbd5e1', paddingTop: 4 },
+  payInfoText: { fontSize: 8, color: MUTED, marginTop: 2 },
+  payInfoBold: { fontSize: 8, fontWeight: 700, color: INK },
+  tLine: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, paddingHorizontal: 8, borderBottomWidth: 0.5, borderBottomColor: '#cbd5e1' },
+  tLabel: { fontSize: 8.5, color: MUTED },
+  tValue: { fontSize: 8.5 },
+  tLineGreen: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, paddingHorizontal: 8, borderBottomWidth: 0.5, borderBottomColor: '#cbd5e1' },
+  grand: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: ROW, paddingVertical: 6, paddingHorizontal: 8 },
+  grandLabel: { fontSize: 9, fontWeight: 700 },
+  grandValue: { fontSize: 10, fontWeight: 700, textAlign: 'right' },
+  grandKhr: { fontSize: 7.5, color: MUTED, textAlign: 'right' },
+  paid: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, paddingHorizontal: 8 },
+  paidLabel: { fontSize: 8.5, fontWeight: 700 },
+  paidValue: { fontSize: 8.5, fontWeight: 700 },
 
-  // ── Items table ─────────────────────────────────────────────────
-  tableWrapper: {
-    borderRadius: 8,
-    overflow: 'hidden',
-    border: `1px solid ${BORDER}`,
-    marginBottom: 20,
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: BRAND,
-    paddingVertical: 9,
-    paddingHorizontal: 14,
-  },
-  tableHeaderText: {
-    fontSize: 8,
-    fontFamily: 'Helvetica-Bold',
-    color: WHITE,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-  },
-  tableRow: {
-    flexDirection: 'row',
-    paddingVertical: 9,
-    paddingHorizontal: 14,
-    borderBottom: `1px solid ${BORDER}`,
-    alignItems: 'center',
-  },
-  tableRowAlt: {
-    backgroundColor: LIGHT,
-  },
-  tableRowLast: {
-    borderBottom: 'none',
-  },
-  colDesc:  { flex: 3 },
-  colQty:   { flex: 1, textAlign: 'right' },
-  colPrice: { flex: 1.4, textAlign: 'right' },
-  colAmt:   { flex: 1.4, textAlign: 'right' },
-  cellText: {
-    fontSize: 9,
-    color: BRAND,
-  },
-  cellMuted: {
-    fontSize: 8,
-    color: MUTED,
-  },
-  cellBold: {
-    fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
-    color: BRAND,
-  },
+  /* Signatures */
+  sigWrap: { flexDirection: 'row', marginTop: 40 },
+  sig: { flex: 1, alignItems: 'center' },
+  sigTitle: { fontSize: 8.5, fontWeight: 700, textAlign: 'center' },
+  sigLatin: { fontSize: 7, color: MUTED, textAlign: 'center', marginTop: 2 },
+  sigDate: { fontSize: 8, color: MUTED, textAlign: 'center', marginTop: 6 },
+  sigLine: { borderBottomWidth: 1, borderBottomColor: INK, width: 165, marginTop: 40 },
+  sigName: { fontSize: 8.5, fontWeight: 700, textAlign: 'center', marginTop: 8 },
 
-  // ── Totals block ────────────────────────────────────────────────
-  totalsRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: 6,
-  },
-  totalsBox: {
-    width: 240,
-  },
-  totalLine: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-    paddingHorizontal: 14,
-    borderBottom: `1px solid ${BORDER}`,
-  },
-  totalLineLabel: {
-    fontSize: 8.5,
-    color: MUTED,
-  },
-  totalLineValue: {
-    fontSize: 8.5,
-    color: BRAND,
-  },
-  grandTotalLine: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    backgroundColor: BRAND,
-    borderRadius: 6,
-    marginTop: 4,
-  },
-  grandTotalLabel: {
-    fontSize: 10,
-    fontFamily: 'Helvetica-Bold',
-    color: WHITE,
-  },
-  grandTotalValue: {
-    fontSize: 12,
-    fontFamily: 'Helvetica-Bold',
-    color: WHITE,
-  },
-
-  // ── Payment info (if partial) ────────────────────────────────────
-  paymentInfoBox: {
-    backgroundColor: '#eff6ff',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 18,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  paymentInfoLabel: { fontSize: 8, color: CYAN },
-  paymentInfoValue: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: CYAN },
-
-  // ── Footer ──────────────────────────────────────────────────────
-  footer: {
-    position: 'absolute',
-    bottom: 28,
-    left: 44,
-    right: 44,
-  },
-  footerDivider: {
-    height: 1,
-    backgroundColor: BORDER,
-    marginBottom: 10,
-  },
-  footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  footerThank: {
-    fontSize: 8.5,
-    fontFamily: 'Helvetica-Bold',
-    color: BRAND,
-  },
-  footerNote: {
-    fontSize: 7.5,
-    color: MUTED,
-    marginTop: 2,
-  },
-  footerPage: {
-    fontSize: 7.5,
-    color: MUTED,
-  },
-
-  // ── Billing period chip ─────────────────────────────────────────
-  periodChip: {
-    backgroundColor: '#eff6ff',
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    alignSelf: 'flex-start',
-    marginBottom: 20,
-  },
-  periodChipText: {
-    fontSize: 8,
-    fontFamily: 'Helvetica-Bold',
-    color: ACCENT,
-    letterSpacing: 0.4,
-  },
+  /* Footer */
+  footer: { marginTop: 24, borderTopWidth: 1, borderTopColor: '#cbd5e1', paddingTop: 8, alignItems: 'center' },
+  footerNote: { fontSize: 7.5, color: MUTED, textAlign: 'center', lineHeight: 1.5 },
+  footerGen: { fontSize: 7, color: FAINT, marginTop: 3, fontFamily: 'Khmer' },
 });
+
+const colNo =   { flex: 0.6 };
+const colDesc = { flex: 3 };
+const colQty =  { flex: 1, textAlign: 'right' };
+const colPrice ={ flex: 1.4, textAlign: 'right' };
+const colAmt =  { flex: 1.4, textAlign: 'right' };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function InvoicePdfDocument({ invoice }) {
-  const statusColor = STATUS_COLOR[invoice.status] || STATUS_COLOR.DRAFT;
-  const statusLabel = STATUS_LABELS[invoice.status] || invoice.status;
-
-  const billingPeriod =
-    invoice.billingMonth && invoice.billingYear
-      ? `${MONTH_NAMES[(invoice.billingMonth || 1) - 1]} ${invoice.billingYear}`
-      : null;
-
   const items = invoice.items || [];
+  const emptyRowsNeeded = Math.max(0, 4 - items.length);
+  const billingMonth = invoice.billingMonth
+    ? `ខែ ${String(invoice.billingMonth).padStart(2, '0')}/${invoice.billingYear}`
+    : '—';
+
+  const statusLabel = STATUS_TEXT[invoice.status] || invoice.status;
 
   return (
     <Document
@@ -380,203 +210,195 @@ export default function InvoicePdfDocument({ invoice }) {
       creator="RentalHub Rental Management"
     >
       <Page size="A4" style={s.page}>
-
-        {/* ── Header ─────────────────────────────────────────────── */}
+        {/* 1. Header */}
         <View style={s.header}>
-          {/* Brand */}
-          <View style={s.logoBlock}>
-            <View style={s.logoBox}>
-              <Text style={s.logoInitial}>R</Text>
-            </View>
-            <View>
-              <Text style={s.brandName}>RentalHub</Text>
-              <Text style={s.brandSub}>Property Management System</Text>
-            </View>
-          </View>
-
-          {/* Invoice ID block */}
-          <View style={s.invoiceMeta}>
-            <Text style={s.invoiceTitle}>INVOICE</Text>
-            <Text style={s.invoiceNo}>{invoice.invoiceNo}</Text>
-            <Text style={s.invoiceDate}>
-              Issued: {fmtDate(invoice.createdAt)}
+          <View style={s.company}>
+            <Text style={s.companyName}>សហគ្រាសជួលផ្ទះ និងអគារ {invoice.houseName || 'RentalHub'}</Text>
+            <Text style={s.companyLatin}>
+              {invoice.houseName ? `${invoice.houseName.toUpperCase()} RESIDENCE & APARTMENTS` : 'RENTALHUB PROPERTY MANAGEMENT'}
+            </Text>
+            <Text style={s.companyAddress}>
+              អាសយដ្ឋាន៖ {invoice.houseName || 'រាជធានីភ្នំពេញ, ព្រះរាជាណាចក្រកម្ពុជា'}
+              {'\n'}
+              ទំនាក់ទំនងលេខទូរស័ព្ទ៖ 012 345 678 / 098 765 432
+              {'\n'}
+              សារអេឡិចត្រូនិច (Email)៖ info@rentalhub.com.kh
             </Text>
           </View>
-        </View>
-
-        {/* ── Accent divider ──────────────────────────────────────── */}
-        <View style={s.accentDivider} />
-
-        {/* ── Billing period chip ─────────────────────────────────── */}
-        {billingPeriod && (
-          <View style={s.periodChip}>
-            <Text style={s.periodChipText}>
-              BILLING PERIOD · {billingPeriod.toUpperCase()}
-            </Text>
-          </View>
-        )}
-
-        {/* ── Info row ────────────────────────────────────────────── */}
-        <View style={s.infoRow}>
-          {/* Bill To */}
-          <View style={s.infoBox}>
-            <Text style={s.infoLabel}>Bill To</Text>
-            <Text style={s.infoValue}>{invoice.tenantName || '—'}</Text>
-            {invoice.houseName && (
-              <Text style={s.infoText}>{invoice.houseName}</Text>
-            )}
-            {invoice.roomNumber && (
-              <Text style={s.infoText}>Room {invoice.roomNumber}</Text>
-            )}
-            {invoice.contractNo && (
-              <Text style={s.infoText}>Contract: {invoice.contractNo}</Text>
-            )}
-          </View>
-
-          {/* Invoice Details */}
-          <View style={s.infoBoxRight}>
-            <Text style={s.infoLabel}>Invoice Details</Text>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-              <Text style={s.infoText}>Invoice No.</Text>
-              <Text style={{ ...s.infoText, fontFamily: 'Helvetica-Bold', color: BRAND }}>
-                {invoice.invoiceNo}
-              </Text>
+          <View style={s.meta}>
+            <View style={s.titleBox}>
+              <Text style={s.titleKhmer}>វិក្កយបត្រ</Text>
+              <Text style={s.titleLatin}>INVOICE</Text>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-              <Text style={s.infoText}>Due Date</Text>
-              <Text style={{ ...s.infoText, fontFamily: 'Helvetica-Bold', color: BRAND }}>
-                {fmtDate(invoice.dueDate)}
-              </Text>
+            <View style={s.metaLine}>
+              <Text style={s.metaLabel}>លេខវិក្កយបត្រ / Inv. No:</Text>
+              <Text style={s.metaValue}>{invoice.invoiceNo || '—'}</Text>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={s.infoText}>Status</Text>
-              <View style={{ ...s.statusBadge, backgroundColor: statusColor.bg, marginTop: 0 }}>
-                <Text style={{ ...s.statusText, color: statusColor.text }}>
-                  {statusLabel}
-                </Text>
-              </View>
+            <View style={s.metaLine}>
+              <Text style={s.metaLabel}>កាលបរិច្ឆេទ / Date:</Text>
+              <Text style={s.metaValue}>{fmtDate(invoice.createdAt)}</Text>
+            </View>
+            <View style={s.metaLine}>
+              <Text style={s.metaLabel}>ថ្ងៃផុតកំណត់ / Due Date:</Text>
+              <Text style={s.metaValue}>{fmtDate(invoice.dueDate)}</Text>
             </View>
           </View>
         </View>
 
-        {/* ── Items table ─────────────────────────────────────────── */}
-        <View style={s.tableWrapper}>
-          {/* Table head */}
-          <View style={s.tableHeader}>
-            <Text style={{ ...s.tableHeaderText, ...s.colDesc }}>Description</Text>
-            <Text style={{ ...s.tableHeaderText, ...s.colQty }}>Qty</Text>
-            <Text style={{ ...s.tableHeaderText, ...s.colPrice }}>Unit Price</Text>
-            <Text style={{ ...s.tableHeaderText, ...s.colAmt }}>Amount</Text>
+        {/* 2. Customer & billing grid */}
+        <View style={s.infoGrid}>
+          <View style={s.infoCol}>
+            <Text style={s.infoTitle}>ព័ត៌មានអ្នកជួល / CUSTOMER (BILL TO)</Text>
+            <View style={s.infoRow}>
+              <Text style={s.infoK}>ឈ្មោះអ្នកជួល៖</Text>
+              <Text style={s.infoV}>{invoice.tenantName || '—'}</Text>
+            </View>
+            <View style={s.infoRow}>
+              <Text style={s.infoK}>បន្ទប់ស្នាក់នៅ៖</Text>
+              <Text style={s.infoV}>បន្ទប់លេខ {invoice.roomNumber || '—'}</Text>
+            </View>
+            <View style={s.infoRow}>
+              <Text style={s.infoK}>អគារ/ទីតាំង៖</Text>
+              <Text style={s.infoV}>{invoice.houseName || '—'}</Text>
+            </View>
+            <View style={s.infoRow}>
+              <Text style={s.infoK}>កិច្ចសន្យាលេខ៖</Text>
+              <Text style={s.infoV}>{invoice.contractNo || '—'}</Text>
+            </View>
+          </View>
+          <View style={s.infoColRight}>
+            <Text style={s.infoTitle}>លក្ខខណ្ឌទូទាត់ / BILLING TERMS</Text>
+            <View style={s.infoRow}>
+              <Text style={s.infoK}>សម្រាប់រយៈពេល៖</Text>
+              <Text style={s.infoV}>{billingMonth}</Text>
+            </View>
+            <View style={s.infoRow}>
+              <Text style={s.infoK}>កាលបរិច្ឆេទចេញ៖</Text>
+              <Text style={s.infoV}>{fmtDateKhmer(invoice.createdAt)}</Text>
+            </View>
+            <View style={s.infoRow}>
+              <Text style={s.infoK}>ស្ថានភាព៖</Text>
+              <Text style={s.status}>{statusLabel}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* 3. Items table */}
+        <View style={s.tableWrap}>
+          <View style={s.thRow}>
+            <Text style={[s.thC, colNo]}>ល.រ</Text>
+            <Text style={[s.th, colDesc]}>បរិយាយមុខទំនិញ / សេវាកម្ម</Text>
+            <Text style={[s.thC, colQty]}>បរិមាណ</Text>
+            <Text style={[s.thR, colPrice]}>តម្លៃឯកតា</Text>
+            <Text style={[s.thR, colAmt]}>ចំនួនទឹកប្រាក់</Text>
           </View>
 
-          {/* Table body */}
-          {items.length === 0 && (
-            <View style={{ ...s.tableRow, justifyContent: 'center' }}>
-              <Text style={s.cellMuted}>No items</Text>
-            </View>
-          )}
           {items.map((item, idx) => {
-            const isAlt  = idx % 2 === 1;
+            const isAlt = idx % 2 === 1;
             const isLast = idx === items.length - 1;
             return (
-              <View
-                key={item.id || idx}
-                style={[
-                  s.tableRow,
-                  isAlt  && s.tableRowAlt,
-                  isLast && s.tableRowLast,
-                ]}
-              >
-                <View style={s.colDesc}>
-                  <Text style={s.cellBold}>
-                    {ITEM_LABELS[item.itemType] || item.itemType}
-                  </Text>
-                  {item.description &&
-                    item.description !== (ITEM_LABELS[item.itemType] || '') && (
-                      <Text style={s.cellMuted}>{item.description}</Text>
-                    )}
+              <View key={item.id || idx} style={[s.tr, isAlt && s.trAlt, isLast && s.trLast]}>
+                <Text style={[s.cellC, colNo]}>{idx + 1}</Text>
+                <View style={colDesc}>
+                  <Text style={s.cellBold}>{ITEM_LABELS[item.itemType] || item.itemType}</Text>
+                  {item.description && item.description !== (ITEM_LABELS[item.itemType] || '') && (
+                    <Text style={s.itemMeta}>{item.description}</Text>
+                  )}
                 </View>
-                <Text style={{ ...s.cellText, ...s.colQty }}>
-                  {Number(item.quantity)}
-                </Text>
-                <Text style={{ ...s.cellText, ...s.colPrice }}>
-                  {fmtCurrency(item.unitPrice)}
-                </Text>
-                <Text style={{ ...s.cellBold, ...s.colAmt }}>
-                  {fmtCurrency(item.amount)}
-                </Text>
+                <Text style={[s.cellC, colQty]}>{Number(item.quantity) || 1}</Text>
+                <Text style={[s.cellR, colPrice]}>{fmtUSD(item.unitPrice)}</Text>
+                <Text style={[s.cellBoldR, colAmt]}>{fmtUSD(item.amount)}</Text>
               </View>
             );
           })}
-        </View>
 
-        {/* ── Payment info (partial payment) ──────────────────────── */}
-        {invoice.status === 'PARTIAL' && Number(invoice.paidAmount) > 0 && (
-          <View style={s.paymentInfoBox}>
-            <View>
-              <Text style={s.paymentInfoLabel}>Amount Paid</Text>
-              <Text style={s.paymentInfoValue}>{fmtCurrency(invoice.paidAmount)}</Text>
+          {Array.from({ length: emptyRowsNeeded }).map((_, i) => (
+            <View key={`empty-${i}`} style={[s.tr, i !== emptyRowsNeeded - 1 && s.trLast]}>
+              <Text style={[s.emptyCell, colNo]}>.</Text>
+              <Text style={colDesc} />
+              <Text style={colQty} />
+              <Text style={colPrice} />
+              <Text style={colAmt} />
             </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={s.paymentInfoLabel}>Remaining Balance</Text>
-              <Text style={s.paymentInfoValue}>
-                {fmtCurrency(Number(invoice.totalAmount) - Number(invoice.paidAmount))}
-              </Text>
-            </View>
-          </View>
-        )}
+          ))}
 
-        {/* ── Totals ──────────────────────────────────────────────── */}
-        <View style={s.totalsRow}>
-          <View style={s.totalsBox}>
-            <View style={s.totalLine}>
-              <Text style={s.totalLineLabel}>Subtotal</Text>
-              <Text style={s.totalLineValue}>{fmtCurrency(invoice.subtotal)}</Text>
-            </View>
-            {Number(invoice.discount) > 0 && (
-              <View style={s.totalLine}>
-                <Text style={s.totalLineLabel}>Discount</Text>
-                <Text style={{ ...s.totalLineValue, color: GREEN }}>
-                  -{fmtCurrency(invoice.discount)}
-                </Text>
-              </View>
-            )}
-            {Number(invoice.lateFee) > 0 && (
-              <View style={s.totalLine}>
-                <Text style={s.totalLineLabel}>Late Fee</Text>
-                <Text style={{ ...s.totalLineValue, color: RED }}>
-                  +{fmtCurrency(invoice.lateFee)}
-                </Text>
-              </View>
-            )}
-            <View style={s.grandTotalLine}>
-              <Text style={s.grandTotalLabel}>TOTAL DUE</Text>
-              <Text style={s.grandTotalValue}>{fmtCurrency(invoice.totalAmount)}</Text>
-            </View>
+          <View style={s.trLast}>
+            <Text style={[s.emptyCell, colNo]}>.</Text>
+            <Text style={[s.cell, colDesc]}>.</Text>
+            <Text style={[s.cellR, colQty]}>.</Text>
+            <Text style={[s.cellR, colPrice]}>.</Text>
+            <Text style={[s.cellR, colAmt]}>.</Text>
           </View>
         </View>
 
-        {/* ── Footer ──────────────────────────────────────────────── */}
-        <View style={s.footer}>
-          <View style={s.footerDivider} />
-          <View style={s.footerRow}>
-            <View>
-              <Text style={s.footerThank}>Thank you for your business!</Text>
-              <Text style={s.footerNote}>
-                {invoice.status === 'PAID'
-                  ? 'This invoice has been paid in full. Thank you.'
-                  : `Please ensure payment is made by ${fmtDate(invoice.dueDate)}.`}
-              </Text>
-              <Text style={s.footerNote}>
-                RentalHub · Property Management System
-              </Text>
-            </View>
-            <Text style={s.footerPage}>
-              Generated {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+        {/* 4. Totals + amount in words */}
+        <View style={s.totalCol}>
+          <View style={s.totalLeft}>
+            <Text style={s.totalLeftTitle}>ចំនួនទឹកប្រាក់ជាអក្សរ / Amount in words:</Text>
+            <Text style={s.wordsLine}>{numberToKhmerWords(invoice.totalAmount)}</Text>
+            <Text style={s.payInfoTitle}>ព័ត៌មាននៃការទូទាត់ប្រាក់ (Payment Info):</Text>
+            <Text style={s.payInfoText}>
+              {'• '}គណនីធនាគារ ABA / KHQR: <Text style={s.payInfoBold}>000 123 456 (RentalHub)</Text>
+            </Text>
+            <Text style={s.payInfoText}>
+              {'• '}សូមមេត្តាទូទាត់ប្រាក់ត្រឹមថ្ងៃទី៖ <Text style={s.payInfoBold}>{fmtDate(invoice.dueDate)}</Text>
             </Text>
           </View>
+          <View style={s.totalRight}>
+            <View style={s.tLine}>
+              <Text style={s.tLabel}>សរុបរង / Subtotal:</Text>
+              <Text style={s.tValue}>{fmtUSD(invoice.subtotal)}</Text>
+            </View>
+            <View style={s.tLine}>
+              <Text style={s.tLabel}>បញ្ចុះតម្លៃ / Discount:</Text>
+              <Text style={s.tValue}>{Number(invoice.discount) > 0 ? `-${fmtUSD(invoice.discount)}` : '$0.00'}</Text>
+            </View>
+            <View style={s.tLine}>
+              <Text style={s.tLabel}>ថ្លៃយឺតយ៉ាវ / Late Fee:</Text>
+              <Text style={s.tValue}>{Number(invoice.lateFee) > 0 ? `+${fmtUSD(invoice.lateFee)}` : '$0.00'}</Text>
+            </View>
+            <View style={s.grand}>
+              <Text style={s.grandLabel}>សរុបត្រូវបង់ / Total Due:</Text>
+              <View>
+                <Text style={s.grandValue}>{fmtUSD(invoice.totalAmount)}</Text>
+                <Text style={s.grandKhr}>≈ {fmtKHR(invoice.totalAmount)}</Text>
+              </View>
+            </View>
+            {invoice.status === 'PARTIAL' && Number(invoice.paidAmount) > 0 && (
+              <View style={s.paid}>
+                <Text style={s.paidLabel}>បានបង់រួច / Paid:</Text>
+                <Text style={s.paidValue}>{fmtUSD(invoice.paidAmount)}</Text>
+              </View>
+            )}
+          </View>
         </View>
 
+        {/* 5. Signatures */}
+        <View style={s.sigWrap}>
+          <View style={s.sig}>
+            <Text style={s.sigTitle}>ហត្ថលេខា និងឈ្មោះអ្នកបង់ប្រាក់</Text>
+            <Text style={s.sigLatin}>Customer / Tenant's Signature</Text>
+            <Text style={s.sigDate}>ថ្ងៃទី.......... ខែ.......... ឆ្នាំ...........</Text>
+            <View style={s.sigLine} />
+            <Text style={s.sigName}>{invoice.tenantName || '—'}</Text>
+          </View>
+          <View style={s.sig}>
+            <Text style={s.sigTitle}>ហត្ថលេខា និងឈ្មោះអ្នករៀបចំវិក្កយបត្រ</Text>
+            <Text style={s.sigLatin}>Authorized Signature & Official Stamp</Text>
+            <Text style={s.sigDate}>ថ្ងៃទី.......... ខែ.......... ឆ្នាំ...........</Text>
+            <View style={s.sigLine} />
+            <Text style={s.sigName}>{invoice.houseName || 'RentalHub'}</Text>
+          </View>
+        </View>
+
+        {/* 6. Footer note */}
+        <View style={s.footer}>
+          <Text style={s.footerNote}>
+            * សម្គាល់៖ វិក្កយបត្រនេះជាឯកសារផ្លូវការសម្រាប់បញ្ជាក់ការទូទាត់ប្រាក់ថ្លៃឈ្នួលបន្ទប់ និងសេវាកម្មប្រចាំខែ។
+            {'\n'}
+            Generated by RentalHub Management System · Reference ID: {invoice.invoiceNo}
+          </Text>
+        </View>
       </Page>
     </Document>
   );

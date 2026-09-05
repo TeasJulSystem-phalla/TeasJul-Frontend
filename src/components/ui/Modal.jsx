@@ -48,7 +48,7 @@ const Modal = ({ open, onClose, title, description, children, footer, size = 'md
       <div
         ref={contentRef}
         className={`
-          w-full rounded-lg border border-gray-200 bg-white shadow-xl
+          flex w-full max-h-[90vh] flex-col rounded-lg border border-gray-200 bg-white shadow-xl
           dark:border-gray-800 dark:bg-gray-900
           ${sizeClasses[size] || sizeClasses.md}
         `}
@@ -79,9 +79,9 @@ const Modal = ({ open, onClose, title, description, children, footer, size = 'md
             )}
           </div>
         )}
-        <div className="px-6 py-4">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">{children}</div>
         {footer && (
-          <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+          <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
             {footer}
           </div>
         )}

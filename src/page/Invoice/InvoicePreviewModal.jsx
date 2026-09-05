@@ -1,12 +1,42 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { Printer, Download, X, Eye, Check } from 'lucide-react';
+import { pdf } from '@react-pdf/renderer';
 import RealInvoiceDocument from './RealInvoiceDocument';
-import html2pdf from 'html2pdf.js';
+import InvoicePdfDocument from './InvoicePdfDocument.jsx';
+import { registerPdfFonts } from '../../utils/pdfFonts.js';
 
 export default function InvoicePreviewModal({ open, onClose, invoice }) {
   const documentRef = useRef(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewError, setPreviewError] = useState(null);
+
+  // Generate the preview PDF (same path as download) whenever the modal opens.
+  useEffect(() => {
+    if (!open || !invoice) {
+      setPreviewUrl(null);
+      setPreviewError(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        registerPdfFonts();
+        const blob = await pdf(<InvoicePdfDocument invoice={invoice} />).toBlob();
+        if (!cancelled) {
+          setPreviewUrl(URL.createObjectURL(blob));
+          setPreviewError(null);
+        }
+      } catch (err) {
+        console.error('Preview PDF generation failed:', err);
+        if (!cancelled) setPreviewError(err && (err.message || err));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, invoice]);
 
   // Handle native high-quality print
   const handlePrint = useCallback(() => {
@@ -16,32 +46,28 @@ export default function InvoicePreviewModal({ open, onClose, invoice }) {
     document.title = prevTitle;
   }, [invoice]);
 
-  // Handle HTML to PDF file direct download
+  // Handle Khmer PDF file direct download (native react-pdf)
   const handleDownloadPdf = useCallback(async () => {
-    if (!documentRef.current || !invoice) return;
+    if (!invoice) return;
     setDownloading(true);
     setDownloadSuccess(false);
 
     try {
-      const element = documentRef.current;
-      const opt = {
-        margin: [8, 8, 8, 8],
-        filename: `វិក្កយបត្រ_${invoice.invoiceNo || 'INV'}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          letterRendering: true,
-        },
-        jsPDF: {
-          unit: 'mm',
-          format: 'a4',
-          orientation: 'portrait',
-        },
-      };
+      registerPdfFonts();
 
-      await html2pdf().set(opt).from(element).save();
+      const instance = pdf(<InvoicePdfDocument invoice={invoice} />);
+      const blob = await instance.toBlob();
+      const filename = `វិក្កយបត្រ_${invoice.invoiceNo || 'INV'}.pdf`;
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 3000);
     } catch (err) {
@@ -120,9 +146,29 @@ export default function InvoicePreviewModal({ open, onClose, invoice }) {
           </div>
         </div>
 
-        {/* ── MODAL BODY: INVOICE SHEET PREVIEW ────────────────────────── */}
+        {/* ── MODAL BODY: PDF PREVIEW (matches the downloaded file) ────────── */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex justify-center bg-slate-200/70 dark:bg-gray-950">
-          <div className="w-full max-w-[794px] overflow-hidden rounded-lg">
+          <div className="w-full">
+            {previewError ? (
+              <div className="flex h-[60vh] items-center justify-center rounded-lg border border-red-200 bg-red-50 text-center text-sm text-red-700">
+                មិនអាចបង្កើត PDF ជាមុនបានទេ។ អ្នកអាចចុច «ទាញយកជា PDF» ឬ «បោះពុម្ព» ជំនួសវិញ។
+              </div>
+            ) : !previewUrl ? (
+              <div className="flex h-[60vh] items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-500">
+                កំពុងបង្កើត PDF ជាមុន...
+              </div>
+            ) : (
+              <iframe
+                title="invoice-preview"
+                src={previewUrl}
+                className="h-[70vh] w-full rounded-lg border border-slate-300 bg-white"
+                style={{ minHeight: 400 }}
+              />
+            )}
+          </div>
+
+          {/* Hidden print-only sheet (browser print uses the styled invoice). */}
+          <div className="hidden print:block">
             <RealInvoiceDocument invoice={invoice} ref={documentRef} />
           </div>
         </div>

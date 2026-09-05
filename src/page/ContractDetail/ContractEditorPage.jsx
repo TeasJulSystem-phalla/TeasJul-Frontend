@@ -24,6 +24,7 @@ import { useRooms } from '../../hooks/useRooms.js';
 import { useHouses } from '../../hooks/useHouses.js';
 import { useRoomTypes } from '../../hooks/useRoomType.js';
 import { useTenants } from '../../hooks/useTenants.js';
+import { useBasePath } from '../../hooks/useBasePath.js';
 import { useToast } from '../../components/ui/Toast.jsx';
 import { Button, IconButton, Input, Textarea, Select, Badge, Alert, Modal, EmptyState, Skeleton } from '../../components/ui/index.js';
 
@@ -82,6 +83,7 @@ export default function ContractEditorPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const isEdit = !!id && id !== 'new';
+  const basePath = useBasePath();
 
   const {
     getContract,
@@ -222,7 +224,7 @@ export default function ContractEditorPage() {
       } else {
         const created = await createContract(buildPayload());
         toast.success('បានបង្កើតកិច្ចសន្យា', `កិច្ចសន្យា "${form.contractNo}" ត្រូវបានបង្កើត។`);
-        navigate(`/contracts/${created.id}`, { replace: true });
+        navigate(`${basePath}/contracts/${created.id}`, { replace: true });
       }
     } catch (err) {
       const message = err.response?.data?.message || err.response?.data?.error || 'មិនអាចរក្សាទុកកិច្ចសន្យាបានទេ។';
@@ -273,7 +275,7 @@ export default function ContractEditorPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Link to="/contracts" className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400">
+          <Link to={`${basePath}/contracts`} className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400">
             <ArrowLeft className="h-4 w-4" /> ត្រឡប់ទៅកិច្ចសន្យា
           </Link>
           <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">
