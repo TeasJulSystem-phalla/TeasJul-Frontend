@@ -9,16 +9,13 @@ export function useContracts() {
   const [error, setError] = useState(null);
 
   const fetchContracts = useCallback(async () => {
-    window.__fc = { calls: (window.__fc?.calls || 0) + 1, ownerId: useAuthStore.getState().user?.id, ts: Date.now() };
     setLoading(true);
     setError(null);
     try {
       const ownerId = useAuthStore.getState().user?.id;
       const data = await contractApi.getContractsByOwner(ownerId);
-      window.__fc = { ...window.__fc, resolved: true, len: data?.length, ownerId };
       setContracts(data);
     } catch (err) {
-      window.__fc = { ...window.__fc, failed: true, err: String(err), resp: err.response ? { status: err.response.status, data: String(err.response.data).slice(0, 100) } : undefined };
       setError(
         err.response?.data?.message ||
           err.response?.data?.error ||
