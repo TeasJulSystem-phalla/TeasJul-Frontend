@@ -10,8 +10,8 @@ export function useUsers() {
     setLoading(true);
     setError(null);
     try {
-      const data = await userApi.getAllUsers();
-      setUsers(data);
+      const data = await userApi.getAllUsers({ page: 0, size: 200 });
+      setUsers(data.content || []);
     } catch (err) {
       const message =
         err.response?.data?.message ||

@@ -17,6 +17,9 @@ import {
   KeyRound,
   Receipt,
   CreditCard,
+  MailPlus,
+  Bell,
+  BarChart3,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 
@@ -25,10 +28,13 @@ const NAV_GROUPS = [
     label: 'មេ',
     items: [
       { to: '/manager', label: 'ផ្ទាំងគ្រប់គ្រង', icon: LayoutDashboard },
+      { to: '/manager/reports', label: 'របាយការណ៍ប្រចាំខែ', icon: BarChart3 },
       { to: '/manager/properties', label: 'អចលនទ្រព្យ', icon: Building2 },
       { to: '/manager/rooms', label: 'បន្ទប់', icon: DoorOpen },
       { to: '/manager/tenants', label: 'អ្នកជួល', icon: Users },
+      { to: '/manager/tenant-invitations', label: 'អញ្ជើញអ្នកជួល', icon: MailPlus },
       { to: '/manager/contracts', label: 'កិច្ចសន្យា', icon: FileText },
+      { to: '/manager/notifications', label: 'ការជូនដំណឹង', icon: Bell },
     ],
   },
   {

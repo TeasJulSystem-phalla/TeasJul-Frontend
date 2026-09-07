@@ -8,14 +8,17 @@ export const contractApi = {
   getContractById: (id) =>
     api.get(`/v1/rental-contracts/${id}`).then((res) => res.data),
 
-  getContractsByOwner: (ownerId) =>
-    api.get(`/v1/rental-contracts/owner/${ownerId}`).then((res) => res.data),
+  getContractsByOwner: (ownerId, params) =>
+    api.get(`/v1/rental-contracts/owner/${ownerId}`, { params }).then((res) => res.data),
 
   getContractsByRoom: (roomId) =>
     api.get(`/v1/rental-contracts/room/${roomId}`).then((res) => res.data),
 
-  getContractsByStatus: (status) =>
-    api.get(`/v1/rental-contracts/status/${status}`).then((res) => res.data),
+  getContractsByStatus: (status, params) =>
+    api.get(`/v1/rental-contracts/status/${status}`, { params }).then((res) => res.data),
+
+  getContractsSummary: () =>
+    api.get("/v1/rental-contracts/summary").then((res) => res.data),
 
   updateContract: (id, data) =>
     api.put(`/v1/rental-contracts/${id}`, data).then((res) => res.data),

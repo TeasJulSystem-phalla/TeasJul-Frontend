@@ -1,15 +1,11 @@
 // src/components/layout/Navbar.jsx
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, PanelLeft, Search, Bell, X, ChevronDown, User, Settings, LogOut, HelpCircle, Home } from 'lucide-react';
+import { Menu, PanelLeft, Search, Bell, X, ChevronDown, User, Settings, LogOut, HelpCircle, Home, CheckCheck, Inbox, ArrowRight } from 'lucide-react';
 import ThemeToggle from '../common/ThemeToggle';
 import { useAuthStore } from '../../store/auth.store';
-
-const NOTIFICATIONS = [
-  { id: 1, title: 'ទទួលបានការទូទាត់', detail: 'សុខ ដារ៉ា បានបង់ថ្លៃផ្ទះសម្រាប់បន្ទប់ 4B', time: '២នាទីមុន', unread: true },
-  { id: 2, title: 'សំណើជួសជុល', detail: 'សំណើថ្មីនៅអគារ 2 បន្ទប់ 12', time: '១ម៉ោងមុន', unread: true },
-  { id: 3, title: 'កិច្ចសន្យាជិតផុតកំណត់', detail: 'កិច្ចសន្យាសម្រាប់បន្ទប់ 7A ផុតកំណត់ក្នុងរយៈពេល 14 ថ្ងៃ', time: '៣ម៉ោងមុន', unread: false },
-];
+import { useNotifications } from '../../hooks/useNotifications';
+import { timeAgo } from '../../utils/timeAgo';
 
 const useClickOutside = (ref, onClose) => {
   useEffect(() => {
@@ -44,6 +40,17 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const {
+    notifications,
+    totalElements,
+    loading,
+    error,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    getNotificationPath,
+    notificationsPath,
+  } = useNotifications();
   const [isMobileSearch, setIsMobileSearch] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -52,8 +59,6 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
 
   useClickOutside(notifRef, () => setIsNotifOpen(false));
   useClickOutside(profileRef, () => setIsProfileOpen(false));
-
-  const unreadCount = NOTIFICATIONS.filter((n) => n.unread).length;
 
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.username || 'User';
   const email = user?.email || '';
@@ -73,6 +78,19 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
   const handleNavigate = (path) => {
     setIsProfileOpen(false);
     navigate(path);
+  };
+
+  const handleOpenNotification = async (n) => {
+    setIsNotifOpen(false);
+    if (!n.readAt) {
+      try {
+        await markAsRead(n.id);
+      } catch {
+        // Best-effort mark-as-read; navigation still proceeds.
+      }
+    }
+    const path = getNotificationPath(n);
+    if (path && path !== '') navigate(path);
   };
 
   return (
@@ -130,7 +148,7 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
                 <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-semibold text-white">
-                  {unreadCount}
+                  {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
             </button>
@@ -142,34 +160,81 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
             >
               <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-gray-800">
                 <p className="text-sm font-semibold text-slate-800 dark:text-white">ការជូនដំណឹង</p>
-                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                  {unreadCount} ថ្មី
-                </span>
-              </div>
-              <ul className="max-h-80 overflow-y-auto">
-                {NOTIFICATIONS.map((n) => (
-                  <li key={n.id}>
-                    <button className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-gray-800">
-                      <span
-                        className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-                          n.unread ? 'bg-gray-600 dark:bg-gray-400' : 'bg-slate-300 dark:bg-gray-600'
-                        }`}
-                      />
-                      <span className="min-w-0">
-                        <span className="flex items-center justify-between gap-2">
-                          <span className="text-[13px] font-semibold text-slate-800 dark:text-white">{n.title}</span>
-                          <span className="shrink-0 text-[11px] text-slate-400 dark:text-slate-500">{n.time}</span>
-                        </span>
-                        <span className="mt-0.5 block truncate text-[12.5px] text-slate-500 dark:text-slate-400">
-                          {n.detail}
-                        </span>
-                      </span>
+                <div className="flex items-center gap-2">
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={markAllAsRead}
+                      className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+                    >
+                      <CheckCheck className="h-3.5 w-3.5" />
+                      អានទាំងអស់
                     </button>
-                  </li>
-                ))}
-              </ul>
-              <button className="w-full border-t border-slate-100 px-4 py-2.5 text-center text-[13px] font-medium text-gray-800 transition-colors hover:bg-gray-100 dark:border-gray-800 dark:text-gray-200 dark:hover:bg-gray-800">
-                មើលការជូនដំណឹងទាំងអស់
+                  )}
+                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+                    {unreadCount > 0 ? `${unreadCount} ថ្មី` : `ទាំងអស់ ${totalElements}`}
+                  </span>
+                </div>
+              </div>
+
+              {loading ? (
+                <div className="flex flex-col items-center justify-center gap-2 px-4 py-10 text-slate-400 dark:text-slate-500">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-gray-700 dark:border-gray-600 dark:border-t-gray-300" />
+                  <p className="text-[12px]">កំពុងផ្ទុក...</p>
+                </div>
+              ) : error ? (
+                <div className="px-4 py-10 text-center">
+                  <p className="text-[12.5px] text-slate-500 dark:text-slate-400">{error}</p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="mt-2 text-[12.5px] font-medium text-gray-800 hover:underline dark:text-gray-200"
+                  >
+                    ព្យាយាមម្តងទៀត
+                  </button>
+                </div>
+              ) : notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-2 px-4 py-10 text-slate-400 dark:text-slate-500">
+                  <Inbox className="h-8 w-8" />
+                  <p className="text-[12.5px]">មិនមានការជូនដំណឹងទេ</p>
+                </div>
+              ) : (
+                <ul className="max-h-80 overflow-y-auto">
+                  {notifications.map((n) => (
+                    <li key={n.id}>
+                      <button
+                        onClick={() => handleOpenNotification(n)}
+                        className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-gray-800"
+                      >
+                        <span
+                          className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                            !n.readAt ? 'bg-gray-600 dark:bg-gray-400' : 'bg-slate-300 dark:bg-gray-600'
+                          }`}
+                        />
+                        <span className="min-w-0">
+                          <span className="flex items-center justify-between gap-2">
+                            <span className="text-[13px] font-semibold text-slate-800 dark:text-white">{n.title}</span>
+                            <span className="shrink-0 text-[11px] text-slate-400 dark:text-slate-500">
+                              {timeAgo(n.createdAt)}
+                            </span>
+                          </span>
+                          <span className="mt-0.5 block truncate text-[12.5px] text-slate-500 dark:text-slate-400">
+                            {n.message}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <button
+                onClick={() => {
+                  setIsNotifOpen(false);
+                  navigate(notificationsPath);
+                }}
+                className="flex w-full items-center justify-between border-t border-slate-100 px-4 py-2.5 text-center text-[12.5px] font-medium text-gray-700 transition-colors hover:bg-slate-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                <span>ឃើញទាំងអស់</span>
+                <ArrowRight className="h-3.5 w-3.5" />
               </button>
             </Dropdown>
           </div>

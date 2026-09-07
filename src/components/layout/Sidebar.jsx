@@ -24,6 +24,8 @@ import {
   MailPlus,
   Receipt,
   CreditCard,
+  Bell,
+  BarChart3,
 } from 'lucide-react';
 
 const NAV_GROUPS = [
@@ -38,6 +40,7 @@ const NAV_GROUPS = [
       { to: '/tenants', label: 'អ្នកជួល', icon: Users },
       { to: '/tenant-invitations', label: 'អញ្ជើញអ្នកជួល', icon: MailPlus },
       { to: '/contracts', label: 'កិច្ចសន្យា', icon: FileText },
+      { to: '/notifications', label: 'ការជូនដំណឹង', icon: Bell },
     ],
   },
   {
@@ -121,13 +124,20 @@ const SidebarLink = ({ item, isCollapsed, onNavigate }) => {
 };
 
 const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
-  const { isTenant } = useMyRoles();
+  const { isOwner, isTenant } = useMyRoles();
 
   const handleNavigate = () => {
     if (window.innerWidth < 1024) onClose();
   };
 
   const visibleGroups = NAV_GROUPS.map((group) => {
+    if (group.label === 'មេ') {
+      const items = [...group.items];
+      if (isOwner && !items.some((it) => it.to === '/owner-report')) {
+        items.splice(1, 0, { to: '/owner-report', label: 'របាយការណ៍ប្រចាំខែ', icon: BarChart3 });
+      }
+      return { ...group, items };
+    }
     if (group.label === 'ការគ្រប់គ្រង') {
       const items = [...group.items];
       if (isTenant && !items.some((it) => it.to === '/tenant/payments')) {

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   Plus,
   Search,
@@ -26,7 +26,8 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTenants, useEmergencyContacts } from '../../hooks/useTenants.js';
+import { useTenantsList } from '../../hooks/useTenantsList.js';
+import { useEmergencyContacts } from '../../hooks/useTenants.js';
 import { useBasePath } from '../../hooks/useBasePath.js';
 import { useToast } from '../../components/ui/Toast.jsx';
 import {
@@ -41,6 +42,7 @@ import {
   IconButton,
   ConfirmDialog,
   EmptyState,
+  Pagination,
   Skeleton,
 } from '../../components/ui/index.js';
 
@@ -77,18 +79,25 @@ const fullName = (t) => `${t.firstName || ''} ${t.lastName || ''}`.trim() || `�
 export default function Tenants() {
   const {
     tenants,
+    summary,
     loading,
     error,
+    page,
+    totalPages,
+    totalElements,
+    searchTerm,
+    statusFilter,
+    setSearchTerm,
+    setStatusFilter,
+    setPage,
     fetchTenants,
+    fetchSummary,
     getTenant,
     deactivateTenant,
-  } = useTenants();
+  } = useTenantsList();
   const toast = useToast();
   const navigate = useNavigate();
   const basePath = useBasePath();
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
 
   const [viewTarget, setViewTarget] = useState(null);
   const [viewData, setViewData] = useState(null);
@@ -98,31 +107,25 @@ export default function Tenants() {
 
   const [contactTarget, setContactTarget] = useState(null); // tenant being managed
 
-  const refresh = useCallback(() => fetchTenants(), [fetchTenants]);
+  const refresh = useCallback(() => {
+    fetchSummary();
+    fetchTenants();
+  }, [fetchSummary, fetchTenants]);
 
   const stats = useMemo(() => {
-    const total = tenants.length;
+    if (summary) {
+      const total = summary.total || 0;
+      const active = summary.statusCounts?.ACTIVE || 0;
+      const renting = summary.statusCounts?.RENTING || 0;
+      const inactive = summary.statusCounts?.INACTIVE || 0;
+      return { total, active, renting, inactive };
+    }
+    const total = totalElements || tenants.length;
     const active = tenants.filter((t) => t.status === 'ACTIVE').length;
     const renting = tenants.filter((t) => t.status === 'RENTING').length;
     const inactive = tenants.filter((t) => t.status === 'INACTIVE').length;
     return { total, active, renting, inactive };
-  }, [tenants]);
-
-  const filtered = useMemo(() => {
-    let result = tenants;
-    if (searchTerm) {
-      const q = searchTerm.toLowerCase();
-      result = result.filter(
-        (t) =>
-          fullName(t).toLowerCase().includes(q) ||
-          (t.tenantCode && t.tenantCode.toLowerCase().includes(q)) ||
-          (t.email && t.email.toLowerCase().includes(q)) ||
-          (t.phone && t.phone.includes(q))
-      );
-    }
-    if (statusFilter) result = result.filter((t) => t.status === statusFilter);
-    return result;
-  }, [tenants, searchTerm, statusFilter]);
+  }, [summary, totalElements, tenants]);
 
   const getStatusBadge = (status) => (
     <Badge variant={STATUS_VARIANT[status] || 'default'}>{status || '—'}</Badge>
@@ -317,19 +320,21 @@ export default function Tenants() {
 
       {/* Content */}
       {!loading && tenants.length === 0 ? (
-<EmptyState
-          icon={UsersIcon}
-          title="មិនទាន់មានអ្នកជួល"
-          description="បង្កើតប្រវត្តិរូបអ្នកជួលដំបូងរបស់អ្នក ដើម្បីចាប់ផ្តើម។"
-          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate(`${basePath}/tenants/new`)}>បង្កើតអ្នកជួល</Button>}
-        />
-      ) : filtered.length === 0 ? (
-        <EmptyState icon={Filter} title="រកមិនឃើញលទ្ធផល" description="សូមព្យាយាមកែតម្រូវលក្ខណៈវិនិច្ឆ័យស្វែងរក ឬតម្រងរបស់អ្នក។" />
+        searchTerm || statusFilter ? (
+          <EmptyState icon={Filter} title="រកមិនឃើញលទ្ធផល" description="សូមព្យាយាមកែតម្រូវលក្ខណៈវិនិច្ឆ័យស្វែងរក ឬតម្រងរបស់អ្នក។" />
+        ) : (
+          <EmptyState
+            icon={UsersIcon}
+            title="មិនទាន់មានអ្នកជួល"
+            description="បង្កើតប្រវត្តិរូបអ្នកជួលដំបូងរបស់អ្នក ដើម្បីចាប់ផ្តើម។"
+            action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate(`${basePath}/tenants/new`)}>បង្កើតអ្នកជួល</Button>}
+          />
+        )
       ) : (
         <>
           {/* Mobile cards */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:hidden">
-            {filtered.map((t) => (
+            {tenants.map((t) => (
               <div key={t.id} onClick={() => openView(t)} className="group cursor-pointer rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-slate-300 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -364,8 +369,18 @@ export default function Tenants() {
 
           {/* Desktop table */}
           <Card className="hidden lg:block">
-            <Table columns={columns} data={filtered} keyExtractor={(row) => row.id} onRowClick={openView} className="w-full" />
+            <Table columns={columns} data={tenants} keyExtractor={(row) => row.id} onRowClick={openView} className="w-full" />
           </Card>
+
+          {totalPages > 1 && (
+            <div className="flex justify-end pt-4">
+              <Pagination
+                currentPage={page + 1}
+                totalPages={totalPages}
+                onPageChange={(p) => setPage(p - 1)}
+              />
+            </div>
+          )}
         </>
       )}
 

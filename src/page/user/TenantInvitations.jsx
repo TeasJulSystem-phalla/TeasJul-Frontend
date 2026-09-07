@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Plus,
   RefreshCw,
@@ -11,6 +11,8 @@ import {
   ShieldAlert,
   Clock,
   CheckCircle2,
+  Search,
+  Filter,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useMyRoles } from '../../hooks/useMyRoles.js';
@@ -29,6 +31,7 @@ import {
   ConfirmDialog,
   EmptyState,
   Table,
+  Pagination,
   Skeleton,
 } from '../../components/ui/index.js';
 
@@ -178,6 +181,21 @@ export default function TenantInvitationsPage() {
   const [revokeTarget, setRevokeTarget] = useState(null);
   const [revoking, setRevoking] = useState(false);
 
+  const [page, setPage] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const pageSize = 10;
+
+  const handleSearchChange = (val) => {
+    setSearchTerm(val);
+    setPage(0);
+  };
+
+  const handleStatusFilterChange = (val) => {
+    setStatusFilter(val);
+    setPage(0);
+  };
+
   const canInvite = !rolesLoading && (isOwner || isManager);
   const houseOptions = houses.map((h) => ({ value: h.id, label: h.name }));
 
@@ -210,6 +228,29 @@ export default function TenantInvitationsPage() {
       setRevoking(false);
     }
   };
+
+  const filteredInvitations = useMemo(() => {
+    let result = invitations;
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      result = result.filter(
+        (i) =>
+          (i.houseName && i.houseName.toLowerCase().includes(q)) ||
+          (i.email && i.email.toLowerCase().includes(q))
+      );
+    }
+    if (statusFilter) {
+      result = result.filter((i) => i.status === statusFilter);
+    }
+    return result;
+  }, [invitations, searchTerm, statusFilter]);
+
+  const totalPages = Math.ceil(filteredInvitations.length / pageSize);
+
+  const paginatedInvitations = useMemo(() => {
+    const start = page * pageSize;
+    return filteredInvitations.slice(start, start + pageSize);
+  }, [filteredInvitations, page, pageSize]);
 
   if (rolesLoading) {
     return (
@@ -331,16 +372,46 @@ export default function TenantInvitationsPage() {
       </Card>
 
       <Card className="p-6">
-        <h2 className="mb-1 flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white">
-          <UsersIcon className="h-5 w-5 text-gray-400" />
-          ការអញ្ជើញរបស់ខ្ញុំ
-        </h2>
-        <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-          តំណអញ្ជើញត្រូវផុតកំណត់បន្ទាប់ពីរយៈពេល ៥ នាទី ឬក្រោយពេលអ្នកជួលចុះឈ្មោះ។
-        </p>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white">
+              <UsersIcon className="h-5 w-5 text-gray-400" />
+              ការអញ្ជើញរបស់ខ្ញុំ
+            </h2>
+            <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+              តំណអញ្ជើញត្រូវផុតកំណត់បន្ទាប់ពីរយៈពេល ៥ នាទី ឬក្រោយពេលអ្នកជួលចុះឈ្មោះ។
+            </p>
+          </div>
+        </div>
+
+        {invitations.length > 0 && (
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex-1">
+              <Input
+                placeholder="ស្វែងរកតាមអចលនទ្រព្យ ឬអ៊ីមែល..."
+                leftIcon={<Search className="h-4 w-4 text-gray-400" />}
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+              />
+            </div>
+            <div className="w-full sm:w-48">
+              <Select
+                options={[
+                  { value: '', label: 'ស្ថានភាពទាំងអស់' },
+                  { value: 'PENDING', label: 'រង់ចាំមានសុពលភាព' },
+                  { value: 'USED', label: 'បានប្រើ' },
+                  { value: 'EXPIRED', label: 'ផុតកំណត់' },
+                  { value: 'REVOKED', label: 'បានលុបចោល' },
+                ]}
+                value={statusFilter}
+                onChange={(e) => handleStatusFilterChange(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
 
         {error && (
-<Alert variant="danger" title="កំហុស" description={error} dismissible className="mb-4" />
+          <Alert variant="danger" title="កំហុស" description={error} dismissible className="mb-4" />
         )}
 
         {loading ? (
@@ -355,8 +426,26 @@ export default function TenantInvitationsPage() {
             title="មិនទាន់មានការអញ្ជើញ"
             description="បង្កើតការអញ្ជើញដំបូងរបស់អ្នក ហើយចែករំលែកតំណ ឬ QR ជាមួយអ្នកជួលថ្មី។"
           />
+        ) : filteredInvitations.length === 0 ? (
+          <EmptyState
+            icon={Filter}
+            title="រកមិនឃើញលទ្ធផល"
+            description="សូមព្យាយាមកែតម្រូវលក្ខណៈវិនិច្ឆ័យស្វែងរក ឬតម្រងរបស់អ្នក។"
+          />
         ) : (
-          <Table columns={columns} data={invitations} className="w-full" emptyMessage="មិនមានការអញ្ជើញទេ" />
+          <>
+            <Table columns={columns} data={paginatedInvitations} className="w-full" emptyMessage="មិនមានការអញ្ជើញទេ" />
+
+            {totalPages > 1 && (
+              <div className="mt-4 flex justify-end">
+                <Pagination
+                  currentPage={page + 1}
+                  totalPages={totalPages}
+                  onPageChange={(p) => setPage(p - 1)}
+                />
+              </div>
+            )}
+          </>
         )}
       </Card>
 

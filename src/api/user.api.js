@@ -1,8 +1,11 @@
 import api from "./axios";
 
 export const userApi = {
-  getAllUsers: () =>
-    api.get("/v1/users").then((res) => res.data),
+  getAllUsers: (params) =>
+    api.get("/v1/users", { params }).then((res) => res.data),
+
+  getUsersSummary: () =>
+    api.get("/v1/users/summary").then((res) => res.data),
 
   searchAvailableForTenant: (params) =>
     api.get("/v1/users/available-for-tenant", { params }).then((res) => res.data),

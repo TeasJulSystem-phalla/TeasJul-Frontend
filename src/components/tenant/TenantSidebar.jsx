@@ -9,6 +9,7 @@ import {
   Home,
   LogOut,
   X,
+  Bell,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
   { to: '/tenant/maintenance', label: 'ការជួសជុល', icon: Wrench },
   { to: '/tenant/payments', label: 'ការទូទាត់ (Payments)', icon: Wallet },
   { to: '/tenant/utilities', label: 'ទឹក និងភ្លើង', icon: Zap },
+  { to: '/tenant/notifications', label: 'ការជូនដំណឹង', icon: Bell },
 ];
 
 const Brand = ({ isCollapsed }) => (

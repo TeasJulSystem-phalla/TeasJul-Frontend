@@ -51,6 +51,7 @@ import {
   IconButton,
   ConfirmDialog,
   EmptyState,
+  Pagination,
   Skeleton,
 } from '../../components/ui/index.js';
 
@@ -127,6 +128,23 @@ export default function Rooms() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [houseFilter, setHouseFilter] = useState('');
+  const [page, setPage] = useState(0);
+  const pageSize = 10;
+
+  const handleSearchChange = (val) => {
+    setSearchTerm(val);
+    setPage(0);
+  };
+
+  const handleStatusFilterChange = (val) => {
+    setStatusFilter(val);
+    setPage(0);
+  };
+
+  const handleHouseFilterChange = (val) => {
+    setHouseFilter(val);
+    setPage(0);
+  };
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
@@ -183,6 +201,13 @@ export default function Rooms() {
     if (houseFilter) result = result.filter((r) => String(r.houseId) === String(houseFilter));
     return result;
   }, [rooms, searchTerm, statusFilter, houseFilter]);
+
+  const totalPages = Math.ceil(filtered.length / pageSize);
+
+  const paginatedRooms = useMemo(() => {
+    const start = page * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, page, pageSize]);
 
   const getStatusBadge = (status) => {
     const meta = STATUS_META[status] || STATUS_META.RESERVED;
@@ -504,7 +529,7 @@ export default function Rooms() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <button
             type="button"
-            onClick={() => setStatusFilter('')}
+            onClick={() => handleStatusFilterChange('')}
             className={`flex items-center justify-between rounded-xl border p-3.5 text-left transition-all ${
               statusFilter === ''
                 ? 'border-slate-400 bg-slate-100/80 dark:border-slate-600 dark:bg-gray-800'
@@ -520,7 +545,7 @@ export default function Rooms() {
 
           <button
             type="button"
-            onClick={() => setStatusFilter(statusFilter === 'AVAILABLE' ? '' : 'AVAILABLE')}
+            onClick={() => handleStatusFilterChange(statusFilter === 'AVAILABLE' ? '' : 'AVAILABLE')}
             className={`flex items-center justify-between rounded-xl border p-3.5 text-left transition-all ${
               statusFilter === 'AVAILABLE'
                 ? 'border-emerald-500 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/30'
@@ -536,7 +561,7 @@ export default function Rooms() {
 
           <button
             type="button"
-            onClick={() => setStatusFilter(statusFilter === 'OCCUPIED' ? '' : 'OCCUPIED')}
+            onClick={() => handleStatusFilterChange(statusFilter === 'OCCUPIED' ? '' : 'OCCUPIED')}
             className={`flex items-center justify-between rounded-xl border p-3.5 text-left transition-all ${
               statusFilter === 'OCCUPIED'
                 ? 'border-slate-500 bg-slate-100 dark:border-slate-600 dark:bg-gray-800'
@@ -552,7 +577,7 @@ export default function Rooms() {
 
           <button
             type="button"
-            onClick={() => setStatusFilter(statusFilter === 'MAINTENANCE' ? '' : 'MAINTENANCE')}
+            onClick={() => handleStatusFilterChange(statusFilter === 'MAINTENANCE' ? '' : 'MAINTENANCE')}
             className={`flex items-center justify-between rounded-xl border p-3.5 text-left transition-all ${
               statusFilter === 'MAINTENANCE'
                 ? 'border-amber-500 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/30'
@@ -577,11 +602,11 @@ export default function Rooms() {
                 placeholder="តម្រងតាមលេខបន្ទប់ ឬឈ្មោះ..."
                 leftIcon={<Search className="h-4 w-4 text-slate-400" />}
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
               />
             </div>
             <div className="w-full sm:w-40">
-              <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} />
+              <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => handleStatusFilterChange(e.target.value)} />
             </div>
             <div className="w-full sm:w-44">
               <Select
@@ -590,7 +615,7 @@ export default function Rooms() {
                   ...houses.map((h) => ({ value: String(h.id), label: h.name })),
                 ]}
                 value={houseFilter}
-                onChange={(e) => setHouseFilter(e.target.value)}
+                onChange={(e) => handleHouseFilterChange(e.target.value)}
               />
             </div>
             {hasActiveFilters && (
@@ -598,7 +623,7 @@ export default function Rooms() {
                 variant="ghost"
                 size="sm"
                 leftIcon={<X className="h-4 w-4" />}
-                onClick={() => { setSearchTerm(''); setStatusFilter(''); setHouseFilter(''); }}
+                onClick={() => { setSearchTerm(''); setStatusFilter(''); setHouseFilter(''); setPage(0); }}
                 className="text-slate-500"
               >
                 សម្អាត
@@ -650,104 +675,118 @@ export default function Rooms() {
         />
       ) : filtered.length === 0 ? (
         <EmptyState icon={Filter} title="មិនមានបន្ទប់ត្រូវនឹងលក្ខខណ្ឌទេ" description="សូមព្យាយាមកែតម្រូវលក្ខខណ្ឌនៃការតម្រង។" />
-      ) : viewMode === 'table' ? (
-        <Card className="overflow-hidden rounded-xl border-slate-200/80 dark:border-gray-800">
-          <Table columns={columns} data={filtered} onRowClick={handleOpenView} />
-        </Card>
       ) : (
-        /* Grid Cards View */
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((room) => {
-            const meta = STATUS_META[room.status] || STATUS_META.RESERVED;
-            const primaryTenant = getPrimaryTenantName(room);
+        <>
+          {viewMode === 'table' ? (
+            <Card className="overflow-hidden rounded-xl border-slate-200/80 dark:border-gray-800">
+              <Table columns={columns} data={paginatedRooms} onRowClick={handleOpenView} />
+            </Card>
+          ) : (
+            /* Grid Cards View */
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {paginatedRooms.map((room) => {
+                const meta = STATUS_META[room.status] || STATUS_META.RESERVED;
+                const primaryTenant = getPrimaryTenantName(room);
 
-            return (
-              <div
-                key={room.id}
-                onClick={() => handleOpenView(room)}
-                className="group cursor-pointer rounded-xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-gray-800 dark:text-slate-300">
-                        <DoorOpen className="h-5 w-5" />
-                      </span>
-                      <div>
-                        <h3 className="font-semibold text-slate-800 dark:text-white">
-                          {room.name || `បន្ទប់ ${room.roomNumber}`}
-                        </h3>
-                        <p className="font-mono text-xs text-slate-400">អង្គភាព #{room.roomNumber}</p>
-                      </div>
-                    </div>
-                    {getStatusBadge(room.status)}
-                  </div>
-
-                  <div className="mt-3.5 flex flex-wrap gap-2 text-xs text-slate-500 dark:text-slate-400">
-                    <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 dark:bg-gray-800">
-                      <Building2 className="h-3 w-3 text-slate-400" />
-                      <span className="max-w-[130px] truncate">{houseName(room.houseId)}</span>
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 dark:bg-gray-800">
-                      <Layers className="h-3 w-3 text-slate-400" />
-                      {roomTypeName(room.roomTypeId)}
-                    </span>
-                    {room.floorNumber != null && (
-                      <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 dark:bg-gray-800">
-                        ជាន់ {room.floorNumber}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Tenant info */}
-                  <div className="mt-3 rounded-lg bg-slate-50/70 p-2.5 dark:bg-gray-800/50">
-                    {primaryTenant ? (
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2 truncate">
-                          <UserIcon className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                          <span className="font-medium text-slate-700 dark:text-slate-200 truncate">{primaryTenant}</span>
+                return (
+                  <div
+                    key={room.id}
+                    onClick={() => handleOpenView(room)}
+                    className="group cursor-pointer rounded-xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-gray-800 dark:text-slate-300">
+                            <DoorOpen className="h-5 w-5" />
+                          </span>
+                          <div>
+                            <h3 className="font-semibold text-slate-800 dark:text-white">
+                              {room.name || `បន្ទប់ ${room.roomNumber}`}
+                            </h3>
+                            <p className="font-mono text-xs text-slate-400">អង្គភាព #{room.roomNumber}</p>
+                          </div>
                         </div>
-                        <span className="text-[10px] font-semibold text-slate-400 uppercase">អ្នកជួល</span>
+                        {getStatusBadge(room.status)}
                       </div>
-                    ) : (
-                      <div className="flex items-center justify-between text-xs text-slate-400">
-                        <span>មិនទាន់មានអ្នកជួល</span>
-                        {room.status === 'AVAILABLE' && (
-                          <span className="text-emerald-600 dark:text-emerald-400 font-medium">ទំនេរ</span>
+
+                      <div className="mt-3.5 flex flex-wrap gap-2 text-xs text-slate-500 dark:text-slate-400">
+                        <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 dark:bg-gray-800">
+                          <Building2 className="h-3 w-3 text-slate-400" />
+                          <span className="max-w-[130px] truncate">{houseName(room.houseId)}</span>
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 dark:bg-gray-800">
+                          <Layers className="h-3 w-3 text-slate-400" />
+                          {roomTypeName(room.roomTypeId)}
+                        </span>
+                        {room.floorNumber != null && (
+                          <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 dark:bg-gray-800">
+                            ជាន់ {room.floorNumber}
+                          </span>
                         )}
                       </div>
-                    )}
-                  </div>
-                </div>
 
-                <div className="mt-4 border-t border-slate-100 pt-3 dark:border-gray-800 flex items-center justify-between">
-                  <div>
-                    <span className="text-[11px] text-slate-400">ថ្លៃជួល</span>
-                    <p className="font-bold text-slate-900 dark:text-white text-base">{formatCurrency(room.monthlyRent)}</p>
-                  </div>
+                      {/* Tenant info */}
+                      <div className="mt-3 rounded-lg bg-slate-50/70 p-2.5 dark:bg-gray-800/50">
+                        {primaryTenant ? (
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2 truncate">
+                              <UserIcon className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                              <span className="font-medium text-slate-700 dark:text-slate-200 truncate">{primaryTenant}</span>
+                            </div>
+                            <span className="text-[10px] font-semibold text-slate-400 uppercase">អ្នកជួល</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between text-xs text-slate-400">
+                            <span>មិនទាន់មានអ្នកជួល</span>
+                            {room.status === 'AVAILABLE' && (
+                              <span className="text-emerald-600 dark:text-emerald-400 font-medium">ទំនេរ</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
-                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                    {room.status === 'AVAILABLE' && (
-                      <Button
-                        variant="outline"
-                        size="xs"
-                        leftIcon={<FilePlus className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />}
-                        onClick={() => handleCreateContractForRoom(room.id)}
-                        className="mr-1 text-xs"
-                      >
-                        កិច្ចសន្យា
-                      </Button>
-                    )}
-                    <IconButton variant="ghost" size="sm" tooltip="គ្រឿងបរិក្ខារ" icon={<KeySquare className="h-4 w-4" />} onClick={() => setAmenityTarget(room)} />
-                    <IconButton variant="ghost" size="sm" tooltip="ប្រភេទប្រើប្រាស់" icon={<Zap className="h-4 w-4" />} onClick={() => setUtilityTarget(room)} />
-                    <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(room)} />
-                    <IconButton variant="ghost" size="sm" tooltip="លុប" icon={<Trash2 className="h-4 w-4 text-red-500" />} onClick={() => setDeleteTarget(room)} />
+                    <div className="mt-4 border-t border-slate-100 pt-3 dark:border-gray-800 flex items-center justify-between">
+                      <div>
+                        <span className="text-[11px] text-slate-400">ថ្លៃជួល</span>
+                        <p className="font-bold text-slate-900 dark:text-white text-base">{formatCurrency(room.monthlyRent)}</p>
+                      </div>
+
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        {room.status === 'AVAILABLE' && (
+                          <Button
+                            variant="outline"
+                            size="xs"
+                            leftIcon={<FilePlus className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />}
+                            onClick={() => handleCreateContractForRoom(room.id)}
+                            className="mr-1 text-xs"
+                          >
+                            កិច្ចសន្យា
+                          </Button>
+                        )}
+                        <IconButton variant="ghost" size="sm" tooltip="គ្រឿងបរិក្ខារ" icon={<KeySquare className="h-4 w-4" />} onClick={() => setAmenityTarget(room)} />
+                        <IconButton variant="ghost" size="sm" tooltip="ប្រភេទប្រើប្រាស់" icon={<Zap className="h-4 w-4" />} onClick={() => setUtilityTarget(room)} />
+                        <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(room)} />
+                        <IconButton variant="ghost" size="sm" tooltip="លុប" icon={<Trash2 className="h-4 w-4 text-red-500" />} onClick={() => setDeleteTarget(room)} />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <div className="flex justify-end pt-4">
+              <Pagination
+                currentPage={page + 1}
+                totalPages={totalPages}
+                onPageChange={(p) => setPage(p - 1)}
+              />
+            </div>
+          )}
+        </>
       )}
 
       {/* Create/Edit Modal */}

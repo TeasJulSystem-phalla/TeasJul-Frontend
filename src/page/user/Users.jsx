@@ -18,7 +18,7 @@ import {
   XCircle,
   Lock,
 } from "lucide-react";
-import { useUsers } from "../../hooks/useUsers";
+import { useUsersList } from "../../hooks/useUsersList";
 import { userApi } from "../../api/user.api";
 import useToast from "../../components/ui/Toast";
 import Skeleton from "../../components/ui/Skeleton";
@@ -30,6 +30,7 @@ import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
 import Modal from "../../components/ui/Modal";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import Pagination from "../../components/ui/Pagination";
 
 const STATUS_OPTIONS = [
   { value: "", label: "ស្ថានភាពទាំងអស់" },
@@ -85,11 +86,25 @@ const formatRelativeTime = (dateStr) => {
 };
 
 const Users = () => {
-  const { users, loading, error, fetchUsers, deleteUser } = useUsers();
+  const {
+    users,
+    summary,
+    loading,
+    error,
+    page,
+    totalPages,
+    totalElements,
+    search,
+    statusFilter,
+    setSearch,
+    setStatusFilter,
+    setPage,
+    fetchUsers,
+    fetchSummary,
+    deleteUser,
+  } = useUsersList();
   const toast = useToast();
 
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
   const [menuOpen, setMenuOpen] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -108,30 +123,19 @@ const Users = () => {
   const [editLoading, setEditLoading] = useState(false);
 
   const stats = useMemo(() => {
-    const total = users.length;
+    if (summary) {
+      const total = summary.total || 0;
+      const active = summary.statusCounts?.ACTIVE || 0;
+      const inactive = summary.statusCounts?.INACTIVE || 0;
+      const locked = summary.statusCounts?.LOCKED || 0;
+      return { total, active, inactive, locked };
+    }
+    const total = totalElements || users.length;
     const active = users.filter((u) => u.status === "ACTIVE").length;
     const inactive = users.filter((u) => u.status === "INACTIVE").length;
     const locked = users.filter((u) => u.status === "LOCKED").length;
     return { total, active, inactive, locked };
-  }, [users]);
-
-  const filtered = useMemo(() => {
-    let result = users;
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (u) =>
-          (u.firstName && u.firstName.toLowerCase().includes(q)) ||
-          (u.lastName && u.lastName.toLowerCase().includes(q)) ||
-          (u.username && u.username.toLowerCase().includes(q)) ||
-          (u.email && u.email.toLowerCase().includes(q))
-      );
-    }
-    if (statusFilter) {
-      result = result.filter((u) => u.status === statusFilter);
-    }
-    return result;
-  }, [users, search, statusFilter]);
+  }, [summary, totalElements, users]);
 
   // Fetch fresh user data + roles when viewTarget changes
   useEffect(() => {
@@ -242,7 +246,8 @@ const Users = () => {
       await userApi.updateUser(editTarget.id, payload);
       toast.success("បានកែប្រែអ្នកប្រើប្រាស់", `"${payload.firstName} ${payload.lastName}" ត្រូវបានធ្វើបច្ចុប្បន្នភាព។`);
       setEditTarget(null);
-      fetchUsers();
+      fetchUsers({ search: search.trim() || undefined, status: statusFilter || undefined });
+      fetchSummary();
     } catch (err) {
       const message =
         err.response?.data?.message ||
@@ -327,7 +332,10 @@ const Users = () => {
           variant="outline"
           size="sm"
           leftIcon={<RefreshCw className="h-4 w-4" />}
-          onClick={fetchUsers}
+          onClick={() => {
+            fetchSummary();
+            fetchUsers({ search: search.trim() || undefined, status: statusFilter || undefined });
+          }}
         >
           ផ្ទុកឡើងវិញ
         </Button>
@@ -410,139 +418,153 @@ const Users = () => {
 
       {/* Empty / no matches / cards */}
       {!loading && users.length === 0 ? (
-        <EmptyState
-          icon={UserCircle}
-          title="មិនទាន់មានអ្នកប្រើប្រាស់"
-          description="មិនមានអ្នកប្រើប្រាស់ដែលបានចុះឈ្មោះក្នុងប្រព័ន្ធទេ។"
-        />
-      ) : filtered.length === 0 ? (
-        <EmptyState
-          icon={Filter}
-          title="រកមិនឃើញលទ្ធផល"
-          description="សូមព្យាយាមកែតម្រូវលក្ខណៈវិនិច្ឆ័យស្វែងរក ឬតម្រងរបស់អ្នក។"
-        />
+        search || statusFilter ? (
+          <EmptyState
+            icon={Filter}
+            title="រកមិនឃើញលទ្ធផល"
+            description="សូមព្យាយាមកែតម្រូវលក្ខណៈវិនិច្ឆ័យស្វែងរក ឬតម្រងរបស់អ្នក។"
+          />
+        ) : (
+          <EmptyState
+            icon={UserCircle}
+            title="មិនទាន់មានអ្នកប្រើប្រាស់"
+            description="មិនមានអ្នកប្រើប្រាស់ដែលបានចុះឈ្មោះក្នុងប្រព័ន្ធទេ។"
+          />
+        )
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((user) => {
-            const avatarColor = getAvatarColor(
-              (user.firstName || "") + (user.lastName || "") + user.username
-            );
-            return (
-              <div
-                key={user.id}
-                className="group relative rounded-xl border border-slate-200 bg-white transition-all hover:border-slate-300 hover:shadow-md hover:shadow-slate-900/5 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 dark:hover:shadow-black/20"
-              >
-                <div className="p-5">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      {user.avatar ? (
-                        <img
-                          src={user.avatar}
-                          alt={getFullName(user)}
-                          className="h-12 w-12 rounded-full object-cover ring-2 ring-white dark:ring-gray-900"
-                        />
-                      ) : (
-                        <div
-                          className={`flex h-12 w-12 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm ${avatarColor}`}
+        <>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {users.map((user) => {
+              const avatarColor = getAvatarColor(
+                (user.firstName || "") + (user.lastName || "") + user.username
+              );
+              return (
+                <div
+                  key={user.id}
+                  className="group relative rounded-xl border border-slate-200 bg-white transition-all hover:border-slate-300 hover:shadow-md hover:shadow-slate-900/5 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 dark:hover:shadow-black/20"
+                >
+                  <div className="p-5">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        {user.avatar ? (
+                          <img
+                            src={user.avatar}
+                            alt={getFullName(user)}
+                            className="h-12 w-12 rounded-full object-cover ring-2 ring-white dark:ring-gray-900"
+                          />
+                        ) : (
+                          <div
+                            className={`flex h-12 w-12 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm ${avatarColor}`}
+                          >
+                            {getInitials(user.firstName, user.lastName)}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <h3 className="text-[15px] font-semibold text-slate-800 dark:text-white truncate">
+                            {getFullName(user)}
+                          </h3>
+                          <p className="text-[12px] text-slate-400 dark:text-slate-500 truncate">
+                            @{user.username}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <button
+                          onClick={() =>
+                            setMenuOpen(menuOpen === user.id ? null : user.id)
+                          }
+                          className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-gray-800 dark:hover:text-slate-300"
                         >
-                          {getInitials(user.firstName, user.lastName)}
+                          <MoreVertical className="h-4 w-4" />
+                        </button>
+                        {menuOpen === user.id && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-10"
+                              onClick={() => setMenuOpen(null)}
+                            />
+                            <div className="absolute right-0 z-20 mt-1 w-40 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                              <button
+                                onClick={() => {
+                                  setViewTarget(user);
+                                  setMenuOpen(null);
+                                }}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
+                              >
+                                <Eye className="h-4 w-4" /> មើលព័ត៌មានលម្អិត
+                              </button>
+                              <button
+                                onClick={() => openEdit(user)}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
+                              >
+                                <Edit3 className="h-4 w-4" /> កែប្រែ
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setDeleteTarget(user);
+                                  setMenuOpen(null);
+                                }}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                              >
+                                <Trash2 className="h-4 w-4" /> លុប
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-3 space-y-1.5">
+                      {user.email && (
+                        <div className="flex items-center gap-1.5 text-[13px] text-slate-500 dark:text-slate-400">
+                          <Mail className="h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-slate-500" />
+                          <span className="truncate">{user.email}</span>
                         </div>
                       )}
-                      <div className="min-w-0">
-                        <h3 className="text-[15px] font-semibold text-slate-800 dark:text-white truncate">
-                          {getFullName(user)}
-                        </h3>
-                        <p className="text-[12px] text-slate-400 dark:text-slate-500 truncate">
-                          @{user.username}
-                        </p>
-                      </div>
+                      {user.phone && (
+                        <div className="flex items-center gap-1.5 text-[13px] text-slate-500 dark:text-slate-400">
+                          <Phone className="h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-slate-500" />
+                          <span>{user.phone}</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="relative">
-                      <button
-                        onClick={() =>
-                          setMenuOpen(menuOpen === user.id ? null : user.id)
-                        }
-                        className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-gray-800 dark:hover:text-slate-300"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-                      {menuOpen === user.id && (
-                        <>
-                          <div
-                            className="fixed inset-0 z-10"
-                            onClick={() => setMenuOpen(null)}
-                          />
-                          <div className="absolute right-0 z-20 mt-1 w-40 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                            <button
-                              onClick={() => {
-                                setViewTarget(user);
-                                setMenuOpen(null);
-                              }}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
-                            >
-                              <Eye className="h-4 w-4" /> មើលព័ត៌មានលម្អិត
-                            </button>
-                            <button
-                              onClick={() => openEdit(user)}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
-                            >
-                              <Edit3 className="h-4 w-4" /> កែប្រែ
-                            </button>
-                            <button
-                              onClick={() => {
-                                setDeleteTarget(user);
-                                setMenuOpen(null);
-                              }}
-                              className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                            >
-                              <Trash2 className="h-4 w-4" /> លុប
-                            </button>
-                          </div>
-                        </>
+
+                    <div className="mt-4 flex items-center gap-3">
+                      <Badge variant={STATUS_VARIANT[user.status] || "default"}>
+                        {user.status}
+                      </Badge>
+                      {user.createdAt && (
+                        <span className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
+                          <Calendar className="h-3 w-3" />
+                          បានចូលរួម {new Date(user.createdAt).toLocaleDateString()}
+                        </span>
                       )}
                     </div>
                   </div>
 
-                  <div className="mt-3 space-y-1.5">
-                    {user.email && (
-                      <div className="flex items-center gap-1.5 text-[13px] text-slate-500 dark:text-slate-400">
-                        <Mail className="h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-slate-500" />
-                        <span className="truncate">{user.email}</span>
-                      </div>
-                    )}
-                    {user.phone && (
-                      <div className="flex items-center gap-1.5 text-[13px] text-slate-500 dark:text-slate-400">
-                        <Phone className="h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-slate-500" />
-                        <span>{user.phone}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-4 flex items-center gap-3">
-                    <Badge variant={STATUS_VARIANT[user.status] || "default"}>
-                      {user.status}
-                    </Badge>
-                    {user.createdAt && (
-                      <span className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
-                        <Calendar className="h-3 w-3" />
-                        បានចូលរួម {new Date(user.createdAt).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
+                  {user.lastLoginAt && (
+                    <div className="border-t border-slate-100 px-5 py-2.5 dark:border-gray-800">
+                      <p className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
+                        <Clock className="h-3 w-3" />
+                        ការចូលចុងក្រោយ {formatRelativeTime(user.lastLoginAt)}
+                      </p>
+                    </div>
+                  )}
                 </div>
+              );
+            })}
+          </div>
 
-                {user.lastLoginAt && (
-                  <div className="border-t border-slate-100 px-5 py-2.5 dark:border-gray-800">
-                    <p className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
-                      <Clock className="h-3 w-3" />
-                      ការចូលចុងក្រោយ {formatRelativeTime(user.lastLoginAt)}
-                    </p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+          {totalPages > 1 && (
+            <div className="flex justify-end pt-4">
+              <Pagination
+                currentPage={page + 1}
+                totalPages={totalPages}
+                onPageChange={(p) => setPage(p - 1)}
+              />
+            </div>
+          )}
+        </>
       )}
 
       {/* Delete confirmation */}

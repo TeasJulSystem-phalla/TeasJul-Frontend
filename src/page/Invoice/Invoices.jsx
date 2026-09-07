@@ -73,16 +73,29 @@ const getStatusBadge = (status) => (
 
 export default function Invoices() {
   const navigate = useNavigate();
-  const { invoices, loading, error, page, totalPages, setPage, fetchInvoices } = useInvoices();
+  const {
+    invoices,
+    loading,
+    error,
+    page,
+    totalPages,
+    searchTerm,
+    houseFilter,
+    statusFilter,
+    monthFilter,
+    yearFilter,
+    setSearchTerm,
+    setHouseFilter,
+    setStatusFilter,
+    setMonthFilter,
+    setYearFilter,
+    clearFilters,
+    setPage,
+    fetchInvoices,
+  } = useInvoices();
   const { houses } = useHouses();
   const toast = useToast();
   const basePath = useBasePath();
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [houseFilter, setHouseFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [monthFilter, setMonthFilter] = useState('');
-  const [yearFilter, setYearFilter] = useState('');
 
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -101,26 +114,6 @@ export default function Invoices() {
     ],
     [houses]
   );
-
-  const applyFilters = () => {
-    fetchInvoices({
-      search: searchTerm || undefined,
-      houseId: houseFilter || undefined,
-      status: statusFilter || undefined,
-      billingMonth: monthFilter || undefined,
-      billingYear: yearFilter || undefined,
-    });
-    if (page !== 0) setPage(0);
-  };
-
-  const clearFilters = () => {
-    setSearchTerm('');
-    setHouseFilter('');
-    setStatusFilter('');
-    setMonthFilter('');
-    setYearFilter('');
-    fetchInvoices({});
-  };
 
   const columns = [
     {
@@ -194,6 +187,8 @@ export default function Invoices() {
     },
   ];
 
+  const isFiltered = searchTerm || houseFilter || statusFilter || monthFilter || yearFilter;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -212,7 +207,7 @@ export default function Invoices() {
           >
             ទាញយក PDF ទាំងអស់
           </Button>
-          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => fetchInvoices({})}>ធ្វើឱ្យស្រស់</Button>
+          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => fetchInvoices()}>ធ្វើឱ្យស្រស់</Button>
           <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate(`${basePath}/invoices/generate`)}>បង្កើតវិក្កយបត្រ</Button>
         </div>
       </div>
@@ -221,41 +216,50 @@ export default function Invoices() {
         <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកវិក្កយបត្រ" description={error} dismissible />
       )}
 
+      {/* Filter bar */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex-1">
+          <Input
+            placeholder="ស្វែងរកតាមលេខវិក្កយបត្រ ឬអ្នកជួល..."
+            leftIcon={<Search className="h-4 w-4" />}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="w-full sm:w-40">
+          <Select options={houseOptions} value={houseFilter} onChange={(e) => setHouseFilter(e.target.value)} placeholder="អចលនទ្រព្យទាំងអស់" />
+        </div>
+        <div className="w-full sm:w-36">
+          <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} />
+        </div>
+        <div className="w-full sm:w-32">
+          <Select options={MONTH_OPTIONS} value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)} />
+        </div>
+        <div className="w-full sm:w-32">
+          <Select options={YEAR_OPTIONS} value={yearFilter} onChange={(e) => setYearFilter(e.target.value)} />
+        </div>
+        {isFiltered && (
+          <Button variant="outline" size="sm" onClick={clearFilters}>សម្អាត</Button>
+        )}
+      </div>
+
       {!loading && invoices.length === 0 ? (
-        <EmptyState
-          icon={FileText}
-          title="មិនទាន់មានវិក្កយបត្រ"
-          description="បង្កើតវិក្កយបត្រប្រចាំខែដំបូងរបស់អ្នក ដើម្បីចាប់ផ្តើមទូទាត់។"
-          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate(`${basePath}/invoices/generate`)}>បង្កើតវិក្កយបត្រ</Button>}
-        />
+        isFiltered ? (
+          <EmptyState
+            icon={FileText}
+            title="រកមិនឃើញលទ្ធផល"
+            description="សូមព្យាយាមកែតម្រូវលក្ខណៈវិនិច្ឆ័យស្វែងរក ឬតម្រងរបស់អ្នក។"
+          />
+        ) : (
+          <EmptyState
+            icon={FileText}
+            title="មិនទាន់មានវិក្កយបត្រ"
+            description="បង្កើតវិក្កយបត្រប្រចាំខែដំបូងរបស់អ្នក ដើម្បីចាប់ផ្តើមទូទាត់។"
+            action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate(`${basePath}/invoices/generate`)}>បង្កើតវិក្កយបត្រ</Button>}
+          />
+        )
       ) : (
         <>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex-1">
-              <Input
-                placeholder="ស្វែងរកតាមលេខវិក្កយបត្រ ឬអ្នកជួល..."
-                leftIcon={<Search className="h-4 w-4" />}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-              />
-            </div>
-            <div className="w-full sm:w-40">
-              <Select options={houseOptions} value={houseFilter} onChange={(e) => setHouseFilter(e.target.value)} placeholder="អចលនទ្រព្យទាំងអស់" />
-            </div>
-            <div className="w-full sm:w-36">
-              <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} />
-            </div>
-            <div className="w-full sm:w-32">
-              <Select options={MONTH_OPTIONS} value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)} />
-            </div>
-            <div className="w-full sm:w-32">
-              <Select options={YEAR_OPTIONS} value={yearFilter} onChange={(e) => setYearFilter(e.target.value)} />
-            </div>
-            <Button variant="outline" size="sm" onClick={applyFilters}>អនុវត្ត</Button>
-            <Button variant="outline" size="sm" onClick={clearFilters}>សម្អាត</Button>
-          </div>
-
           <Card>
             <Table columns={columns} data={invoices} keyExtractor={(row) => row.id} className="w-full" />
           </Card>

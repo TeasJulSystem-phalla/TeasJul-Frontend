@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { Spinner } from "./ui/index.js";
 import { useMyRoles } from "../hooks/useMyRoles.js";
+import Spinner from "../components/ui/Spinner.jsx";
 
 const ManagerRoute = () => {
   const { isManager, loading, error } = useMyRoles();

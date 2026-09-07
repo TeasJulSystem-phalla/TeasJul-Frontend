@@ -10,7 +10,8 @@ export function useTenants() {
     setLoading(true);
     setError(null);
     try {
-      setTenants(await tenantApi.getMyTenants());
+      const data = await tenantApi.getMyTenants({ page: 0, size: 200 });
+      setTenants(data.content || []);
     } catch (err) {
       setError(
         err.response?.data?.message ||

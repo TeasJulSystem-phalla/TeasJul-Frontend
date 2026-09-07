@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { Spinner } from "./ui/index.js";
+import { Spinner } from "../components/ui/index.js";
 import { useMyRoles } from "../hooks/useMyRoles.js";
 
 const AdminRoute = () => {

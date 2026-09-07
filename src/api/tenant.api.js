@@ -5,8 +5,11 @@ export const tenantApi = {
   createTenant: (data) =>
     api.post("/v1/tenants", data).then((res) => res.data),
 
-  getMyTenants: () =>
-    api.get("/v1/tenants").then((res) => res.data),
+  getMyTenants: (params) =>
+    api.get("/v1/tenants", { params }).then((res) => res.data),
+
+  getMyTenantsSummary: () =>
+    api.get("/v1/tenants/summary").then((res) => res.data),
 
   getTenantById: (id) =>
     api.get(`/v1/tenants/${id}`).then((res) => res.data),
