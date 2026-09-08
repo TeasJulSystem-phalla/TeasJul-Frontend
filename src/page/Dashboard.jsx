@@ -11,11 +11,8 @@ import {
   Wrench,
   BarChart3,
   Clock,
-  FileDown,
 } from 'lucide-react';
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   PieChart,
@@ -29,6 +26,7 @@ import {
   Legend,
 } from 'recharts';
 import { Alert, Button, Card, EmptyState, Select, Input, Skeleton } from '../components/ui/index.js';
+import RevenueTrendChart from '../components/charts/RevenueTrendChart';
 import { useHouses } from '../hooks/useHouses.js';
 import { useOwnerDashboard } from '../hooks/useOwnerDashboard.js';
 import { formatCompactCurrency, formatCurrency, formatMonth } from '../utils/format';
@@ -420,28 +418,7 @@ export default function Dashboard() {
                   description="មិនមានការទូទាត់ត្រូវបានទទួលក្នុងរយៈពេលនេះទេ។"
                 />
               ) : (
-                <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={revenueTrend} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="label" tick={{ fontSize: 12 }} tickLine={false} axisLine={{ stroke: '#e2e8f0' }} />
-                      <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
-                      <Tooltip
-                        contentStyle={chartTooltipStyle}
-                        formatter={(value) => [formatCurrency(value), 'ចំណូល']}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="amount"
-                        name="ចំណូល"
-                        stroke="#7c3aed"
-                        strokeWidth={2}
-                        dot={{ r: 3 }}
-                        activeDot={{ r: 5 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                <RevenueTrendChart data={revenueTrend} />
               )}
             </Card>
 

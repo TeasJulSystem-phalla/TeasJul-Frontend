@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import xzSpinner  from "../components/ui/Spinner.jsx";
+import Spinner  from "../components/ui/Spinner.jsx";
 import { useMyRoles } from "../hooks/useMyRoles.js";
 
 const TenantRoute = () => {

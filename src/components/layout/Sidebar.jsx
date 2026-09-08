@@ -1,51 +1,86 @@
 // src/components/layout/Sidebar.jsx
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
+  BarChart3,
+  Bell,
   Building2,
+  DoorOpen,
+  Layers,
+  Sparkles,
+  KeyRound,
   Users,
+  MailPlus,
   FileText,
   Wallet,
+  Receipt,
+  CreditCard,
   Zap,
   Wrench,
+  Tags,
+  Gauge,
+  ClipboardList,
+  CircleDollarSign,
+  Folder,
+  UserCircle,
+  Shield,
   Bot,
   Settings,
   HelpCircle,
   LogOut,
   X,
   Home,
-  UserCircle,
-  Shield,
-  DoorOpen,
-  Sparkles,
-  Layers,
-  KeyRound,
-  MailPlus,
+  ChevronDown,
 } from 'lucide-react';
+import { useAuthStore } from '../../store/auth.store';
+import { useMyRoles } from '../../hooks/useMyRoles';
 
 const NAV_GROUPS = [
   {
     label: 'មេ',
     items: [
-      { to: '/', label: 'ផ្ទាំងគ្រប់គ្រង', icon: LayoutDashboard },
-      { to: '/properties', label: 'អចលនទ្រព្យ', icon: Building2 },
-      { to: '/rooms', label: 'បន្ទប់', icon: DoorOpen },
-      { to: '/roomtype', label: 'ប្រភេទបន្ទប់', icon: Layers },
-      { to: '/amenities', label: 'គ្រឿងបរិក្ខារ', icon: Sparkles },
-      { to: '/tenants', label: 'អ្នកជួល', icon: Users },
-      { to: '/tenant-invitations', label: 'អញ្ជើញអ្នកជួល', icon: MailPlus },
-      { to: '/contracts', label: 'កិច្ចសន្យា', icon: FileText },
+      { to: '/', label: 'ផ្ទាំងគ្រប់គ្រង', icon: LayoutDashboard, end: true },
+      { to: '/owner-report', label: 'របាយការណ៍ប្រចាំខែ', icon: BarChart3 },
       { to: '/notifications', label: 'ការជូនដំណឹង', icon: Bell },
     ],
   },
   {
-    label: 'ការគ្រប់គ្រង',
+    label: 'អចលនទ្រព្យ',
     items: [
-      { to: '/users', label: 'អ្នកប្រើប្រាស់', icon: UserCircle },
-      { to: '/roles', label: 'តួនាទី', icon: Shield },
-      { to: '/profile', label: 'ប្រវត្តិរបស់ខ្ញុំ', icon: UserCircle },
+      { to: '/properties', label: 'អចលនទ្រព្យ', icon: Building2 },
+      { to: '/rooms', label: 'បន្ទប់', icon: DoorOpen },
+      { to: '/roomtype', label: 'ប្រភេទបន្ទប់', icon: Layers },
+      { to: '/amenities', label: 'គ្រឿងបរិក្ខារ', icon: Sparkles },
       { to: '/access', label: 'ការចូលដំណើរការផ្ទះ', icon: KeyRound },
-      { to: '/finance', label: 'ហិរញ្ញវត្ថុ', icon: Wallet },
+    ],
+  },
+  {
+    label: 'អ្នកជួល និងកិច្ចសន្យា',
+    items: [
+      { to: '/tenants', label: 'អ្នកជួល', icon: Users },
+      { to: '/tenant-invitations', label: 'អញ្ជើញអ្នកជួល', icon: MailPlus },
+      { to: '/contracts', label: 'កិច្ចសន្យា', icon: FileText },
+    ],
+  },
+  {
+    label: 'ហិរញ្ញវត្ថុ',
+    items: [
+      {
+        basePath: '/finance',
+        label: 'ហិរញ្ញវត្ថុ',
+        icon: Wallet,
+        children: [
+          { to: '/finance/payments', label: 'ការទូទាត់', icon: Wallet, end: true },
+          { to: '/invoices', label: 'វិក្កយបត្រ', icon: Receipt },
+          { to: '/finance/payment-methods', label: 'វិធីសាស្ត្រទូទាត់', icon: CreditCard },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'ប្រតិបត្តិការ',
+    items: [
       {
         basePath: '/utilities',
         label: 'ប្រើប្រាស់ទឹកភ្លើង',
@@ -69,6 +104,14 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: 'ការគ្រប់គ្រងប្រព័ន្ធ',
+    items: [
+      { to: '/users', label: 'អ្នកប្រើប្រាស់', icon: UserCircle },
+      { to: '/roles', label: 'តួនាទី', icon: Shield },
+      { to: '/profile', label: 'ប្រវត្តិរបស់ខ្ញុំ', icon: UserCircle },
+    ],
+  },
+  {
     label: 'ជំនួយ',
     items: [
       { to: '/assistant', label: 'ជំនួយការ AI', icon: Bot },
@@ -80,13 +123,13 @@ const NAV_GROUPS = [
 
 const Brand = ({ isCollapsed }) => (
   <div className="flex h-16 items-center gap-3 border-b border-slate-100 px-5 dark:border-gray-800">
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-800 text-white shadow-sm shadow-gray-800/30">
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 text-white shadow-sm shadow-gray-800/30">
       <Home className="h-5 w-5" />
     </div>
     {!isCollapsed && (
       <div className="min-w-0">
         <p className="truncate text-[15px] font-semibold text-slate-800 dark:text-white">RentalHub</p>
-        <p className="truncate text-[11px] font-medium text-slate-400 dark:text-slate-500">អ្នកគ្រប់គ្រងអចលនទ្រព្យ</p>
+        <p className="truncate text-[11px] font-medium text-slate-400 dark:text-slate-500">អ្នកជាម្ចាស់អចលនទ្រព្យ</p>
       </div>
     )}
   </div>
@@ -152,7 +195,7 @@ const SidebarLink = ({ item, isCollapsed, onNavigate, isChild = false }) => {
       {({ isActive }) => (
         <>
           {isActive && (
-            <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gray-800" />
+            <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gray-800 dark:bg-white" />
           )}
           <Icon className={`h-5 w-5 ${iconClass(isActive)}`} />
           {!isCollapsed && <span className="truncate">{item.label}</span>}
@@ -209,7 +252,7 @@ const SidebarSubMenu = ({ item, isCollapsed, onNavigate }) => {
           ].join(' ')}
         >
           {isChildActive && (
-            <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gray-800" />
+            <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gray-800 dark:bg-white" />
           )}
           <Icon className={`h-5 w-5 ${iconClass(isChildActive)}`} />
         </button>
@@ -248,13 +291,16 @@ const SidebarSubMenu = ({ item, isCollapsed, onNavigate }) => {
         ].join(' ')}
       >
         {isChildActive && (
-          <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gray-800" />
+          <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gray-800 dark:bg-white" />
         )}
         <Icon className={`h-5 w-5 ${iconClass(isChildActive)}`} />
         <span className="min-w-0 flex-1 truncate">{item.label}</span>
         <ChevronDown
           className={[
-            'h-4 w-4 shrink-0 text-slate-400 transition-transform duration-300 dark:text-slate-500',
+            'h-4 w-4 shrink-0 transition-transform duration-300',
+            isChildActive
+              ? 'text-gray-700 dark:text-slate-300'
+              : 'text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300',
             open && 'rotate-180',
           ].join(' ')}
         />
@@ -267,7 +313,7 @@ const SidebarSubMenu = ({ item, isCollapsed, onNavigate }) => {
         ].join(' ')}
       >
         <div className="overflow-hidden">
-          <div className="ml-3 mt-1 border-l border-slate-200 pl-2 dark:border-gray-700">
+          <div className="ml-1 mt-1 border-l border-slate-200 pl-1 dark:border-gray-700">
             <ul className="space-y-0.5 py-0.5">
               {item.children.map((child) => (
                 <li key={child.to}>
@@ -282,23 +328,63 @@ const SidebarSubMenu = ({ item, isCollapsed, onNavigate }) => {
   );
 };
 
+const UserCard = ({ isCollapsed }) => {
+  const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.username || 'User';
+  const email = user?.email || '';
+  const initials = fullName
+    .split(' ')
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
+  return (
+    <button
+      onClick={() => navigate('/profile')}
+      title={isCollapsed ? fullName : undefined}
+      className={[
+        'flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 transition-colors hover:bg-slate-50 dark:hover:bg-gray-800',
+        isCollapsed && 'justify-center',
+      ].join(' ')}
+    >
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-gray-700 to-gray-900 text-[13px] font-semibold text-white">
+        {initials || 'U'}
+      </span>
+      {!isCollapsed && (
+        <span className="min-w-0 flex-1 text-left">
+          <span className="block truncate text-[13px] font-semibold text-slate-800 dark:text-white">{fullName}</span>
+          <span className="block truncate text-[11px] text-slate-400 dark:text-slate-500">
+            {user?.role || email || user?.username}
+          </span>
+        </span>
+      )}
+    </button>
+  );
+};
+
 const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
+  const navigate = useNavigate();
+  const logout = useAuthStore((s) => s.logout);
+  const { isTenant } = useMyRoles();
+
   const handleNavigate = () => {
     if (window.innerWidth < 1024) onClose();
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   const visibleGroups = NAV_GROUPS.map((group) => {
-    if (group.label === 'មេ') {
+    if (group.label === 'ហិរញ្ញវត្ថុ' && isTenant) {
       const items = [...group.items];
-      if (isOwner && !items.some((it) => it.to === '/owner-report')) {
-        items.splice(1, 0, { to: '/owner-report', label: 'របាយការណ៍ប្រចាំខែ', icon: BarChart3 });
-      }
-      return { ...group, items };
-    }
-    if (group.label === 'ការគ្រប់គ្រង') {
-      const items = [...group.items];
-      if (isTenant && !items.some((it) => it.to === '/tenant/payments')) {
-        items.push({ to: '/tenant/payments', label: 'ការទូទាត់ (Payments)', icon: Wallet });
+      const finance = items[0];
+      if (finance?.children && !finance.children.some((child) => child.to === '/tenant/payments')) {
+        finance.children.push({ to: '/tenant/payments', label: 'ការទូទាត់របស់ខ្ញុំ', icon: Wallet });
       }
       return { ...group, items };
     }
@@ -371,10 +457,11 @@ const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
         </nav>
 
         <div className="border-t border-slate-100 p-3 dark:border-gray-800">
+          <UserCard isCollapsed={isCollapsed} />
           <button
             onClick={handleLogout}
             className={[
-              'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-red-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10',
+              'mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium text-red-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10',
               isCollapsed && 'justify-center px-2',
             ].join(' ')}
             title={isCollapsed ? 'ចេញពីប្រព័ន្ធ' : undefined}
