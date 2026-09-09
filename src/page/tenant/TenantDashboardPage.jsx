@@ -1,5 +1,5 @@
 // src/page/tenant/TenantDashboardPage.jsx
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Wallet,
@@ -32,7 +32,9 @@ import {
   Button,
   Card,
   EmptyState,
+  Input,
   Pagination,
+  Select,
   Skeleton,
   Table,
 } from '../../components/ui/index.js';
@@ -50,6 +52,30 @@ const PAYMENT_STATUS_COLORS = {
   PENDING: '#f59e0b',
   OVERDUE: '#dc2626',
   CANCELLED: '#6b7280',
+};
+
+const DATE_RANGE_OPTIONS = [
+  { value: 'this-month', label: 'ខែនេះ (This Month)' },
+  { value: 'last-month', label: 'ខែមុន (Last Month)' },
+  { value: 'last-3-months', label: '៣ ខែចុងក្រោយ (Last 3 Months)' },
+  { value: 'last-6-months', label: '៦ ខែចុងក្រោយ (Last 6 Months)' },
+  { value: 'this-year', label: 'ឆ្នាំនេះ (This Year)' },
+  { value: 'custom', label: 'ផ្ទាល់ខ្លួន (Custom)' },
+];
+
+const RANGE_LABELS = {
+  'this-month': 'ខែនេះ',
+  'last-month': 'ខែមុន',
+  'last-3-months': '៣ ខែចុងក្រោយ',
+  'last-6-months': '៦ ខែចុងក្រោយ',
+  'this-year': 'ឆ្នាំនេះ',
+  custom: 'ផ្ទាល់ខ្លួន',
+};
+
+const toMonthString = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
 };
 
 const SummaryCard = ({ icon, label, value, sub, highlight }) => (
@@ -83,16 +109,60 @@ export default function TenantDashboardPage() {
 
   const { dashboard, loading: dashboardLoading, error: dashboardError, fetchDashboard } =
     useTenantDashboard();
+
+  const [dateRange, setDateRange] = useState('this-year');
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo] = useState('');
+
+  const computeRange = useCallback(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
+
+    const lastNMonths = (n) => ({
+      from: toMonthString(new Date(y, m - (n - 1), 1)),
+      to: toMonthString(now),
+    });
+
+    switch (dateRange) {
+      case 'this-month': {
+        const cur = toMonthString(now);
+        return { from: cur, to: cur };
+      }
+      case 'last-month': {
+        const last = toMonthString(new Date(y, m - 1, 1));
+        return { from: last, to: last };
+      }
+      case 'last-3-months':
+        return lastNMonths(3);
+      case 'last-6-months':
+        return lastNMonths(6);
+      case 'custom':
+        if (customFrom && customTo) return { from: customFrom, to: customTo };
+        return lastNMonths(6);
+      default:
+        return { from: `${y}-01`, to: toMonthString(now) };
+    }
+  }, [dateRange, customFrom, customTo]);
+
+  const range = useMemo(() => computeRange(), [computeRange]);
+
   const { usage, payments, loading: trendsLoading, error: trendsError, fetchTrends } =
-    useTenantTrends();
+    useTenantTrends(range.from, range.to);
   const [page, setPage] = useState(0);
   const { invoices, pageData, loading: invoicesLoading, error: invoicesError, fetchInvoices } =
     useTenantInvoices(page, 10);
 
   const handleRefresh = () => {
     fetchDashboard();
-    fetchTrends();
+    fetchTrends(range.from, range.to);
     fetchInvoices(page, 10);
+  };
+
+  const clearFilters = () => {
+    setDateRange('this-year');
+    setCustomFrom('');
+    setCustomTo('');
   };
 
   if (dashboardLoading) {
@@ -183,6 +253,43 @@ export default function TenantDashboardPage() {
           description="ព័ត៌មានការទូទាត់ និងការប្រើប្រាស់នឹងបង្ហាញនៅពេលអ្នកត្រូវបានចាត់តាំងទៅកិច្ចសន្យាជួល។"
         />
       )}
+
+      {/* Filters */}
+      <Card>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <Select
+            label="រយៈពេល (Date Range)"
+            options={DATE_RANGE_OPTIONS}
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value)}
+          />
+        </div>
+        {dateRange === 'custom' && (
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+            <div className="w-full sm:w-56">
+              <Input
+                type="month"
+                label="ពី (From)"
+                value={customFrom}
+                onChange={(e) => setCustomFrom(e.target.value)}
+              />
+            </div>
+            <div className="w-full sm:w-56">
+              <Input
+                type="month"
+                label="ដល់ (To)"
+                value={customTo}
+                onChange={(e) => setCustomTo(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+        <div className="mt-3 flex justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={clearFilters}>
+            សម្អាត
+          </Button>
+        </div>
+      </Card>
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
@@ -309,7 +416,7 @@ export default function TenantDashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card
           title="ការប្រើប្រាស់ទឹក និងភ្លើង"
-          description="ប្រវត្តិការប្រើប្រាស់តាមខែ (ខែចុងក្រោយ ៦)"
+          description={`ប្រវត្តិការប្រើប្រាស់តាមខែ (${RANGE_LABELS[dateRange] || ''})`}
         >
           {trendsLoading ? (
             <div className="flex h-64 items-center justify-center">

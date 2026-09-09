@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import Navbar from "../layout/Navbar";
 import ManagerSidebar from "./ManagerSidebar";
 import { useSidebar } from "../../hooks/useSidebar";
+import RecoveryEmailGuard from "../ui/RecoveryEmailGuard";
 
 const ManagerLayout = () => {
   const { isOpen, toggle, close, isCollapsed } = useSidebar();
@@ -26,6 +27,8 @@ const ManagerLayout = () => {
           </div>
         </main>
       </div>
+
+      <RecoveryEmailGuard securityPagePath="/manager/security" />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Building2, ShieldCheck, KeyRound, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -13,7 +13,13 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await login(formData.email, formData.password);
+      const data = await login(formData.email, formData.password);
+      if (data && data.requiresTwoFactor) {
+        navigate('/auth/2fa', {
+          state: { challengeToken: data.challengeToken, redirectTo: '/' },
+        });
+        return;
+      }
       navigate('/');
     } catch {
       // error is handled by the hook
@@ -135,9 +141,9 @@ const LoginPage = () => {
                   <label className="block text-sm font-medium text-slate-700">
                     ពាក្យសម្ងាត់
                   </label>
-                  <a href="#forgot" className="text-xs font-semibold text-slate-900 hover:underline">
+                  <Link to="/forgot-password" className="text-xs font-semibold text-slate-900 hover:underline">
                     ភ្លេចពាក្យសម្ងាត់?
-                  </a>
+                  </Link>
                 </div>
                 <div className="relative">
                   <input

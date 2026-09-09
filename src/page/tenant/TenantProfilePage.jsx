@@ -1,6 +1,7 @@
 // src/page/tenant/TenantProfilePage.jsx
 import { useEffect, useState } from 'react';
-import { Save } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Save, Shield } from 'lucide-react';
 import { tenantApi } from '../../api/tenant.api';
 import { useTenantProfile } from '../../hooks/useTenantProfile';
 import { useToast } from '../../components/ui/Toast.jsx';
@@ -43,6 +44,7 @@ const EMPTY_FORM = {
 export default function TenantProfilePage() {
   const { profile, loading, error, fetchProfile } = useTenantProfile();
   const toast = useToast();
+  const navigate = useNavigate();
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
@@ -132,6 +134,14 @@ export default function TenantProfilePage() {
             ធ្វើបច្ចុប្បន្នភាពព័ត៌មានផ្ទាល់ខ្លួនរបស់អ្នក។
           </p>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          leftIcon={<Shield className="h-4 w-4" />}
+          onClick={() => navigate('/tenant/security')}
+        >
+          សន្តិសុខ
+        </Button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

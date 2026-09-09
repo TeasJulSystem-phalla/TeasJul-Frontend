@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import {
   Plus,
   Search,
@@ -16,6 +16,7 @@ import {
   KeyRound,
   UserCog,
   AlertTriangle,
+  X,
 } from 'lucide-react';
 import { useRoles } from '../../hooks/useRoles.js';
 import { usePermissions } from '../../hooks/usePermissions.js';
@@ -39,6 +40,7 @@ import {
   EmptyState,
   Skeleton,
 } from '../../components/ui/index.js';
+import PermissionManagerModal from './PermissionManagerModal.jsx';
 
 const ROLE_COLORS = ['bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-sky-500', 'bg-violet-500', 'bg-teal-500'];
 
@@ -121,13 +123,35 @@ export default function Roles() {
     return result;
   }, [roles, scope, searchTerm]);
 
-  const permissionsByModule = useMemo(() => {
-    const map = {};
-    for (const p of permissions) {
-      (map[p.module || 'ផ្សេងទៀត'] = map[p.module || 'ផ្សេងទៀត'] || []).push(p);
-    }
-    return map;
-  }, [permissions]);
+  const handleToggleModule = (modulePerms, checked) => {
+    setSelectedPerms((prev) => {
+      const next = { ...prev };
+      modulePerms.forEach((p) => {
+        next[p.id] = checked;
+      });
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    setSelectedPerms((prev) => {
+      const next = { ...prev };
+      permissions.forEach((p) => {
+        next[p.id] = true;
+      });
+      return next;
+    });
+  };
+
+  const handleClearAll = () => {
+    setSelectedPerms((prev) => {
+      const next = { ...prev };
+      permissions.forEach((p) => {
+        next[p.id] = false;
+      });
+      return next;
+    });
+  };
 
   // ---- Role modal helpers ----
   const openCreate = () => {
@@ -676,59 +700,20 @@ export default function Roles() {
       </Modal>
 
       {/* Manage permissions modal */}
-      <Modal
+      <PermissionManagerModal
         open={!!permModal}
         onClose={() => setPermModal(null)}
-        title={`គ្រប់គ្រងសិទ្ធិ`}
-        description={permModal ? `កំណត់សិទ្ធិសម្រាប់ "${permModal.name}"។` : undefined}
-        size="xl"
-        footer={
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => setPermModal(null)} disabled={savingPerms}>បោះបង់</Button>
-            <Button variant="primary" onClick={savePermissions} loading={savingPerms}>
-              {savingPerms ? 'កំពុងរក្សាទុក...' : 'រក្សាទុកសិទ្ធិ'}
-            </Button>
-          </div>
-        }
-      >
-        {permissionsLoading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-5 w-40" />
-            <Skeleton className="h-32 w-full rounded-lg" />
-            <Skeleton className="h-32 w-full rounded-lg" />
-          </div>
-        ) : (
-          <div className="space-y-5">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              ធីកសិទ្ធិដែលតួនាទីនេះគួរមាន។ ការរក្សាទុកនឹងជំនួសសំណុំទាំងមូល។
-            </p>
-            {Object.keys(permissionsByModule).length === 0 ? (
-              <EmptyState icon={Shield} title="រកមិនឃើញសិទ្ធិ" description="មិនមានសិទ្ធិណាមួយសម្រាប់កំណត់ទេ។" />
-            ) : (
-              Object.entries(permissionsByModule).map(([module, perms]) => (
-                <div key={module} className="rounded-lg border border-slate-200 p-4 dark:border-gray-800">
-                  <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">{module}</p>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {perms.map((p) => (
-                      <Checkbox
-                        key={p.id}
-                        label={
-                          <span>
-                            <span className="font-medium">{p.name}</span>
-                            <span className="ml-1 font-mono text-xs text-slate-400">{p.code}</span>
-                          </span>
-                        }
-                        checked={!!selectedPerms[p.id]}
-                        onChange={() => handleTogglePerm(p.id)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        )}
-      </Modal>
+        role={permModal}
+        permissions={permissions}
+        loading={permissionsLoading}
+        selected={selectedPerms}
+        onToggle={handleTogglePerm}
+        onToggleModule={handleToggleModule}
+        onSelectAll={handleSelectAll}
+        onClearAll={handleClearAll}
+        onSave={savePermissions}
+        saving={savingPerms}
+      />
 
       {/* Delete role */}
       <ConfirmDialog
@@ -796,15 +781,11 @@ const UserAssignmentsView = ({
     <Card>
       <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
         <div className="flex-1">
-          <Select
-            label="ជ្រើសរើសអ្នកប្រើប្រាស់"
-            placeholder="ជ្រើសរើសអ្នកប្រើប្រាស់ម្នាក់"
-            options={users.map((u) => ({
-              value: String(u.id),
-              label: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username || u.email || `អ្នកប្រើប្រាស់ #${u.id}`,
-            }))}
+          <UserPicker
+            users={users}
             value={selectedUserId}
-            onChange={(e) => onSelectUser(e.target.value)}
+            onSelect={(u) => onSelectUser(u.id)}
+            onClear={() => onSelectUser('')}
           />
         </div>
       </div>
@@ -814,7 +795,7 @@ const UserAssignmentsView = ({
       <EmptyState
         icon={UserCog}
         title="ជ្រើសរើសអ្នកប្រើប្រាស់"
-        description="ជ្រើសរើសអ្នកប្រើប្រាស់ខាងលើ ដើម្បីមើល និងគ្រប់គ្រងតួនាទីដែលបានកំណត់របស់ពួកគេ។"
+        description="ស្វែងរក និងជ្រើសរើសអ្នកប្រើប្រាស់ខាងលើ ដើម្បីមើល និងគ្រប់គ្រងតួនាទីដែលបានកំណត់របស់ពួកគេ។"
       />
     ) : (
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -890,3 +871,155 @@ const UserAssignmentsView = ({
     )}
   </div>
 );
+
+const USER_AVATAR_COLORS = [
+  'bg-blue-500',
+  'bg-emerald-500',
+  'bg-violet-500',
+  'bg-amber-500',
+  'bg-rose-500',
+  'bg-cyan-500',
+  'bg-pink-500',
+  'bg-indigo-500',
+  'bg-teal-500',
+];
+
+const pickUserColor = (str) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  return USER_AVATAR_COLORS[Math.abs(hash) % USER_AVATAR_COLORS.length];
+};
+
+const getUserLabel = (u) =>
+  `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username || u.email || `អ្នកប្រើ #${u.id}`;
+
+const getUserInitials = (u) => {
+  const f = u.firstName?.[0] || '';
+  const l = u.lastName?.[0] || '';
+  return (f + l).toUpperCase() || '?';
+};
+
+const UserAvatar = ({ user, size = 'h-9 w-9' }) => {
+  if (user.avatar) {
+    return <img src={user.avatar} alt="" className={`${size} shrink-0 rounded-full object-cover`} />;
+  }
+  return (
+    <span className={`flex ${size} shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${pickUserColor(getUserLabel(user))}`}>
+      {getUserInitials(user)}
+    </span>
+  );
+};
+
+const UserPicker = ({ users, value, onSelect, onClear }) => {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const rootRef = useRef(null);
+
+  const selected = users.find((u) => String(u.id) === String(value)) || null;
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return users;
+    return users.filter((u) =>
+      [u.firstName, u.lastName, u.username, u.email, u.phone]
+        .filter(Boolean)
+        .some((s) => s.toLowerCase().includes(q))
+    );
+  }, [users, query]);
+
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
+
+  const handlePick = (u) => {
+    onSelect(u);
+    setOpen(false);
+    setQuery('');
+  };
+
+  const handleClear = () => {
+    onClear();
+    setOpen(false);
+    setQuery('');
+  };
+
+  return (
+    <div ref={rootRef} className="relative w-full">
+      <p className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        ជ្រើសរើសអ្នកប្រើប្រាស់
+      </p>
+
+      {selected ? (
+        <div className="flex items-center justify-between gap-3 rounded-md border border-indigo-200 bg-indigo-50/60 px-3 py-2 dark:border-indigo-800/60 dark:bg-indigo-900/15">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <UserAvatar user={selected} />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-slate-800 dark:text-white">
+                {getUserLabel(selected)}
+              </p>
+              <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                @{selected.username}
+                {selected.email ? ` · ${selected.email}` : ''}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleClear}
+            aria-label="ដកចេញ"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-white hover:text-slate-700 dark:hover:bg-gray-800 dark:hover:text-white"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ) : (
+        <Input
+          leftIcon={<Search className="h-4 w-4" />}
+          placeholder="ស្វែងរកតាមឈ្មោះ អ៊ីមែល ឬលេខទូរស័ព្ទ..."
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+        />
+      )}
+
+      {open && !selected && (
+        <div className="absolute z-30 mt-1.5 w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
+          <div className="max-h-72 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <p className="px-4 py-6 text-center text-sm text-slate-400 dark:text-slate-500">
+                រកមិនឃើញអ្នកប្រើ
+              </p>
+            ) : (
+              filtered.map((u) => (
+                <button
+                  key={u.id}
+                  type="button"
+                  onClick={() => handlePick(u)}
+                  className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-slate-50 dark:hover:bg-gray-800"
+                >
+                  <UserAvatar user={u} size="h-8 w-8" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-slate-800 dark:text-white">
+                      {getUserLabel(u)}
+                    </span>
+                    <span className="block truncate text-xs text-slate-400 dark:text-slate-500">
+                      @{u.username}
+                      {u.email ? ` · ${u.email}` : ''}
+                    </span>
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

@@ -9,7 +9,10 @@ import HouseDetailPage from "../page/House/HouseDetailPage";
 import HouseAccessPage from "../page/House/HouseAccessPage";
 import Users from "../page/user/Users";
 import Profile from "../page/user/Profile";
+import SecuritySettingsPage from "../page/SecuritySettingsPage";
 import LoginPage from "../page/auth/LoginPage";
+import ForgotPasswordPage from "../page/auth/ForgotPasswordPage";
+import TwoFactorVerifyPage from "../page/auth/TwoFactorVerifyPage";
 import TenantInvitePage from "../page/auth/TenantInvitePage";
 import UiShowcase from "../components/ui/UiShowcase";
 import RoomTypesPage from "../page/Room/RoomTypePage";
@@ -54,6 +57,8 @@ const AppRoutes = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/auth/2fa" element={<TwoFactorVerifyPage />} />
         <Route path="/tenant/invite" element={<TenantInvitePage />} />
 
         <Route element={<ProtectedRoute />}>
@@ -66,6 +71,7 @@ const AppRoutes = () => {
               <Route path="/access" element={<HouseAccessPage />} />
               <Route path="/users" element={<Users />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/settings/security" element={<SecuritySettingsPage />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/roomtype" element={<RoomTypesPage />} />
               <Route path="/roles" element={<RolesPage />} />
@@ -140,6 +146,7 @@ const AppRoutes = () => {
               />
               <Route path="/manager/access" element={<HouseAccessPage />} />
               <Route path="/manager/profile" element={<Profile />} />
+              <Route path="/manager/security" element={<SecuritySettingsPage />} />
               <Route
                 path="/manager/notifications"
                 element={<Notifications />}
@@ -222,6 +229,7 @@ const AppRoutes = () => {
                 element={<TenantDashboardPage />}
               />
               <Route path="/tenant/profile" element={<TenantProfilePage />} />
+              <Route path="/tenant/security" element={<SecuritySettingsPage />} />
               <Route path="/tenant/notifications" element={<Notifications />} />
               <Route
                 path="/tenant/maintenance"

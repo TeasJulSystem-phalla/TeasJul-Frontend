@@ -240,7 +240,8 @@ const TenantInvitePage = () => {
             value={form.email}
             onChange={handleChange('email')}
             error={errors.email}
-            placeholder="tenant@example.com"
+            placeholder="john@rental.com"
+            helpText="អ៊ីមែលគណនីត្រូវបញ្ចប់ដោយ @rental.com (ឧ. john@rental.com)"
             disabled={emailLocked}
             leftIcon={<Mail className="h-4 w-4" />}
           />

@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import Navbar from "../layout/Navbar";
 import TenantSidebar from "./TenantSidebar";
 import { useSidebar } from "../../hooks/useSidebar";
+import RecoveryEmailGuard from "../ui/RecoveryEmailGuard";
 
 const TenantLayout = () => {
   const { isOpen, toggle, close, isCollapsed } = useSidebar();
@@ -26,6 +27,8 @@ const TenantLayout = () => {
           </div>
         </main>
       </div>
+
+      <RecoveryEmailGuard securityPagePath="/tenant/security" />
     </div>
   );
 };

@@ -28,19 +28,19 @@ export function useTenantDashboard() {
   return { dashboard, loading, error, fetchDashboard };
 }
 
-export function useTenantTrends() {
+export function useTenantTrends(from, to) {
   const [usage, setUsage] = useState(null);
   const [payments, setPayments] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchTrends = useCallback(async (range) => {
+  const fetchTrends = useCallback(async (fromValue, toValue) => {
     setLoading(true);
     setError(null);
     try {
       const params = {};
-      if (range?.from) params.from = range.from;
-      if (range?.to) params.to = range.to;
+      if (fromValue) params.from = fromValue;
+      if (toValue) params.to = toValue;
       const [usageData, paymentData] = await Promise.all([
         tenantDashboardApi.getUtilityUsage(params),
         tenantDashboardApi.getPaymentHistory(params),
@@ -55,12 +55,8 @@ export function useTenantTrends() {
   }, []);
 
   useEffect(() => {
-    const now = new Date();
-    const to = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const start = new Date(now.getFullYear(), now.getMonth() - 5, 1);
-    const from = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}`;
-    fetchTrends({ from, to });
-  }, [fetchTrends]);
+    fetchTrends(from, to);
+  }, [fetchTrends, from, to]);
 
   return { usage, payments, loading, error, fetchTrends };
 }

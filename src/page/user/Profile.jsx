@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   User,
   Mail,
@@ -137,6 +138,14 @@ const InfoItem = ({ icon: Icon, label, value, subValue }) => (
 
 const Profile = () => {
   const toast = useToast();
+  const navigate = useNavigate();
+
+  const securityPath = () => {
+    const { pathname } = window.location;
+    if (pathname.startsWith("/manager")) return "/manager/security";
+    if (pathname.startsWith("/tenant")) return "/tenant/security";
+    return "/settings/security";
+  };
 
   const [user, setUser] = useState(null);
   const [houses, setHouses] = useState([]);
@@ -317,15 +326,26 @@ const Profile = () => {
             គ្រប់គ្រងព័ត៌មានផ្ទាល់ខ្លួន និងសិទ្ធិចូលប្រើផ្ទះ
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          leftIcon={<Edit3 className="h-4 w-4" />}
-          onClick={openEdit}
-          className="border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-        >
-          កែប្រែប្រវត្តិរូប
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<Shield className="h-4 w-4" />}
+            onClick={() => navigate(securityPath())}
+            className="border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+          >
+            សន្តិសុខ
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<Edit3 className="h-4 w-4" />}
+            onClick={openEdit}
+            className="border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+          >
+            កែប្រែប្រវត្តិរូប
+          </Button>
+        </div>
       </div>
 
       {/* Profile Card */}

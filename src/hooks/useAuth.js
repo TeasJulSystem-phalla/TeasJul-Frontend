@@ -16,6 +16,11 @@ export function useAuth() {
       setError(null);
       try {
         const data = await authApi.login(usernameOrEmail, password);
+
+        // If 2FA is required, the backend returns a challenge (no JWT yet).
+        if (data && data.requiresTwoFactor) {
+          return data;
+        }
         setAuth(data.token, data.user);
         return data;
       } catch (err) {
