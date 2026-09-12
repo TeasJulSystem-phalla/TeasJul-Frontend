@@ -27,6 +27,7 @@ import {
   UserCheck,
   ChevronRight,
   FilePlus,
+  FileSpreadsheet,
   Zap,
 } from 'lucide-react';
 import { useRooms, useRoomAmenities } from '../../hooks/useRooms.js';
@@ -40,6 +41,7 @@ import { useToast } from '../../components/ui/Toast.jsx';
 import { useBasePath } from '../../hooks/useBasePath.js';
 import {
   Card,
+  CountUp,
   Button,
   Table,
   Badge,
@@ -508,6 +510,14 @@ export default function Rooms() {
           <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>
             ធ្វើឱ្យស្រស់
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<FileSpreadsheet className="h-4 w-4" />}
+            onClick={() => navigate(`${basePath}/rooms/import${houseFilter ? `?houseId=${houseFilter}` : ''}`)}
+          >
+            នាំចូល CSV/Excel
+          </Button>
           <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>
             បង្កើតបន្ទប់
           </Button>
@@ -538,7 +548,7 @@ export default function Rooms() {
           >
             <div>
               <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">បន្ទប់សរុប</p>
-              <p className="text-xl font-bold text-slate-800 dark:text-white">{stats.total}</p>
+              <p className="text-xl font-bold text-slate-800 dark:text-white"><CountUp value={stats.total} /></p>
             </div>
             <BedDouble className="h-5 w-5 text-slate-400" />
           </button>
@@ -554,7 +564,7 @@ export default function Rooms() {
           >
             <div>
               <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">ទំនេរ</p>
-              <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{stats.available}</p>
+              <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400"><CountUp value={stats.available} /></p>
             </div>
             <CheckCircle2 className="h-5 w-5 text-emerald-500" />
           </button>
@@ -570,7 +580,7 @@ export default function Rooms() {
           >
             <div>
               <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">មានអ្នកស្នាក់នៅ</p>
-              <p className="text-xl font-bold text-slate-700 dark:text-slate-300">{stats.occupied}</p>
+              <p className="text-xl font-bold text-slate-700 dark:text-slate-300"><CountUp value={stats.occupied} /></p>
             </div>
             <DoorOpen className="h-5 w-5 text-slate-400" />
           </button>
@@ -586,7 +596,7 @@ export default function Rooms() {
           >
             <div>
               <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">កំពុងជួសជុល</p>
-              <p className="text-xl font-bold text-amber-600 dark:text-amber-400">{stats.maintenance}</p>
+              <p className="text-xl font-bold text-amber-600 dark:text-amber-400"><CountUp value={stats.maintenance} /></p>
             </div>
             <Wrench className="h-5 w-5 text-amber-500" />
           </button>

@@ -81,6 +81,8 @@ export default function PaymentsPage() {
 
   const [houseFilter, setHouseFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [applied, setApplied] = useState({});
 
   const [recordOpen, setRecordOpen] = useState(false);
@@ -123,17 +125,33 @@ export default function PaymentsPage() {
     fetchPayments(applied);
   }, [fetchPayments, applied]);
 
-  const applyFilters = () => {
+  const applyImmediately = (partial) => {
+    const houseId = partial.houseId !== undefined ? partial.houseId : houseFilter;
+    const status = partial.status !== undefined ? partial.status : statusFilter;
+    const from = partial.fromDate !== undefined ? partial.fromDate : fromDate;
+    const to = partial.toDate !== undefined ? partial.toDate : toDate;
+    setHouseFilter(houseId);
+    setStatusFilter(status);
+    setFromDate(from);
+    setToDate(to);
     setApplied({
-      houseId: houseFilter || undefined,
-      status: statusFilter || undefined,
+      houseId: houseId || undefined,
+      status: status || undefined,
+      fromDate: from || undefined,
+      toDate: to || undefined,
     });
     if (page !== 0) setPage(0);
+  };
+
+  const applyFilters = () => {
+    applyImmediately({});
   };
 
   const clearFilters = () => {
     setHouseFilter('');
     setStatusFilter('');
+    setFromDate('');
+    setToDate('');
     setApplied({});
     if (page !== 0) setPage(0);
   };
@@ -346,6 +364,22 @@ export default function PaymentsPage() {
         <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកការទូទាត់" description={error} dismissible />
       )}
 
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="w-full sm:w-56">
+          <Select options={houseOptions} value={houseFilter} onChange={(e) => applyImmediately({ houseId: e.target.value })} placeholder="អចលនទ្រព្យទាំងអស់" />
+        </div>
+        <div className="w-full sm:w-40">
+          <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => applyImmediately({ status: e.target.value })} placeholder="ស្ថានភាពទាំងអស់" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Input type="date" value={fromDate} onChange={(e) => applyImmediately({ fromDate: e.target.value })} aria-label="ពីកាលបរិច្ឆេទ" />
+          <span className="text-xs text-slate-400">→</span>
+          <Input type="date" value={toDate} onChange={(e) => applyImmediately({ toDate: e.target.value })} aria-label="ដល់កាលបរិច្ឆេទ" />
+        </div>
+        <Button variant="outline" size="sm" onClick={applyFilters}>អនុវត្ត</Button>
+        <Button variant="outline" size="sm" onClick={clearFilters}>សម្អាត</Button>
+      </div>
+
       {!loading && payments.length === 0 ? (
         <EmptyState
           icon={Wallet}
@@ -359,17 +393,6 @@ export default function PaymentsPage() {
         />
       ) : (
         <>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="w-full sm:w-56">
-              <Select options={houseOptions} value={houseFilter} onChange={(e) => setHouseFilter(e.target.value)} placeholder="អចលនទ្រព្យទាំងអស់" />
-            </div>
-            <div className="w-full sm:w-40">
-              <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} placeholder="ស្ថានភាពទាំងអស់" />
-            </div>
-            <Button variant="outline" size="sm" onClick={applyFilters}>អនុវត្ត</Button>
-            <Button variant="outline" size="sm" onClick={clearFilters}>សម្អាត</Button>
-          </div>
-
           <Card>
             <Table columns={columns} data={payments} keyExtractor={(row) => row.id} className="w-full" />
           </Card>

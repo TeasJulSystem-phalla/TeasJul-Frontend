@@ -36,6 +36,7 @@ import {
   Skeleton,
   Dropdown,
   Table,
+  CountUp,
 } from '../../components/ui/index.js';
 
 const STATUS_META = {
@@ -287,7 +288,8 @@ export default function Contracts() {
           />
           <HeroStat
             label="ថ្លៃជួលប្រចាំខែ"
-            value={formatCurrency(stats.monthlyRent)}
+            value={stats.monthlyRent}
+            formatter={formatCurrency}
             icon={<Wallet className="h-5 w-5" />}
             tone="violet"
             sub="នៃកិច្ចសន្យាសកម្ម"
@@ -443,7 +445,7 @@ export default function Contracts() {
 
 /* ---------- Presentational helpers ---------- */
 
-const HeroStat = ({ label, value, icon, tone = 'slate', sub, subTone = 'muted' }) => {
+const HeroStat = ({ label, value, icon, tone = 'slate', sub, subTone = 'muted', formatter }) => {
   const tones = {
     slate: 'bg-slate-100 text-slate-600 dark:bg-gray-800 dark:text-slate-300',
     emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
@@ -460,7 +462,7 @@ const HeroStat = ({ label, value, icon, tone = 'slate', sub, subTone = 'muted' }
         <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}>{icon}</span>
         <div className="min-w-0">
           <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">{label}</p>
-          <p className="truncate text-xl font-bold text-slate-800 dark:text-white">{value}</p>
+          <p className="truncate text-xl font-bold text-slate-800 dark:text-white"><CountUp value={value} formatter={formatter} /></p>
         </div>
       </div>
       {sub && <p className={`mt-2 text-xs font-medium ${subTones[subTone]}`}>{sub}</p>}

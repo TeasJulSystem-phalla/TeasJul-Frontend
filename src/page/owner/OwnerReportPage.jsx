@@ -35,7 +35,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { Alert, Button, Card, EmptyState, Select, Skeleton } from '../../components/ui/index.js';
+import { Alert, Button, Card, CountUp, EmptyState, Select, Skeleton } from '../../components/ui/index.js';
 import RevenueTrendChart from '../../components/charts/RevenueTrendChart';
 import { useHouses } from '../../hooks/useHouses.js';
 import { useOwnerReport } from '../../hooks/useOwnerReport.js';
@@ -107,7 +107,7 @@ const SectionTitle = ({ children }) => (
   </div>
 );
 
-const KpiCard = ({ label, value, sub, icon: Icon, accent }) => (
+const KpiCard = ({ label, value, sub, icon: Icon, accent, formatter, suffix }) => (
   <div className="rounded-xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-md hover:shadow-slate-900/5 dark:border-gray-800 dark:bg-gray-900 dark:hover:shadow-black/20">
     <span
       className={`flex h-10 w-10 items-center justify-center rounded-lg ${
@@ -116,7 +116,9 @@ const KpiCard = ({ label, value, sub, icon: Icon, accent }) => (
     >
       <Icon className="h-5 w-5" />
     </span>
-    <p className="mt-4 text-2xl font-semibold text-slate-800 dark:text-white">{value}</p>
+    <p className="mt-4 text-2xl font-semibold text-slate-800 dark:text-white">
+      <CountUp value={value} formatter={formatter} suffix={suffix} />
+    </p>
     <p className="mt-0.5 text-[13px] text-slate-500 dark:text-slate-400">{label}</p>
     {sub && <p className="mt-2 text-[12px] font-medium text-slate-400 dark:text-slate-500">{sub}</p>}
   </div>
@@ -125,7 +127,7 @@ const KpiCard = ({ label, value, sub, icon: Icon, accent }) => (
 const StatPanel = ({ icon: Icon, title, rows }) => (
   <Card title={title}>
     <div className="divide-y divide-slate-100 dark:divide-gray-800">
-      {rows.map(([label, value, accent]) => (
+      {rows.map(([label, value, accent, options]) => (
         <div key={label} className="flex items-center justify-between gap-3 py-2.5">
           <span className="flex items-center gap-2 text-[13px] text-slate-500 dark:text-slate-400">
             <Icon className="h-4 w-4 shrink-0" />
@@ -136,7 +138,7 @@ const StatPanel = ({ icon: Icon, title, rows }) => (
               accent || 'text-slate-800 dark:text-white'
             }`}
           >
-            {value}
+            {typeof value === 'number' ? <CountUp value={value} {...options} /> : value}
           </span>
         </div>
       ))}
@@ -348,37 +350,43 @@ export default function OwnerReportPage() {
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
             <KpiCard
               label="ថ្លៃឈ្នួលសរុប (Rent Billed)"
-              value={formatCurrency(fin.totalRent)}
+              value={fin.totalRent}
+              formatter={formatCurrency}
               icon={FileBarChart}
               accent="bg-slate-100 text-slate-600 dark:bg-gray-800 dark:text-slate-300"
             />
             <KpiCard
               label="ទទួលបាន (Collected)"
-              value={formatCurrency(fin.totalPaid)}
+              value={fin.totalPaid}
+              formatter={formatCurrency}
               icon={HandCoins}
               accent="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
             />
             <KpiCard
               label="នៅសល់ត្រូវបង់ (Outstanding)"
-              value={formatCurrency(fin.totalOutstanding)}
+              value={fin.totalOutstanding}
+              formatter={formatCurrency}
               icon={AlertCircle}
               accent="bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400"
             />
             <KpiCard
               label="ប្រាក់កក់ (Deposits)"
-              value={formatCurrency(fin.totalDeposits)}
+              value={fin.totalDeposits}
+              formatter={formatCurrency}
               icon={Wallet}
               accent="bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400"
             />
             <KpiCard
               label="ចំណាយ (Expenses)"
-              value={formatCurrency(fin.totalExpenses)}
+              value={fin.totalExpenses}
+              formatter={formatCurrency}
               icon={Wrench}
               accent="bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"
             />
             <KpiCard
               label="ចំណូលសុទ្ធ (Net Revenue)"
-              value={formatCurrency(fin.netRevenue)}
+              value={fin.netRevenue}
+              formatter={formatCurrency}
               icon={TrendingUp}
               accent="bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400"
             />
@@ -414,7 +422,8 @@ export default function OwnerReportPage() {
             />
             <KpiCard
               label="អត្រាកាន់កាប់ (Occupancy Rate)"
-              value={`${rooms.occupancyRate}%`}
+              value={rooms.occupancyRate}
+              suffix="%"
               icon={Percent}
               accent="bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400"
             />
@@ -460,7 +469,7 @@ export default function OwnerReportPage() {
                 ['បានបង់ (Paid)', payments.paidPayments],
                 ['កំពុងរង់ចាំ (Pending)', payments.pendingPayments],
                 ['ហួសកំណត់ (Overdue)', payments.overduePayments, 'text-red-600 dark:text-red-400'],
-                ['ទឹកប្រាក់ទទួលបាន', formatCurrency(payments.totalPaymentAmount), 'text-emerald-600 dark:text-emerald-400'],
+                ['ទឹកប្រាក់ទទួលបាន', payments.totalPaymentAmount, 'text-emerald-600 dark:text-emerald-400', { decimals: 2, formatter: formatCurrency }],
               ]}
             />
             <StatPanel
@@ -469,10 +478,12 @@ export default function OwnerReportPage() {
               rows={[
                 ['ទឹកស្អាត (m³)', utilities.totalWaterUsage],
                 ['អគ្គិសនី (kWh)', utilities.totalElectricityUsage],
-                ['តម្លៃប្រើប្រាស់សរុប', formatCurrency(utilities.totalUtilityCharges)],
+                ['តម្លៃប្រើប្រាស់សរុប', utilities.totalUtilityCharges, undefined, { decimals: 2, formatter: formatCurrency }],
                 [
                   'វិក្កយបត្រ បានបង់ / នៅសល់',
-                  `${utilities.paidUtilityBills} / ${utilities.outstandingUtilityBills}`,
+                  <>
+                    <CountUp value={utilities.paidUtilityBills} /> / <CountUp value={utilities.outstandingUtilityBills} />
+                  </>,
                   'text-emerald-600 dark:text-emerald-400',
                 ],
               ]}
@@ -486,7 +497,7 @@ export default function OwnerReportPage() {
                 ['កំពុងដំណើរការ', maintenance.inProgressRequests],
                 ['បានដោះស្រាយ', maintenance.completedRequests],
                 ['បានលុប', maintenance.cancelledRequests],
-                ['ចំណាយសរុប', formatCurrency(maintenance.totalCost), 'text-red-600 dark:text-red-400'],
+                ['ចំណាយសរុប', maintenance.totalCost, 'text-red-600 dark:text-red-400', { decimals: 2, formatter: formatCurrency }],
               ]}
             />
           </div>

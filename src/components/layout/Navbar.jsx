@@ -108,7 +108,7 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
 
           {/* Brand — shown on mobile, and on desktop when the sidebar is collapsed */}
           <div className={isCollapsed ? 'flex items-center gap-2' : 'flex items-center gap-2 lg:hidden'}>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-800 text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
               <Home className="h-4 w-4" />
             </div>
             <span className="text-[15px] font-semibold text-slate-800 dark:text-white">RentalHub</span>
@@ -246,7 +246,7 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
               className="flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-slate-100 dark:hover:bg-gray-800"
               aria-label="គណនី"
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-gray-700 to-gray-900 text-[13px] font-semibold text-white">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-[13px] font-semibold text-white">
                 {initials || 'U'}
               </span>
               <span className="hidden text-left md:block">

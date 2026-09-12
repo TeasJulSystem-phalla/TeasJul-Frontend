@@ -52,7 +52,5 @@ export function useRoomOccupants() {
     recompute();
   }, [recompute]);
 
-  window.__occu = { contractsLen: contracts?.length, contracts, cLoading, cError, tenantsLen: tenants?.length, tenants, tLoading, tError, active: activeContracts, occupants, loading };
-
   return { occupants, loading, recompute };
 }

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   Building2,
@@ -13,6 +13,8 @@ import {
   CheckCircle2,
   DoorOpen,
   Calendar,
+  Hand,
+  FileSpreadsheet,
 } from 'lucide-react';
 import {
   useRoomTypes,
@@ -90,6 +92,7 @@ export default function HouseDetailPage() {
   const { id } = useParams();
   const houseId = Number(id);
   const basePath = useBasePath();
+  const navigate = useNavigate();
 
   const { roomTypes } = useRoomTypes();
 
@@ -357,9 +360,27 @@ export default function HouseDetailPage() {
             </p>
           )}
         </div>
-        <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refreshAll}>
-          ធ្វើឱ្យស្រស់
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<Hand className="h-4 w-4" />}
+            onClick={() => navigate(`${basePath}/properties/${id}/onboarding/manual`)}
+          >
+            បញ្ចូលដោយដៃ
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<FileSpreadsheet className="h-4 w-4" />}
+            onClick={() => navigate(`${basePath}/properties/${id}/onboarding/import`)}
+          >
+            នាំចូល CSV/Excel
+          </Button>
+          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refreshAll}>
+            ធ្វើឱ្យស្រស់
+          </Button>
+        </div>
       </div>
 
       {/* Summary stats */}

@@ -25,6 +25,7 @@ import { useRooms } from '../../hooks/useRooms';
 import { useRoomAmenities } from '../../hooks/useRooms';
 import { useHouses } from '../../hooks/useHouses';
 import { useRoomTypes } from '../../hooks/useRoomType';
+import { useSettings } from '../../hooks/useSettings';
 import { useAuthStore } from '../../store/auth.store';
 import { useBasePath } from '../../hooks/useBasePath.js';
 import { EmptyState, Button, Skeleton, Badge } from '../../components/ui/index.js';
@@ -60,6 +61,7 @@ export default function ContractDetailPage() {
   const { getRoom } = useRooms();
   const { houses } = useHouses();
   const { roomTypes } = useRoomTypes();
+  const { settings } = useSettings();
   const user = useAuthStore((s) => s.user);
 
   const { contractTenants, fetchContractTenants } = useContractTenants(contractId);
@@ -267,6 +269,7 @@ export default function ContractDetailPage() {
             contractTenants={contractTenants}
             deposits={deposits}
             renewals={renewals}
+            settings={settings}
             onPrint={handlePrint}
             onDownload={handleDownloadPdf}
             onRefresh={handleRefresh}

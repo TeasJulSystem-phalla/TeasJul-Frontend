@@ -25,7 +25,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { Alert, Button, Card, EmptyState, Select, Input, Skeleton } from '../components/ui/index.js';
+import { Alert, Button, Card, CountUp, EmptyState, Select, Input, Skeleton } from '../components/ui/index.js';
 import RevenueTrendChart from '../components/charts/RevenueTrendChart';
 import { useHouses } from '../hooks/useHouses.js';
 import { useOwnerDashboard } from '../hooks/useOwnerDashboard.js';
@@ -39,6 +39,8 @@ const PAYMENT_STATUS_COLORS = {
   CANCELLED: '#6b7280',
   DRAFT: '#94a3b8',
 };
+
+const HOUSE_REVENUE_COLORS = ['var(--app-primary)', 'var(--app-secondary)', '#64748b', '#94a3b8', '#cbd5e1'];
 
 const PAYMENT_STATUS_LABELS = {
   PAID: 'បានបង់',
@@ -104,7 +106,7 @@ const toDateString = (date) => {
   return `${y}-${m}-${d}`;
 };
 
-const KpiCard = ({ label, value, sub, icon: Icon, accent }) => (
+const KpiCard = ({ label, value, subValue, icon: Icon, accent, formatter, subFormatter, suffix }) => (
   <div className="rounded-xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-md hover:shadow-slate-900/5 dark:border-gray-800 dark:bg-gray-900 dark:hover:shadow-black/20">
     <div className="flex items-start justify-between">
       <span
@@ -115,9 +117,15 @@ const KpiCard = ({ label, value, sub, icon: Icon, accent }) => (
         <Icon className="h-5 w-5" />
       </span>
     </div>
-    <p className="mt-4 text-2xl font-semibold text-slate-800 dark:text-white">{value}</p>
+    <p className="mt-4 text-2xl font-semibold text-slate-800 dark:text-white">
+      <CountUp value={value} suffix={suffix} formatter={formatter} />
+    </p>
     <p className="mt-0.5 text-[13px] text-slate-500 dark:text-slate-400">{label}</p>
-    {sub && <p className="mt-2 text-[12px] font-medium text-slate-400 dark:text-slate-500">{sub}</p>}
+    {subValue !== undefined && subValue !== null && (
+      <p className="mt-2 text-[12px] font-medium text-slate-400 dark:text-slate-500">
+        <CountUp value={subValue} decimals={2} formatter={subFormatter} />
+      </p>
+    )}
   </div>
 );
 
@@ -378,21 +386,26 @@ export default function Dashboard() {
             />
             <KpiCard
               label="អត្រាកាន់កាប់ (Occupancy)"
-              value={`${kpis.occupancyRate}%`}
+              value={kpis.occupancyRate}
+              suffix="%"
               icon={TrendingUp}
               accent="bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400"
             />
             <KpiCard
               label="ចំណូល (Revenue)"
-              value={formatCompactCurrency(kpis.totalRevenue)}
-              sub={formatCurrency(kpis.totalRevenue)}
+              value={kpis.totalRevenue}
+              formatter={formatCompactCurrency}
+              subValue={kpis.totalRevenue}
+              subFormatter={formatCurrency}
               icon={Wallet}
               accent="bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"
             />
             <KpiCard
               label="ហួសកំណត់ (Overdue)"
-              value={formatCompactCurrency(kpis.overdueAmount)}
-              sub={formatCurrency(kpis.overdueAmount)}
+              value={kpis.overdueAmount}
+              formatter={formatCompactCurrency}
+              subValue={kpis.overdueAmount}
+              subFormatter={formatCurrency}
               icon={AlertCircle}
               accent="bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400"
             />
@@ -484,7 +497,7 @@ export default function Dashboard() {
                       />
                       <Bar dataKey="revenue" name="ចំណូល" radius={[4, 4, 0, 0]}>
                         {revenueByHouse.map((_, i) => (
-                          <Cell key={i} fill={['#7c3aed', '#0ea5e9', '#059669', '#f59e0b', '#ec4899'][i % 5]} />
+                          <Cell key={i} fill={HOUSE_REVENUE_COLORS[i % HOUSE_REVENUE_COLORS.length]} />
                         ))}
                       </Bar>
                     </BarChart>

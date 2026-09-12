@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 const ContractDetailView = forwardRef(function ContractDetailView(
-  { contract, landlord, house, room, roomType, roomAmenities, tenantsById, contractTenants, deposits, renewals, onPrint, onDownload, onRefresh },
+  { contract, landlord, house, room, roomType, roomAmenities, tenantsById, contractTenants, deposits, renewals, settings, onPrint, onDownload, onRefresh },
   ref
 ) {
   return (
@@ -44,6 +44,7 @@ const ContractDetailView = forwardRef(function ContractDetailView(
         contractTenants={contractTenants}
         deposits={deposits}
         renewals={renewals}
+        settings={settings}
       />
     </div>
   );

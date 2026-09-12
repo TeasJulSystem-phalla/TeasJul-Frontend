@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 
 const variants = {
   primary:
-    'bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100',
+    'bg-primary text-white hover:bg-primary/90 dark:bg-primary dark:text-white dark:hover:bg-primary/80',
   secondary:
     'bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700',
   outline:
@@ -47,9 +47,9 @@ const Button = forwardRef(
         className={`
           inline-flex items-center justify-center gap-2 rounded-md font-medium
           transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2
-          focus-visible:ring-gray-900 focus-visible:ring-offset-2
+          focus-visible:ring-primary focus-visible:ring-offset-2
           disabled:pointer-events-none disabled:opacity-50
-          dark:focus-visible:ring-white
+          dark:focus-visible:ring-primary
           ${variants[variant] || variants.primary}
           ${sizes[size] || sizes.md}
           ${fullWidth ? 'w-full' : ''}

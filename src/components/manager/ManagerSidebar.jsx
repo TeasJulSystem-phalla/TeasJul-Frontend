@@ -20,6 +20,7 @@ import {
   MailPlus,
   Bell,
   BarChart3,
+  Bot,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 
@@ -56,6 +57,7 @@ const NAV_GROUPS = [
   {
     label: 'ជំនួយ',
     items: [
+      { to: '/manager/assistant', label: 'ជំនួយការ AI', icon: Bot },
       { to: '/manager/help', label: 'ជំនួយ និងការគាំទ្រ', icon: HelpCircle },
     ],
   },
@@ -63,7 +65,7 @@ const NAV_GROUPS = [
 
 const Brand = ({ isCollapsed }) => (
   <div className="flex h-16 items-center gap-3 border-b border-slate-100 px-5 dark:border-gray-800">
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-800 text-white shadow-sm shadow-gray-800/30">
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-sm shadow-primary/30">
       <Home className="h-5 w-5" />
     </div>
     {!isCollapsed && (
@@ -88,7 +90,7 @@ const ManagerSidebarLink = ({ item, isCollapsed, onNavigate }) => {
         [
           'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors',
           isActive
-            ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-white'
+            ? 'bg-primary/10 text-primary dark:bg-primary/15 dark:text-primary'
             : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-gray-800 dark:hover:text-slate-100',
           isCollapsed && 'justify-center px-2',
         ].join(' ')
@@ -97,12 +99,12 @@ const ManagerSidebarLink = ({ item, isCollapsed, onNavigate }) => {
       {({ isActive }) => (
         <>
           {isActive && (
-            <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gray-800" />
+            <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary dark:bg-primary" />
           )}
           <Icon
             className={`h-5 w-5 shrink-0 ${
               isActive
-                ? 'text-gray-800 dark:text-white'
+                ? 'text-primary dark:text-primary'
                 : 'text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300'
             }`}
           />

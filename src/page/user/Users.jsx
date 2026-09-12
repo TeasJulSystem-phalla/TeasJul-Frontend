@@ -31,6 +31,7 @@ import Select from "../../components/ui/Select";
 import Modal from "../../components/ui/Modal";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import Pagination from "../../components/ui/Pagination";
+import CountUp from "../../components/ui/CountUp";
 
 const STATUS_OPTIONS = [
   { value: "", label: "ស្ថានភាពទាំងអស់" },
@@ -355,7 +356,7 @@ const Users = () => {
               </div>
               <div>
                 <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">សរុប</p>
-                <p className="text-xl font-bold text-slate-800 dark:text-white">{stats.total}</p>
+                <p className="text-xl font-bold text-slate-800 dark:text-white"><CountUp value={stats.total} /></p>
               </div>
             </div>
           </div>
@@ -366,7 +367,7 @@ const Users = () => {
               </div>
               <div>
                 <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">សកម្ម</p>
-                <p className="text-xl font-bold text-green-700 dark:text-green-400">{stats.active}</p>
+                <p className="text-xl font-bold text-green-700 dark:text-green-400"><CountUp value={stats.active} /></p>
               </div>
             </div>
           </div>
@@ -377,7 +378,7 @@ const Users = () => {
               </div>
               <div>
                 <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">អសកម្ម</p>
-                <p className="text-xl font-bold text-red-700 dark:text-red-400">{stats.inactive}</p>
+                <p className="text-xl font-bold text-red-700 dark:text-red-400"><CountUp value={stats.inactive} /></p>
               </div>
             </div>
           </div>
@@ -388,7 +389,7 @@ const Users = () => {
               </div>
               <div>
                 <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">ចាក់សោ</p>
-                <p className="text-xl font-bold text-amber-700 dark:text-amber-400">{stats.locked}</p>
+                <p className="text-xl font-bold text-amber-700 dark:text-amber-400"><CountUp value={stats.locked} /></p>
               </div>
             </div>
           </div>

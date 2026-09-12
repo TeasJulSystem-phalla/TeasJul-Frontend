@@ -41,7 +41,7 @@ const StatusPill = ({ status }) => (
 
 /* ---------- Sections ---------- */
 
-export const KhmerContractHeader = ({ contract }) => (
+export const KhmerContractHeader = ({ contract, contractTitle }) => (
   <div className="text-center border-b-[3px] border-slate-900 pb-5 mb-6">
     {/* National-style header */}
     <div className="relative mx-auto mb-3 h-16 w-16">
@@ -63,7 +63,7 @@ export const KhmerContractHeader = ({ contract }) => (
 
     <div className="mt-4 inline-block border-t-2 border-b-2 border-slate-900 px-8 py-2">
       <h2 className="text-[20px] font-black uppercase tracking-[0.2em] text-slate-900 font-khmer">
-        កិច្ចសន្យាជួលផ្ទះ
+        {contractTitle || 'កិច្ចសន្យាជួលផ្ទះ'}
       </h2>
     </div>
 

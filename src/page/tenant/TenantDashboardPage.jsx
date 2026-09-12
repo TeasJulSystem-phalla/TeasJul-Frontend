@@ -31,6 +31,7 @@ import {
   Badge,
   Button,
   Card,
+  CountUp,
   EmptyState,
   Input,
   Pagination,
@@ -78,7 +79,7 @@ const toMonthString = (date) => {
   return `${y}-${m}`;
 };
 
-const SummaryCard = ({ icon, label, value, sub, highlight }) => (
+const SummaryCard = ({ icon, label, value, sub, highlight, countUpValue, formatter, suffix }) => (
   <Card className="flex flex-col">
     <div className="flex items-start justify-between">
       <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-500 dark:bg-gray-800 dark:text-slate-400">
@@ -93,7 +94,11 @@ const SummaryCard = ({ icon, label, value, sub, highlight }) => (
           : 'text-slate-900 dark:text-white'
       }`}
     >
-      {value}
+      {countUpValue === undefined || countUpValue === null ? (
+        value
+      ) : (
+        <CountUp value={countUpValue} formatter={formatter} suffix={suffix} />
+      )}
     </p>
     {sub && <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">{sub}</p>}
   </Card>
@@ -297,6 +302,8 @@ export default function TenantDashboardPage() {
           icon={<Wallet className="h-4 w-4" />}
           label="ចំនួនបានបង់ទាំងអស់"
           value={formatCompactCurrency(financial?.totalPaid)}
+          countUpValue={financial?.totalPaid}
+          formatter={formatCompactCurrency}
           sub={`${financial?.paidInvoices || 0} វិក្កយបត្របានបង់រួច`}
           highlight={Number(financial?.totalPaid || 0) > 0}
         />
@@ -304,6 +311,8 @@ export default function TenantDashboardPage() {
           icon={<Receipt className="h-4 w-4" />}
           label="ចំនួនត្រូវបង់សរុប"
           value={formatCompactCurrency(financial?.currentDue)}
+          countUpValue={financial?.currentDue}
+          formatter={formatCompactCurrency}
           sub={`${financial?.unpaidInvoices || 0} វិក្កយបត្រមិនទាន់បង់`}
           highlight={Number(financial?.currentDue || 0) > 0}
         />
@@ -311,12 +320,16 @@ export default function TenantDashboardPage() {
           icon={<Hourglass className="h-4 w-4" />}
           label="វិក្កយបត្រហួសកំណត់"
           value={`${financial?.overdueInvoices || 0}`}
+          countUpValue={financial?.overdueInvoices}
           sub="ត្រូវទូទាត់ឱ្យបានឆាប់"
           highlight={Number(financial?.overdueInvoices || 0) > 0}
         />
         <SummaryCard
           icon={<Droplets className="h-4 w-4" />}
           label="ប្រើប្រាស់ទឹក (ខែចុងក្រោយ)"
+          countUpValue={waterLast?.usage}
+          formatter={formatNumber}
+          suffix={waterLast ? ` ${waterLast.unit || 'm\u00B3'}` : ''}
           value={
             waterLast
               ? `${formatNumber(waterLast.usage)} ${waterLast.unit || 'm³'}`
@@ -327,6 +340,9 @@ export default function TenantDashboardPage() {
         <SummaryCard
           icon={<Zap className="h-4 w-4" />}
           label="ប្រើប្រាស់ភ្លើង (ខែចុងក្រោយ)"
+          countUpValue={electricityLast?.usage}
+          formatter={formatNumber}
+          suffix={electricityLast ? ` ${electricityLast.unit || 'kWh'}` : ''}
           value={
             electricityLast
               ? `${formatNumber(electricityLast.usage)} ${electricityLast.unit || 'kWh'}`
@@ -440,12 +456,12 @@ export default function TenantDashboardPage() {
                 <AreaChart data={usageChartData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
                   <defs>
                     <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                      <stop offset="5%" stopColor="var(--app-primary)" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="var(--app-primary)" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="electricityGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                      <stop offset="5%" stopColor="var(--app-secondary)" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="var(--app-secondary)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -457,14 +473,14 @@ export default function TenantDashboardPage() {
                     type="monotone"
                     dataKey="water"
                     name="ទឹក"
-                    stroke="#0ea5e9"
+                    stroke="var(--app-primary)"
                     fill="url(#waterGrad)"
                   />
                   <Area
                     type="monotone"
                     dataKey="electricity"
                     name="ភ្លើង"
-                    stroke="#f59e0b"
+                    stroke="var(--app-secondary)"
                     fill="url(#electricityGrad)"
                   />
                 </AreaChart>

@@ -3,6 +3,7 @@ import {
   Page,
   Text,
   View,
+  Image,
   StyleSheet,
 } from '@react-pdf/renderer';
 
@@ -44,8 +45,8 @@ const fmtUSD = (v) =>
     minimumFractionDigits: 2,
   }).format(Number(v) || 0);
 
-const fmtKHR = (v) => {
-  const khr = Math.round((Number(v) || 0) * 4100);
+const fmtKHR = (v, rate = 4100) => {
+  const khr = Math.round((Number(v) || 0) * (Number(rate) || 4100));
   return new Intl.NumberFormat('km-KH').format(khr) + ' ៛';
 };
 
@@ -115,6 +116,7 @@ const s = StyleSheet.create({
   companyName: { fontSize: 13, fontWeight: 700 },
   companyLatin: { fontSize: 9, fontWeight: 700, marginTop: 2, letterSpacing: 1 },
   companyAddress: { fontSize: 8, color: MUTED, marginTop: 6, lineHeight: 1.5 },
+  logo: { maxHeight: 42, maxWidth: 150, marginBottom: 6, objectFit: 'contain' },
   meta: { flex: 5, alignItems: 'flex-end' },
   titleBox: { borderWidth: 2, borderColor: INK, paddingVertical: 6, paddingHorizontal: 22, backgroundColor: ROW, alignItems: 'center' },
   titleKhmer: { fontSize: 17, fontWeight: 700 },
@@ -193,19 +195,37 @@ const colPrice ={ flex: 1.4, textAlign: 'right' };
 const colAmt =  { flex: 1.4, textAlign: 'right' };
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function InvoicePdfDocument({ invoice }) {
+export default function InvoicePdfDocument({ invoice, settings }) {
   const items = invoice.items || [];
+  const exchangeRate = invoice.exchangeRate || settings?.exchangeRate || 4100;
   const emptyRowsNeeded = Math.max(0, 4 - items.length);
   const billingMonth = invoice.billingMonth
     ? `ខែ ${String(invoice.billingMonth).padStart(2, '0')}/${invoice.billingYear}`
     : '—';
-
   const statusLabel = STATUS_TEXT[invoice.status] || invoice.status;
+
+  const S = settings || {};
+  const bizName = (S.businessName && S.businessName.trim()) || invoice.houseName || 'RentalHub';
+  const bizLatin = (S.businessName && S.businessName.trim())
+    ? `${S.businessName.trim().toUpperCase()} RESIDENCE & APARTMENTS`
+    : invoice.houseName
+      ? `${invoice.houseName.toUpperCase()} RESIDENCE & APARTMENTS`
+      : 'RENTALHUB PROPERTY MANAGEMENT';
+  const showLogo = S.invoiceShowLogo !== false && !!S.logoUrl;
+  const showBizInfo = S.invoiceShowBusinessInfo !== false;
+  const addressText = (S.address && S.address.trim()) || 'រាជធានីភ្នំពេញ, ព្រះរាជាណាចក្រកម្ពុជា';
+  const phoneText = (S.phone && S.phone.trim()) || '012 345 678 / 098 765 432';
+  const emailText = (S.email && S.email.trim()) || 'info@rentalhub.com.kh';
+  const showUsd = S.invoiceShowUsd !== false || S.invoiceShowKhr === false;
+  const showKhr = S.invoiceShowKhr !== false;
+  const footerNote = (S.invoiceFooter && S.invoiceFooter.trim())
+    ? S.invoiceFooter.trim()
+    : '* សម្គាល់៖ វិក្កយបត្រនេះជាឯកសារផ្លូវការសម្រាប់បញ្ជាក់ការទូទាត់ប្រាក់ថ្លៃឈ្នួលបន្ទប់ និងសេវាកម្មប្រចាំខែ។';
 
   return (
     <Document
       title={`Invoice ${invoice.invoiceNo}`}
-      author="RentalHub"
+      author={bizName}
       subject={`Invoice for ${invoice.tenantName || 'Tenant'}`}
       creator="RentalHub Rental Management"
     >
@@ -213,17 +233,21 @@ export default function InvoicePdfDocument({ invoice }) {
         {/* 1. Header */}
         <View style={s.header}>
           <View style={s.company}>
-            <Text style={s.companyName}>សហគ្រាសជួលផ្ទះ និងអគារ {invoice.houseName || 'RentalHub'}</Text>
-            <Text style={s.companyLatin}>
-              {invoice.houseName ? `${invoice.houseName.toUpperCase()} RESIDENCE & APARTMENTS` : 'RENTALHUB PROPERTY MANAGEMENT'}
-            </Text>
-            <Text style={s.companyAddress}>
-              អាសយដ្ឋាន៖ {invoice.houseName || 'រាជធានីភ្នំពេញ, ព្រះរាជាណាចក្រកម្ពុជា'}
-              {'\n'}
-              ទំនាក់ទំនងលេខទូរស័ព្ទ៖ 012 345 678 / 098 765 432
-              {'\n'}
-              សារអេឡិចត្រូនិច (Email)៖ info@rentalhub.com.kh
-            </Text>
+            {showLogo ? (
+              <Image src={S.logoUrl} style={s.logo} />
+            ) : showBizInfo ? (
+              <Text style={s.companyName}>{bizName}</Text>
+            ) : null}
+            <Text style={s.companyLatin}>{bizLatin}</Text>
+            {showBizInfo && (
+              <Text style={s.companyAddress}>
+                អាសយដ្ឋាន៖ {addressText}
+                {'\n'}
+                ទំនាក់ទំនងលេខទូរស័ព្ទ៖ {phoneText}
+                {'\n'}
+                សារអេឡិចត្រូនិច (Email)៖ {emailText}
+              </Text>
+            )}
           </View>
           <View style={s.meta}>
             <View style={s.titleBox}>
@@ -360,8 +384,8 @@ export default function InvoicePdfDocument({ invoice }) {
             <View style={s.grand}>
               <Text style={s.grandLabel}>សរុបត្រូវបង់ / Total Due:</Text>
               <View>
-                <Text style={s.grandValue}>{fmtUSD(invoice.totalAmount)}</Text>
-                <Text style={s.grandKhr}>≈ {fmtKHR(invoice.totalAmount)}</Text>
+                {showUsd && <Text style={s.grandValue}>{fmtUSD(invoice.totalAmount)}</Text>}
+                {showKhr && <Text style={s.grandKhr}>≈ {fmtKHR(invoice.totalAmount, exchangeRate)}</Text>}
               </View>
             </View>
             {invoice.status === 'PARTIAL' && Number(invoice.paidAmount) > 0 && (
@@ -387,17 +411,14 @@ export default function InvoicePdfDocument({ invoice }) {
             <Text style={s.sigLatin}>Authorized Signature & Official Stamp</Text>
             <Text style={s.sigDate}>ថ្ងៃទី.......... ខែ.......... ឆ្នាំ...........</Text>
             <View style={s.sigLine} />
-            <Text style={s.sigName}>{invoice.houseName || 'RentalHub'}</Text>
+            <Text style={s.sigName}>{bizName}</Text>
           </View>
         </View>
 
         {/* 6. Footer note */}
         <View style={s.footer}>
-          <Text style={s.footerNote}>
-            * សម្គាល់៖ វិក្កយបត្រនេះជាឯកសារផ្លូវការសម្រាប់បញ្ជាក់ការទូទាត់ប្រាក់ថ្លៃឈ្នួលបន្ទប់ និងសេវាកម្មប្រចាំខែ។
-            {'\n'}
-            Generated by RentalHub Management System · Reference ID: {invoice.invoiceNo}
-          </Text>
+          <Text style={s.footerNote}>{footerNote}</Text>
+          <Text style={s.footerGen}>Generated by RentalHub Management System · Reference ID: {invoice.invoiceNo}</Text>
         </View>
       </Page>
     </Document>

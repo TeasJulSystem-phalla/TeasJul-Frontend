@@ -4,6 +4,7 @@ import { pdf } from '@react-pdf/renderer';
 import RealInvoiceDocument from './RealInvoiceDocument';
 import InvoicePdfDocument from './InvoicePdfDocument.jsx';
 import { registerPdfFonts } from '../../utils/pdfFonts.js';
+import { useSettings } from '../../hooks/useSettings.js';
 
 export default function InvoicePreviewModal({ open, onClose, invoice }) {
   const documentRef = useRef(null);
@@ -11,10 +12,11 @@ export default function InvoicePreviewModal({ open, onClose, invoice }) {
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [previewError, setPreviewError] = useState(null);
+  const { settings, loading: settingsLoading } = useSettings();
 
   // Generate the preview PDF (same path as download) whenever the modal opens.
   useEffect(() => {
-    if (!open || !invoice) {
+    if (!open || !invoice || settingsLoading) {
       setPreviewUrl(null);
       setPreviewError(null);
       return;
@@ -23,7 +25,7 @@ export default function InvoicePreviewModal({ open, onClose, invoice }) {
     (async () => {
       try {
         registerPdfFonts();
-        const blob = await pdf(<InvoicePdfDocument invoice={invoice} />).toBlob();
+        const blob = await pdf(<InvoicePdfDocument invoice={invoice} settings={settings} />).toBlob();
         if (!cancelled) {
           setPreviewUrl(URL.createObjectURL(blob));
           setPreviewError(null);
@@ -36,7 +38,7 @@ export default function InvoicePreviewModal({ open, onClose, invoice }) {
     return () => {
       cancelled = true;
     };
-  }, [open, invoice]);
+  }, [open, invoice, settings, settingsLoading]);
 
   // Handle native high-quality print
   const handlePrint = useCallback(() => {
@@ -55,7 +57,7 @@ export default function InvoicePreviewModal({ open, onClose, invoice }) {
     try {
       registerPdfFonts();
 
-      const instance = pdf(<InvoicePdfDocument invoice={invoice} />);
+      const instance = pdf(<InvoicePdfDocument invoice={invoice} settings={settings} />);
       const blob = await instance.toBlob();
       const filename = `វិក្កយបត្រ_${invoice.invoiceNo || 'INV'}.pdf`;
 
@@ -77,7 +79,7 @@ export default function InvoicePreviewModal({ open, onClose, invoice }) {
     } finally {
       setDownloading(false);
     }
-  }, [invoice, handlePrint]);
+  }, [invoice, settings, handlePrint]);
 
   if (!open || !invoice) return null;
 
@@ -169,7 +171,7 @@ export default function InvoicePreviewModal({ open, onClose, invoice }) {
 
           {/* Hidden print-only sheet (browser print uses the styled invoice). */}
           <div className="hidden print:block">
-            <RealInvoiceDocument invoice={invoice} ref={documentRef} />
+            <RealInvoiceDocument invoice={invoice} settings={settings} ref={documentRef} />
           </div>
         </div>
       </div>

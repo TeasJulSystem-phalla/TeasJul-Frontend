@@ -3,6 +3,7 @@ import { pdf } from '@react-pdf/renderer';
 import BatchInvoiceCardsPdf from '../page/Invoice/BatchInvoiceCardsPdf.jsx';
 import InvoicePdfDocument from '../page/Invoice/InvoicePdfDocument.jsx';
 import { registerPdfFonts } from '../utils/pdfFonts.js';
+import { useSettings } from './useSettings.js';
 
 const formatMonthYear = (yr, mth) => {
   if (!yr || !mth) return '';
@@ -27,6 +28,7 @@ const saveBlob = (blob, filename) => {
 export function useBatchPdfDownload() {
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState(null);
+  const { settings } = useSettings();
 
   /**
    * Download a single invoice as a formal Khmer PDF.
@@ -43,7 +45,7 @@ export function useBatchPdfDownload() {
     try {
       registerPdfFonts();
 
-      const instance = pdf(<InvoicePdfDocument invoice={invoice} />);
+      const instance = pdf(<InvoicePdfDocument invoice={invoice} settings={settings} />);
       const blob = await instance.toBlob();
       saveBlob(blob, `វិក្កយបត្រ_${invoice.invoiceNo || 'INV'}.pdf`);
       return true;
@@ -54,7 +56,7 @@ export function useBatchPdfDownload() {
     } finally {
       setDownloading(false);
     }
-  }, []);
+  }, [settings]);
 
   /**
    * Download all invoices as a single Khmer PDF with 2-3 compact cards per page.

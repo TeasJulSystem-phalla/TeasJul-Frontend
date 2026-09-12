@@ -52,6 +52,8 @@ const pickRoleColor = (str) => {
 
 const getInitials = (name) => name?.split(/\s+/).map((p) => p[0]).join('').slice(0, 2).toUpperCase() || '?';
 
+const isOwnerRole = (role) => !!role?.code && String(role.code).toUpperCase() === 'OWNER';
+
 const formatDate = (dateStr) => {
   if (!dateStr) return '—';
   return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -241,7 +243,7 @@ export default function Roles() {
   const openManagePermissions = (role) => {
     setPermModal(role);
     const init = {};
-    for (const p of permissions) init[p.id] = false;
+    for (const p of permissions) init[p.id] = isOwnerRole(role);
     setSelectedPerms(init);
     // Pre-populate existing role permissions
     roleApi.getRolePermissions(role.id)
@@ -707,6 +709,7 @@ export default function Roles() {
         permissions={permissions}
         loading={permissionsLoading}
         selected={selectedPerms}
+        ownerLocked={isOwnerRole(permModal)}
         onToggle={handleTogglePerm}
         onToggleModule={handleToggleModule}
         onSelectAll={handleSelectAll}

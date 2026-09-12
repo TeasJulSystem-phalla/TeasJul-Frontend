@@ -20,6 +20,23 @@ export const roomApi = {
   deleteRoom: (id) =>
     api.delete(`/rooms/${id}`).then((res) => res.data),
 
+  // ---- Room CSV/Excel Import ----
+  previewRoomImport: (file, houseId) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    if (houseId) {
+      formData.append("houseId", houseId);
+    }
+    return api
+      .post("/rooms/import/preview", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((res) => res.data);
+  },
+
+  confirmRoomImport: (rows, houseId) =>
+    api.post("/rooms/import", { houseId, rows }).then((res) => res.data),
+
   // ---- Room Amenities (`/rooms/{roomId}/amenities`) ----
   getRoomAmenities: (roomId) =>
     api.get(`/rooms/${roomId}/amenities`).then((res) => res.data),

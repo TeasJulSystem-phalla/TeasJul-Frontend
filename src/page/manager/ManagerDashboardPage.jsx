@@ -23,7 +23,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { Alert, Button, Card, EmptyState, Select, Input, Skeleton } from '../../components/ui/index.js';
+import { Alert, Button, Card, CountUp, EmptyState, Select, Input, Skeleton } from '../../components/ui/index.js';
 import RevenueTrendChart from '../../components/charts/RevenueTrendChart';
 import { useHouses } from '../../hooks/useHouses.js';
 import { useManagerDashboard } from '../../hooks/useManagerDashboard.js';
@@ -359,38 +359,42 @@ export default function ManagerDashboardPage() {
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
             <KpiCard
               label="បន្ទប់សរុប (Total Rooms)"
-              value={kpis.totalRooms}
+              value={<CountUp value={kpis.totalRooms} />}
               icon={DoorOpen}
               accent="bg-slate-100 text-slate-600 dark:bg-gray-800 dark:text-slate-300"
             />
             <KpiCard
               label="បន្ទប់កាន់កាប់ (Occupied)"
-              value={kpis.occupiedRooms}
+              value={<CountUp value={kpis.occupiedRooms} />}
               icon={Building2}
               accent="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
             />
             <KpiCard
               label="បន្ទប់ទំនេរ (Available)"
-              value={kpis.availableRooms}
+              value={<CountUp value={kpis.availableRooms} />}
               icon={BedDouble}
               accent="bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400"
             />
             <KpiCard
               label="ចំណូល (Revenue)"
-              value={formatCompactCurrency(kpis.revenue)}
-              sub={formatCurrency(kpis.revenue)}
+              value={<CountUp value={kpis.revenue} formatter={formatCompactCurrency} />}
+              sub={<CountUp value={kpis.revenue} decimals={2} formatter={formatCurrency} />}
               icon={Wallet}
               accent="bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400"
             />
             <KpiCard
               label="អត្រាកាន់កាប់ (Occupancy Rate)"
-              value={`${kpis.occupancyRate}%`}
+              value={<CountUp value={kpis.occupancyRate} suffix="%" />}
               icon={TrendingUp}
               accent="bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"
             />
             <KpiCard
               label="កំពុងរង់ចាំ / ហួសកំណត់ (Payment)"
-              value={`${kpis.pendingInvoices} / ${kpis.overdueInvoices}`}
+              value={
+                <>
+                  <CountUp value={kpis.pendingInvoices} /> / <CountUp value={kpis.overdueInvoices} />
+                </>
+              }
               sub="បង់រង់ចាំ / បង់ហួស"
               icon={Hourglass}
               accent="bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400"

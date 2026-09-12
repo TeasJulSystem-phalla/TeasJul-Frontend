@@ -4,8 +4,8 @@ import { forwardRef } from 'react';
 const formatUSD = (val) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(Number(val) || 0);
 
-const formatKHR = (val) => {
-  const khr = Math.round((Number(val) || 0) * 4100);
+const formatKHR = (val, rate = 4100) => {
+  const khr = Math.round((Number(val) || 0) * (Number(rate) || 4100));
   return new Intl.NumberFormat('km-KH').format(khr) + ' ៛';
 };
 
@@ -96,15 +96,34 @@ const numberToKhmerWords = (num) => {
 };
 
 const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
-  { invoice },
+  { invoice, settings },
   ref
 ) {
   if (!invoice) return null;
 
   const items = invoice.items || [];
+  const exchangeRate = invoice.exchangeRate || settings?.exchangeRate || 4100;
   const billingMonth = invoice.billingMonth
     ? `ខែ ${String(invoice.billingMonth).padStart(2, '0')}/${invoice.billingYear}`
     : '—';
+
+  const S = settings || {};
+  const bizName = (S.businessName && S.businessName.trim()) || invoice.houseName || 'RentalHub';
+  const bizLatin = (S.businessName && S.businessName.trim())
+    ? `${S.businessName.trim().toUpperCase()} RESIDENCE & APARTMENTS`
+    : invoice.houseName
+      ? `${invoice.houseName.toUpperCase()} RESIDENCE & APARTMENTS`
+      : 'RENTALHUB PROPERTY MANAGEMENT';
+  const showLogo = S.invoiceShowLogo !== false && !!S.logoUrl;
+  const showBizInfo = S.invoiceShowBusinessInfo !== false;
+  const addressText = (S.address && S.address.trim()) || 'រាជធានីភ្នំពេញ, ព្រះរាជាណាចក្រកម្ពុជា';
+  const phoneText = (S.phone && S.phone.trim()) || '012 345 678 / 098 765 432';
+  const emailText = (S.email && S.email.trim()) || 'info@rentalhub.com.kh';
+  const showUsd = S.invoiceShowUsd !== false || S.invoiceShowKhr === false;
+  const showKhr = S.invoiceShowKhr !== false;
+  const footerNote = (S.invoiceFooter && S.invoiceFooter.trim())
+    ? S.invoiceFooter.trim()
+    : '* សម្គាល់៖ វិក្កយបត្រនេះជាឯកសារផ្លូវការសម្រាប់បញ្ជាក់ការទូទាត់ប្រាក់ថ្លៃឈ្នួលបន្ទប់ និងសេវាកម្មប្រចាំខែ។';
 
   // Fill up to at least 4 rows so table looks like an authentic formal document
   const emptyRowsNeeded = Math.max(0, 4 - items.length);
@@ -125,17 +144,28 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
         <div className="flex justify-between items-start">
           {/* Company / Enterprise details */}
           <div className="w-7/12 pr-4 space-y-1">
-            <h2 className="text-base font-bold uppercase tracking-wide text-black">
-              សហគ្រាសជួលផ្ទះ និងអគារ {invoice.houseName || 'RentalHub'}
-            </h2>
+            {showLogo && (
+              <img
+                src={S.logoUrl}
+                alt="logo"
+                className="max-h-12 max-w-[150px] object-contain"
+              />
+            )}
+            {!showLogo && showBizInfo && (
+              <h2 className="text-base font-bold uppercase tracking-wide text-black">
+                {bizName}
+              </h2>
+            )}
             <p className="text-[12px] font-bold tracking-wider text-slate-800 uppercase font-sans">
-              {invoice.houseName ? `${invoice.houseName.toUpperCase()} RESIDENCE & APARTMENTS` : 'RENTALHUB PROPERTY MANAGEMENT'}
+              {bizLatin}
             </p>
-            <div className="text-[11px] text-slate-700 leading-relaxed pt-1 space-y-0.5">
-              <p>អាសយដ្ឋាន៖ {invoice.houseName || 'រាជធានីភ្នំពេញ, ព្រះរាជាណាចក្រកម្ពុជា'}</p>
-              <p>ទំនាក់ទំនងលេខទូរស័ព្ទ៖ 012 345 678 / 098 765 432</p>
-              <p>សារអេឡិចត្រូនិច (Email)៖ info@rentalhub.com.kh</p>
-            </div>
+            {showBizInfo && (
+              <div className="text-[11px] text-slate-700 leading-relaxed pt-1 space-y-0.5">
+                <p>អាសយដ្ឋាន៖ {addressText}</p>
+                <p>ទំនាក់ទំនងលេខទូរស័ព្ទ៖ {phoneText}</p>
+                <p>សារអេឡិចត្រូនិច (Email)៖ {emailText}</p>
+              </div>
+            )}
           </div>
 
           {/* Title & Reference Box */}
@@ -314,11 +344,13 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
               </td>
               <td className="border border-black px-3 py-2 text-right">
                 <div className="font-mono text-sm text-black font-black leading-tight">
-                  {formatUSD(invoice.totalAmount)}
+                  {showUsd && formatUSD(invoice.totalAmount)}
                 </div>
-                <div className="text-[10px] text-slate-600 font-normal">
-                  ≈ {formatKHR(invoice.totalAmount)}
-                </div>
+                {showKhr && (
+                  <div className="text-[10px] text-slate-600 font-normal">
+                    ≈ {formatKHR(invoice.totalAmount, exchangeRate)}
+                  </div>
+                )}
               </td>
             </tr>
 
@@ -375,7 +407,7 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
               <div className="w-52 border-b border-dotted border-black"></div>
             </div>
             <p className="font-bold text-black pt-1">
-              {invoice.houseName || 'RentalHub'}
+              {bizName}
             </p>
           </div>
         </div>
@@ -384,7 +416,7 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
       {/* ── 5. FORMAL FOOTER NOTE ────────────────────────────────────────────── */}
       <div className="mt-10 pt-3 border-t border-slate-300 text-center text-[10.5px] text-slate-500 space-y-0.5">
         <p>
-          * សម្គាល់៖ វិក្កយបត្រនេះជាឯកសារផ្លូវការសម្រាប់បញ្ជាក់ការទូទាត់ប្រាក់ថ្លៃឈ្នួលបន្ទប់ និងសេវាកម្មប្រចាំខែ។
+          {footerNote}
         </p>
         <p className="font-mono text-[9.5px]">
           Generated by RentalHub Management System · Reference ID: {invoice.invoiceNo}

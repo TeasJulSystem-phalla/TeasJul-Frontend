@@ -9,7 +9,7 @@ import {
 } from './ContractSections';
 
 const ContractDocument = forwardRef(function ContractDocument(
-  { contract, landlord, house, room, roomType, roomAmenities, tenantsById, contractTenants, deposits },
+  { contract, landlord, house, room, roomType, roomAmenities, tenantsById, contractTenants, deposits, settings },
   ref
 ) {
   const primary = [...(contractTenants || [])].sort((a, b) => (a.isPrimary === b.isPrimary ? 0 : a.isPrimary ? -1 : 1))[0];
@@ -21,7 +21,7 @@ const ContractDocument = forwardRef(function ContractDocument(
       ref={ref}
       className="mx-auto w-full max-w-[794px] bg-white px-6 py-8 text-slate-900 shadow-lg print:shadow-none sm:px-10 font-khmer"
     >
-      <KhmerContractHeader contract={contract} landlord={landlord} primaryTenant={primaryTenant} />
+      <KhmerContractHeader contract={contract} contractTitle={settings?.contractTitle} primaryTenant={primaryTenant} />
 
       <div className="mt-6 space-y-6">
         <KhmerPartySection landlord={landlord} primaryTenant={primaryTenant} />

@@ -20,6 +20,7 @@ import { useRoomTypes } from '../../hooks/useRoomType.js';
 import { useToast } from '../../components/ui/Toast.jsx';
 import {
   Card,
+  CountUp,
   Button,
   Table,
   Badge,
@@ -773,7 +774,7 @@ const StatCard = ({ label, value, icon, valueClass = 'text-slate-800 dark:text-w
         <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
           {label}
         </p>
-        <p className={`text-xl font-bold ${valueClass}`}>{value}</p>
+        <p className={`text-xl font-bold ${valueClass}`}><CountUp value={value} /></p>
       </div>
     </div>
   </div>

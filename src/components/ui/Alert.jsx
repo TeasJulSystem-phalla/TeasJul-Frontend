@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, isValidElement } from 'react';
 import { Info, CheckCircle, AlertTriangle, XCircle, X } from 'lucide-react';
 
 const variantConfig = {
@@ -32,16 +32,29 @@ const variantConfig = {
   },
 };
 
+variantConfig.error = variantConfig.danger;
+
 const Alert = ({ variant = 'info', icon, title, description, dismissible = false, onDismiss, children, className = '' }) => {
   const [visible, setVisible] = useState(true);
   const config = variantConfig[variant] || variantConfig.info;
-  const Icon = icon || config.icon;
 
   if (!visible) return null;
 
   const handleDismiss = () => {
     setVisible(false);
     onDismiss && onDismiss();
+  };
+
+  const renderIcon = () => {
+    if (icon) {
+      if (isValidElement(icon)) {
+        return icon;
+      }
+      const CustomIcon = icon;
+      return <CustomIcon className={`mt-0.5 h-5 w-5 shrink-0 ${config.iconColor}`} />;
+    }
+    const DefaultIcon = config.icon;
+    return <DefaultIcon className={`mt-0.5 h-5 w-5 shrink-0 ${config.iconColor}`} />;
   };
 
   return (
@@ -53,7 +66,7 @@ const Alert = ({ variant = 'info', icon, title, description, dismissible = false
       role="alert"
     >
       <div className="flex items-start gap-3">
-        <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${config.iconColor}`} />
+        {renderIcon()}
         <div className="flex-1 min-w-0">
           {title && (
             <h4 className={`text-sm font-semibold ${config.text}`}>{title}</h4>

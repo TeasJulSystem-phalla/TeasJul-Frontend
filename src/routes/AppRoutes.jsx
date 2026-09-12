@@ -5,11 +5,14 @@ import ManagerLayout from "../components/manager/ManagerLayout";
 import Dashboard from "../page/Dashboard";
 import Placeholder from "../page/Placeholder";
 import Properties from "../page/Room/Properties";
+import HouseOnboardingPage from "../page/Room/HouseOnboardingPage";
+import HouseManualSetupPage from "../page/Room/HouseManualSetupPage";
 import HouseDetailPage from "../page/House/HouseDetailPage";
 import HouseAccessPage from "../page/House/HouseAccessPage";
 import Users from "../page/user/Users";
 import Profile from "../page/user/Profile";
 import SecuritySettingsPage from "../page/SecuritySettingsPage";
+import SettingsPage from "../page/SettingsPage";
 import LoginPage from "../page/auth/LoginPage";
 import ForgotPasswordPage from "../page/auth/ForgotPasswordPage";
 import TwoFactorVerifyPage from "../page/auth/TwoFactorVerifyPage";
@@ -18,6 +21,7 @@ import UiShowcase from "../components/ui/UiShowcase";
 import RoomTypesPage from "../page/Room/RoomTypePage";
 import RolesPage from "../page/user/Roles";
 import RoomsPage from "../page/Room/Rooms";
+import RoomImportPage from "../page/Room/RoomImportPage";
 import AmenitiesPage from "../page/Room/Amenities";
 import TenantsPage from "../page/user/Tenants";
 import TenantFormPage from "../page/user/TenantFormPage";
@@ -47,6 +51,8 @@ import InvoiceDetail from "../page/Invoice/InvoiceDetail";
 import PaymentsPage from "../page/Finance/PaymentsPage";
 import PaymentMethodsPage from "../page/Finance/PaymentMethodsPage";
 import Notifications from "../page/Notifications";
+import AssistantPage from "../page/AssistantPage";
+import HelpSupportPage from "../page/HelpSupportPage";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRoute";
 import ManagerRoute from "./ManagerRoute";
@@ -68,6 +74,9 @@ const AppRoutes = () => {
               <Route path="/owner-report" element={<OwnerReportPage />} />
               <Route path="/properties" element={<Properties />} />
               <Route path="/properties/:id" element={<HouseDetailPage />} />
+              <Route path="/properties/:id/onboarding" element={<HouseOnboardingPage />} />
+              <Route path="/properties/:id/onboarding/import" element={<HouseOnboardingPage />} />
+              <Route path="/properties/:id/onboarding/manual" element={<HouseManualSetupPage />} />
               <Route path="/access" element={<HouseAccessPage />} />
               <Route path="/users" element={<Users />} />
               <Route path="/profile" element={<Profile />} />
@@ -76,6 +85,7 @@ const AppRoutes = () => {
               <Route path="/roomtype" element={<RoomTypesPage />} />
               <Route path="/roles" element={<RolesPage />} />
               <Route path="/rooms" element={<RoomsPage />} />
+              <Route path="/rooms/import" element={<RoomImportPage />} />
               <Route path="/amenities" element={<AmenitiesPage />} />
               <Route path="/tenants" element={<TenantsPage />} />
               <Route path="/tenants/new" element={<TenantFormPage />} />
@@ -120,15 +130,15 @@ const AppRoutes = () => {
               />
               <Route
                 path="/assistant"
-                element={<Placeholder title="ជំនួយការ AI" />}
+                element={<AssistantPage />}
               />
               <Route
                 path="/settings"
-                element={<Placeholder title="ការកំណត់" />}
+                element={<SettingsPage />}
               />
               <Route
                 path="/help"
-                element={<Placeholder title="ជំនួយ និងការគាំទ្រ" />}
+                element={<HelpSupportPage />}
               />
               <Route path="/ui-showcase" element={<UiShowcase />} />
               <Route path="*" element={<Placeholder title="រកមិនឃើញទំព័រ" />} />
@@ -144,6 +154,18 @@ const AppRoutes = () => {
                 path="/manager/properties/:id"
                 element={<HouseDetailPage />}
               />
+              <Route
+                path="/manager/properties/:id/onboarding"
+                element={<HouseOnboardingPage />}
+              />
+              <Route
+                path="/manager/properties/:id/onboarding/import"
+                element={<HouseOnboardingPage />}
+              />
+              <Route
+                path="/manager/properties/:id/onboarding/manual"
+                element={<HouseManualSetupPage />}
+              />
               <Route path="/manager/access" element={<HouseAccessPage />} />
               <Route path="/manager/profile" element={<Profile />} />
               <Route path="/manager/security" element={<SecuritySettingsPage />} />
@@ -152,6 +174,7 @@ const AppRoutes = () => {
                 element={<Notifications />}
               />
               <Route path="/manager/rooms" element={<RoomsPage />} />
+              <Route path="/manager/rooms/import" element={<RoomImportPage />} />
               <Route path="/manager/tenants" element={<TenantsPage />} />
               <Route path="/manager/tenants/new" element={<TenantFormPage />} />
               <Route
@@ -211,8 +234,12 @@ const AppRoutes = () => {
                 element={<MaintenanceCategoriesPage />}
               />
               <Route
+                path="/manager/assistant"
+                element={<AssistantPage />}
+              />
+              <Route
                 path="/manager/help"
-                element={<Placeholder title="ជំនួយ និងការគាំទ្រ" />}
+                element={<HelpSupportPage />}
               />
               <Route
                 path="/manager/*"
@@ -247,6 +274,10 @@ const AppRoutes = () => {
               <Route
                 path="/tenant/invoices/:invoiceId"
                 element={<TenantInvoiceDetailPage />}
+              />
+              <Route
+                path="/tenant/assistant"
+                element={<AssistantPage />}
               />
             </Route>
           </Route>

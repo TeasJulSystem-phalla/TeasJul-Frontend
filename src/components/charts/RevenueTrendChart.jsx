@@ -14,8 +14,8 @@ import {
 import { TrendingUp, TrendingDown, Award } from 'lucide-react';
 import { formatCurrency, formatCompactCurrency } from '../../utils/format';
 
-const ACTUAL_COLOR = '#092328';
-const PROJECTED_COLOR = '#94a3b8';
+const ACTUAL_COLOR = 'var(--app-primary)';
+const PROJECTED_COLOR = 'var(--app-secondary)';
 const GRID_COLOR = '#e2e8f0';
 const AXIS_COLOR = '#64748b';
 

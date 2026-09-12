@@ -20,6 +20,7 @@ import { invoiceApi } from '../../api/invoice.api';
 import { paymentApi } from '../../api/payment.api';
 import { useToast } from '../../components/ui/Toast.jsx';
 import { useBasePath } from '../../hooks/useBasePath.js';
+import { useSettings } from '../../hooks/useSettings.js';
 import {
   Card,
   Button,
@@ -72,6 +73,7 @@ export default function InvoiceDetail() {
   const navigate = useNavigate();
   const toast = useToast();
   const basePath = useBasePath();
+  const { settings } = useSettings();
 
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -427,7 +429,7 @@ export default function InvoiceDetail() {
 
       {/* Hidden print document for direct window.print() */}
       <div className="hidden print:block">
-        <RealInvoiceDocument invoice={invoice} />
+        <RealInvoiceDocument invoice={invoice} settings={settings} />
       </div>
     </div>
   );
