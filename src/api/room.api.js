@@ -20,6 +20,21 @@ export const roomApi = {
   deleteRoom: (id) =>
     api.delete(`/rooms/${id}`).then((res) => res.data),
 
+  // ---- Room Publication (submit for public review) ----
+  submitRoomForApproval: (roomId) =>
+    api.post(`/rooms/${roomId}/submit`).then((res) => res.data),
+
+  getRoomsByPublication: ({ status, page = 0, size = 10 } = {}) =>
+    api
+      .get("/rooms/publication", {
+        params: {
+          status,
+          page,
+          size,
+        },
+      })
+      .then((res) => res.data),
+
   // ---- Room CSV/Excel Import ----
   previewRoomImport: (file, houseId) => {
     const formData = new FormData();

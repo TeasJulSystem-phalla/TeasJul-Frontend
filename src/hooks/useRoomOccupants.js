@@ -11,8 +11,8 @@ const fullName = (t) => `${t?.firstName || ''} ${t?.lastName || ''}`.trim() || `
  * Returns { occupants, loading } where occupants = { [roomId]: [{ tenantId, name, isPrimary }] }.
  */
 export function useRoomOccupants() {
-  const { contracts, loading: cLoading, error: cError } = useContracts();
-  const { tenants, loading: tLoading, error: tError } = useTenants();
+  const { contracts } = useContracts();
+  const { tenants } = useTenants();
   const [occupants, setOccupants] = useState({});
   const [loading, setLoading] = useState(false);
 

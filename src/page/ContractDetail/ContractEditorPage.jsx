@@ -10,11 +10,7 @@ import {
   Repeat,
   FileText,
   DoorOpen,
-  Building2,
-  CheckCircle2,
   Search,
-  Layers,
-  MapPin,
   Check,
   ChevronDown,
   ChevronUp,
@@ -24,6 +20,7 @@ import { useRooms } from '../../hooks/useRooms.js';
 import { useHouses } from '../../hooks/useHouses.js';
 import { useRoomTypes } from '../../hooks/useRoomType.js';
 import { useTenants } from '../../hooks/useTenants.js';
+import { tenantApi } from '../../api/tenant.api.js';
 import { useBasePath } from '../../hooks/useBasePath.js';
 import { useToast } from '../../components/ui/Toast.jsx';
 import { Button, IconButton, Input, Textarea, Select, Badge, Alert, Modal, EmptyState, Skeleton } from '../../components/ui/index.js';
@@ -626,7 +623,7 @@ const TenantSection = ({ contractId }) => {
       await removeTenant(ctId);
       toast.success('បានដកអ្នកជួលចេញ');
       fetchContractTenants();
-    } catch (err) {
+    } catch {
       toast.error('មិនអាចដកអ្នកជួលចេញបានទេ');
     }
   };
@@ -769,7 +766,7 @@ const DepositSection = ({ contractId }) => {
       toast.success('បានកត់ត្រាប្រាក់កក់');
       setAddOpen(false);
       setForm({ amount: '', status: 'PAID', paidAt: '', notes: '' });
-    } catch (err) {
+    } catch {
       toast.error('មិនអាចបន្ថែមប្រាក់កក់បានទេ');
     } finally {
       setSubmitting(false);
@@ -850,7 +847,7 @@ const RenewalSection = ({ contractId }) => {
       toast.success('បានកត់ត្រាការបន្ត');
       setAddOpen(false);
       setForm({ previousEndDate: '', newEndDate: '', previousRent: '', newRent: '', notes: '' });
-    } catch (err) {
+    } catch {
       toast.error('មិនអាចបន្ថែមការបន្តបានទេ');
     } finally {
       setSubmitting(false);

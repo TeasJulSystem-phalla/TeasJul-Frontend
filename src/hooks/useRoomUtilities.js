@@ -25,9 +25,17 @@ export function useRoomUtilities(roomId) {
   }, [roomId]);
 
   const assignUtility = useCallback(
-    async (utilityTypeId) => {
-      const created = await roomUtilityApi.assignUtility(roomId, utilityTypeId);
-      setUtilities((prev) => [...prev, created]);
+    async (utilityTypeId, isIncluded = false) => {
+      const created = await roomUtilityApi.assignUtility(roomId, utilityTypeId, isIncluded);
+      setUtilities((prev) => {
+        const idx = prev.findIndex((u) => u.utilityTypeId === utilityTypeId);
+        if (idx >= 0) {
+          const next = [...prev];
+          next[idx] = created;
+          return next;
+        }
+        return [...prev, created];
+      });
       return created;
     },
     [roomId]

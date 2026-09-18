@@ -21,6 +21,8 @@ import UiShowcase from "../components/ui/UiShowcase";
 import RoomTypesPage from "../page/Room/RoomTypePage";
 import RolesPage from "../page/user/Roles";
 import RoomsPage from "../page/Room/Rooms";
+import RoomListingPage from "../page/Room/RoomListingPage";
+import RoomListingPreviewPage from "../page/Room/RoomListingPreviewPage";
 import RoomImportPage from "../page/Room/RoomImportPage";
 import AmenitiesPage from "../page/Room/Amenities";
 import TenantsPage from "../page/user/Tenants";
@@ -57,6 +59,22 @@ import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRoute";
 import ManagerRoute from "./ManagerRoute";
 import TenantRoute from "./TenantRoute";
+import SuperAdminRoute from "./SuperAdminRoute";
+import OwnerRoomSubmissionsPage from "../page/owner/OwnerRoomSubmissionsPage";
+import AdminOverviewPage from "../page/admin/AdminOverviewPage";
+import AdminOwnersPage from "../page/admin/AdminOwnersPage";
+import AdminRoomSubmissionsPage from "../page/admin/AdminRoomSubmissionsPage";
+import AdminRoomFormPage from "../page/admin/AdminRoomFormPage";
+import AdminFeedbackPage from "../page/admin/AdminFeedbackPage";
+import AdminPropertiesPage from "../page/admin/AdminPropertiesPage";
+import AdminDraftsPage from "../page/admin/AdminDraftsPage";
+import AdminPropertyPostingPage from "../page/admin/AdminPropertyPostingPage";
+import PublicHomePage from "../page/public/HomePage";
+import PublicRoomListPage from "../page/public/RoomList";
+import PublicRoomDetailPage from "../page/public/RoomDetailPage";
+import PublicAboutPage from "../page/public/About";
+import PublicRegisterBusinessPage from "../page/public/RegisterBusinessPage";
+import PublicMarketingPage from "../page/public/MarketingPage";
 
 const AppRoutes = () => {
   return (
@@ -66,6 +84,13 @@ const AppRoutes = () => {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/auth/2fa" element={<TwoFactorVerifyPage />} />
         <Route path="/tenant/invite" element={<TenantInvitePage />} />
+
+        <Route path="/public" element={<PublicHomePage />} />
+        <Route path="/public/rooms" element={<PublicRoomListPage />} />
+        <Route path="/public/rooms/:id" element={<PublicRoomDetailPage />} />
+        <Route path="/public/about" element={<PublicAboutPage />} />
+        <Route path="/public/register-business" element={<PublicRegisterBusinessPage />} />
+        <Route path="/public/marketing" element={<PublicMarketingPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route element={<AdminRoute />}>
@@ -86,6 +111,8 @@ const AppRoutes = () => {
               <Route path="/roles" element={<RolesPage />} />
               <Route path="/rooms" element={<RoomsPage />} />
               <Route path="/rooms/import" element={<RoomImportPage />} />
+              <Route path="/rooms/:roomId/listing" element={<RoomListingPage />} />
+              <Route path="/submissions" element={<OwnerRoomSubmissionsPage />} />
               <Route path="/amenities" element={<AmenitiesPage />} />
               <Route path="/tenants" element={<TenantsPage />} />
               <Route path="/tenants/new" element={<TenantFormPage />} />
@@ -143,6 +170,22 @@ const AppRoutes = () => {
               <Route path="/ui-showcase" element={<UiShowcase />} />
               <Route path="*" element={<Placeholder title="រកមិនឃើញទំព័រ" />} />
             </Route>
+
+            <Route path="/rooms/:roomId/listing/preview" element={<RoomListingPreviewPage />} />
+          </Route>
+
+          <Route element={<SuperAdminRoute />}>
+            <Route element={<Layout />}>
+              <Route path="/admin" element={<AdminOverviewPage />} />
+              <Route path="/admin/owners" element={<AdminOwnersPage />} />
+              <Route path="/admin/rooms/new" element={<AdminRoomFormPage />} />
+              <Route path="/admin/properties" element={<AdminPropertiesPage />} />
+              <Route path="/admin/properties/drafts" element={<AdminDraftsPage />} />
+              <Route path="/admin/properties/new" element={<AdminPropertyPostingPage />} />
+              <Route path="/admin/properties/:id/edit" element={<AdminPropertyPostingPage />} />
+              <Route path="/admin/submissions" element={<AdminRoomSubmissionsPage />} />
+              <Route path="/admin/feedback" element={<AdminFeedbackPage />} />
+            </Route>
           </Route>
 
           <Route element={<ManagerRoute />}>
@@ -175,6 +218,7 @@ const AppRoutes = () => {
               />
               <Route path="/manager/rooms" element={<RoomsPage />} />
               <Route path="/manager/rooms/import" element={<RoomImportPage />} />
+              <Route path="/manager/rooms/:roomId/listing" element={<RoomListingPage />} />
               <Route path="/manager/tenants" element={<TenantsPage />} />
               <Route path="/manager/tenants/new" element={<TenantFormPage />} />
               <Route
@@ -246,6 +290,8 @@ const AppRoutes = () => {
                 element={<Placeholder title="រកមិនឃើញទំព័រ" />}
               />
             </Route>
+
+            <Route path="/manager/rooms/:roomId/listing/preview" element={<RoomListingPreviewPage />} />
           </Route>
 
           <Route element={<TenantRoute />}>

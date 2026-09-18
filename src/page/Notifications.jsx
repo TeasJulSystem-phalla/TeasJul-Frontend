@@ -22,6 +22,7 @@ const TYPE_META = {
   MAINTENANCE_STATUS: { label: "ស្ថានភាពជួសជុល", variant: "info" },
   CONTRACT_EXPIRING: { label: "កិច្ចសន្យាផុតកំណត់", variant: "danger" },
   ROOM_ASSIGNED: { label: "ការចាត់តាំងបន្ទប់", variant: "neutral" },
+  PROPERTY_SUBMITTED: { label: "ការដាក់ស្នើអចលនទ្រព្យ", variant: "warning" },
 };
 
 const typeMeta = (type) => TYPE_META[type] || { label: type || "—", variant: "default" };

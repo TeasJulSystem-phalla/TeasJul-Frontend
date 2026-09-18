@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  User,
   Mail,
   Phone,
   Calendar,
@@ -32,7 +31,6 @@ import { userApi } from "../../api/user.api";
 import useToast from "../../components/ui/Toast";
 import Skeleton from "../../components/ui/Skeleton";
 import Alert from "../../components/ui/Alert";
-import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import Modal from "../../components/ui/Modal";
@@ -478,7 +476,7 @@ const Profile = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {houses.map((house) => {
+            {houses.map((house, index) => {
               if (!house) return null;
               const status = HOUSE_STATUS_VARIANT[house.status] || HOUSE_STATUS_VARIANT.ACTIVE;
               const StatusIcon = status.icon;
@@ -488,7 +486,7 @@ const Profile = () => {
 
               return (
                 <div
-                  key={house.id || Math.random()}
+                  key={house.id ?? `house-${index}`}
                   className="group rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/90 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
                 >
                   <div className="p-4">

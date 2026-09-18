@@ -1,3 +1,4 @@
+// src/pages/Properties.jsx
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -14,6 +15,8 @@ import {
   Filter,
   FileSpreadsheet,
   Hand,
+  ExternalLink,
+  X,
 } from "lucide-react";
 import { useHouses } from "../../hooks/useHouses";
 import { useMyRoles } from "../../hooks/useMyRoles";
@@ -54,6 +57,8 @@ const EMPTY_FORM = {
   slug: "",
   code: "",
   address: "",
+  cityProvince: "",
+  googleMapsUrl: "",
   postalCode: "",
   latitude: "",
   longitude: "",
@@ -63,8 +68,18 @@ const EMPTY_FORM = {
   status: "ACTIVE",
 };
 
+const KH = "font-[Kantumruy_Pro,Hanuman,Inter,sans-serif]";
+
 const Properties = () => {
-  const { houses, loading, error, fetchHouses, createHouse, updateHouse, deleteHouse } = useHouses();
+  const {
+    houses,
+    loading,
+    error,
+    fetchHouses,
+    createHouse,
+    updateHouse,
+    deleteHouse,
+  } = useHouses();
   const { isOwner, isManager } = useMyRoles();
   const toast = useToast();
   const navigate = useNavigate();
@@ -115,6 +130,8 @@ const Properties = () => {
       slug: house.slug || "",
       code: house.code || "",
       address: house.address || "",
+      cityProvince: house.cityProvince || "",
+      googleMapsUrl: house.googleMapsUrl || "",
       postalCode: house.postalCode || "",
       latitude: house.latitude || "",
       longitude: house.longitude || "",
@@ -135,12 +152,42 @@ const Properties = () => {
     }
   };
 
+  const getMapsUrl = (lat, lng, mapsUrl) => {
+    if (mapsUrl && mapsUrl.trim()) return mapsUrl.trim();
+    if (lat == null || lng == null || lat === "" || lng === "") return null;
+    const numLat = Number(lat);
+    const numLng = Number(lng);
+    if (Number.isNaN(numLat) || Number.isNaN(numLng)) return null;
+    if (numLat < -90 || numLat > 90 || numLng < -180 || numLng > 180)
+      return null;
+    return `https://www.google.com/maps?q=${numLat},${numLng}`;
+  };
+
+  const openInGoogleMaps = (lat, lng, mapsUrl) => {
+    const url = getMapsUrl(lat, lng, mapsUrl);
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   const validate = () => {
     const errs = {};
     if (!form.name.trim()) errs.name = "តម្រូវឱ្យបញ្ចូលឈ្មោះ";
     if (!form.slug.trim()) errs.slug = "តម្រូវឱ្យបញ្ចូល Slug";
     if (!form.code.trim()) errs.code = "តម្រូវឱ្យបញ្ចូលលេខកូដ";
     if (!form.address.trim()) errs.address = "តម្រូវឱ្យបញ្ចូលអាសយដ្ឋាន";
+    const numLat = Number(form.latitude);
+    const numLng = Number(form.longitude);
+    if (
+      form.latitude !== "" &&
+      (Number.isNaN(numLat) || numLat < -90 || numLat > 90)
+    ) {
+      errs.latitude = "រយៈទទឹងត្រូវស្ថិតនៅចន្លោះ -90 និង 90";
+    }
+    if (
+      form.longitude !== "" &&
+      (Number.isNaN(numLng) || numLng < -180 || numLng > 180)
+    ) {
+      errs.longitude = "រយៈបណ្តោយត្រូវស្ថិតនៅចន្លោះ -180 និង 180";
+    }
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -154,17 +201,23 @@ const Properties = () => {
         slug: form.slug.trim(),
         code: form.code.trim(),
         address: form.address.trim(),
+        cityProvince: form.cityProvince.trim() || null,
+        googleMapsUrl: form.googleMapsUrl.trim() || null,
         postalCode: form.postalCode.trim() || null,
         latitude: form.latitude ? parseFloat(form.latitude) : null,
         longitude: form.longitude ? parseFloat(form.longitude) : null,
         totalRooms: form.totalRooms !== "" ? parseInt(form.totalRooms) : 0,
-        availableRooms: form.availableRooms !== "" ? parseInt(form.availableRooms) : 0,
+        availableRooms:
+          form.availableRooms !== "" ? parseInt(form.availableRooms) : 0,
         description: form.description.trim() || null,
       };
 
       if (formModal === "create") {
         const created = await createHouse(payload);
-        toast.success("អចលនទ្រព្យត្រូវបានបង្កើត", "អចលនទ្រព្យថ្មីត្រូវបានបន្ថែមដោយជោគជ័យ។");
+        toast.success(
+          "អចលនទ្រព្យត្រូវបានបង្កើត",
+          "អចលនទ្រព្យថ្មីត្រូវបានបន្ថែមដោយជោគជ័យ។"
+        );
         const newId = created?.id ?? created?.data?.id;
         const newName = created?.name ?? form.name;
         setFormModal(null);
@@ -173,7 +226,10 @@ const Properties = () => {
         return;
       } else {
         await updateHouse(formModal.id, { ...payload, status: form.status });
-        toast.success("អចលនទ្រព្យត្រូវបានកែប្រែ", "ព័ត៌មានលម្អិតនៃអចលនទ្រព្យត្រូវបានរក្សាទុក។");
+        toast.success(
+          "អចលនទ្រព្យត្រូវបានកែប្រែ",
+          "ព័ត៌មានលម្អិតនៃអចលនទ្រព្យត្រូវបានរក្សាទុក។"
+        );
       }
       setFormModal(null);
     } catch (err) {
@@ -192,7 +248,10 @@ const Properties = () => {
     setDeleting(true);
     try {
       await deleteHouse(deleteTarget.id);
-      toast.success("អចលនទ្រព្យត្រូវបានលុប", `"${deleteTarget.name}" ត្រូវបានលុប។`);
+      toast.success(
+        "អចលនទ្រព្យត្រូវបានលុប",
+        `"${deleteTarget.name}" ត្រូវបានលុប។`
+      );
       setDeleteTarget(null);
     } catch (err) {
       const message =
@@ -205,9 +264,10 @@ const Properties = () => {
     }
   };
 
+  /* ---------------- Loading ---------------- */
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className={`space-y-6 ${KH}`}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Skeleton className="h-8 w-40" />
@@ -218,36 +278,17 @@ const Properties = () => {
             <Skeleton className="h-9 w-32" />
           </div>
         </div>
-        <div className="flex gap-3">
-          <Skeleton className="h-10 flex-1" />
-          <Skeleton className="h-10 w-48" />
-        </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="rounded-xl border border-slate-200 bg-white dark:border-gray-800 dark:bg-gray-900"
+              className="overflow-hidden rounded-xl border border-gray-200 bg-white"
             >
-              <div className="p-5">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="h-10 w-10 rounded-lg" />
-                    <div>
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="mt-1.5 h-3 w-16" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-7 w-7 rounded-md" />
-                </div>
-                <Skeleton className="mt-3 h-3.5 w-48" />
-                <div className="mt-4 flex items-center gap-4">
-                  <Skeleton className="h-4 w-28" />
-                  <Skeleton className="h-5 w-20 rounded-full" />
-                </div>
-                <Skeleton className="mt-3 h-3.5 w-full" />
-              </div>
-              <div className="border-t border-slate-100 px-5 py-3 dark:border-gray-800">
-                <Skeleton className="h-3 w-36" />
+              <Skeleton className="h-36 w-full rounded-none" />
+              <div className="space-y-3 p-5">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-48" />
+                <Skeleton className="h-3 w-full" />
               </div>
             </div>
           ))}
@@ -257,14 +298,14 @@ const Properties = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className={`space-y-6 ${KH}`}>
+      {/* ======================= HEADER ======================= */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">
+          <h1 className="text-2xl font-semibold text-[#0f2942]">
             អចលនទ្រព្យ
           </h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-[13px] text-gray-500">
             គ្រប់គ្រងផ្ទះ និងបន្ទប់ជួលរបស់អ្នក។
           </p>
         </div>
@@ -278,7 +319,10 @@ const Properties = () => {
             ធ្វើឱ្យស្រស់
           </Button>
           {!readOnly && (
-            <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
+            <Button
+              leftIcon={<Plus className="h-4 w-4" />}
+              onClick={openCreate}
+            >
               បន្ថែមអចលនទ្រព្យ
             </Button>
           )}
@@ -286,10 +330,15 @@ const Properties = () => {
       </div>
 
       {error && (
-        <Alert variant="danger" title="កំហុស" description={error} dismissible />
+        <Alert
+          variant="danger"
+          title="កំហុស"
+          description={error}
+          dismissible
+        />
       )}
 
-      {/* Filters */}
+      {/* ======================= FILTERS ======================= */}
       {houses.length > 0 && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex-1">
@@ -307,18 +356,33 @@ const Properties = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
             />
           </div>
+          {(search || statusFilter) && (
+            <button
+              onClick={() => {
+                setSearch("");
+                setStatusFilter("");
+              }}
+              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3.5 text-[12.5px] font-medium text-gray-600 transition-colors hover:border-gray-300 hover:bg-gray-50"
+            >
+              <X className="h-3.5 w-3.5" />
+              សម្អាត
+            </button>
+          )}
         </div>
       )}
 
-      {/* Empty state */}
-      {!loading && houses.length === 0 ? (
+      {/* ======================= CONTENT ======================= */}
+      {houses.length === 0 ? (
         <EmptyState
           icon={Building2}
           title="មិនទាន់មានអចលនទ្រព្យទេ"
           description="ចាប់ផ្តើមដោយបន្ថែមអចលនទ្រព្យដំបូងរបស់អ្នក។"
           action={
             !readOnly ? (
-              <Button leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>
+              <Button
+                leftIcon={<Plus className="h-4 w-4" />}
+                onClick={openCreate}
+              >
                 បន្ថែមអចលនទ្រព្យ
               </Button>
             ) : null
@@ -331,135 +395,166 @@ const Properties = () => {
           description="សូមព្យាយាមកែតម្រូវលក្ខខណ្ឌនៃការស្វែងរក ឬតម្រង។"
         />
       ) : (
-        /* Cards grid */
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((house) => (
-            <div
+            <article
               key={house.id}
-              className="group relative rounded-xl border border-slate-200 bg-white transition-shadow hover:shadow-md hover:shadow-slate-900/5 dark:border-gray-800 dark:bg-gray-900 dark:hover:shadow-black/20"
+              className="group relative flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition-colors hover:border-gray-300"
             >
-              <div className="p-5">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
-                      <Building2 className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-[15px] font-semibold text-slate-800 dark:text-white">
-                        {house.name}
-                      </h3>
-                      {house.code && (
-                        <p className="text-[12px] font-mono text-slate-400 dark:text-slate-500">
-                          {house.code}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <button
-                      onClick={() =>
-                        setMenuOpen(menuOpen === house.id ? null : house.id)
-                      }
-                      className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-gray-800 dark:hover:text-slate-300"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </button>
-                    {menuOpen === house.id && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-10"
-                          onClick={() => setMenuOpen(null)}
-                        />
-                        <div className="absolute right-0 z-20 mt-1 w-40 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                          <button
-                            onClick={() => {
-                              setMenuOpen(null);
-                              navigate(`${basePath}/properties/${house.id}`);
-                            }}
-                            className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
-                          >
-                            <Eye className="h-4 w-4" /> មើលព័ត៌មានលម្អិត
-                          </button>
-                          <button
-                            onClick={() => {
-                              setMenuOpen(null);
-                              navigate(`${basePath}/properties/${house.id}/onboarding/manual`);
-                            }}
-                            className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
-                          >
-                            <Hand className="h-4 w-4" /> បញ្ចូលដោយដៃ
-                          </button>
-                          <button
-                            onClick={() => {
-                              setMenuOpen(null);
-                              navigate(`${basePath}/properties/${house.id}/onboarding/import`);
-                            }}
-                            className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
-                          >
-                            <FileSpreadsheet className="h-4 w-4" /> នាំចូល CSV/Excel
-                          </button>
-                          {!readOnly && (
-                            <>
-                              <button
-                                onClick={() => openEdit(house)}
-                                className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-gray-700"
-                              >
-                                <Edit3 className="h-4 w-4" /> កែប្រែ
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setDeleteTarget(house);
-                                  setMenuOpen(null);
-                                }}
-                                className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                              >
-                                <Trash2 className="h-4 w-4" /> លុប
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {house.address && (
-                  <div className="mt-3 flex items-center gap-1.5 text-[13px] text-slate-500 dark:text-slate-400">
-                    <MapPin className="h-3.5 w-3.5 shrink-0" />
-                    <span className="truncate">{house.address}</span>
+              {/* ---- Media header ---- */}
+              <div className="relative h-40 w-full overflow-hidden bg-gray-50">
+                {house.primaryImage ? (
+                  <img
+                    src={house.primaryImage}
+                    alt={house.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Building2 className="h-9 w-9 text-gray-300" />
                   </div>
                 )}
 
-                <div className="mt-4 flex items-center gap-4">
-                  <div className="flex items-center gap-1.5 text-[13px] text-slate-600 dark:text-slate-300">
-                    <BedDouble className="h-4 w-4 text-slate-400 dark:text-slate-500" />
-                    <span>
-                      {house.availableRooms}/{house.totalRooms} បន្ទប់
-                    </span>
+                {/* Menu button top-right */}
+                <div className="absolute right-2 top-2">
+                  <button
+                    onClick={() =>
+                      setMenuOpen(menuOpen === house.id ? null : house.id)
+                    }
+                    className="rounded-md bg-white/90 p-1.5 text-gray-600 shadow-sm backdrop-blur transition-colors hover:bg-white hover:text-[#0f2942]"
+                    aria-label="ម៉ឺនុយ"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </button>
+
+                  {menuOpen === house.id && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setMenuOpen(null)}
+                      />
+                      <div className="absolute right-0 z-50 mt-1.5 w-48 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                        <MenuItem
+                          icon={Eye}
+                          label="មើលព័ត៌មានលម្អិត"
+                          onClick={() => {
+                            setMenuOpen(null);
+                            setViewTarget(house);
+                          }}
+                        />
+                        <MenuItem
+                          icon={Hand}
+                          label="បញ្ចូលដោយដៃ"
+                          onClick={() => {
+                            setMenuOpen(null);
+                            navigate(
+                              `${basePath}/properties/${house.id}/onboarding/manual`
+                            );
+                          }}
+                        />
+                        <MenuItem
+                          icon={FileSpreadsheet}
+                          label="នាំចូល CSV/Excel"
+                          onClick={() => {
+                            setMenuOpen(null);
+                            navigate(
+                              `${basePath}/properties/${house.id}/onboarding/import`
+                            );
+                          }}
+                        />
+                        {!readOnly && (
+                          <>
+                            <div className="my-1 h-px bg-gray-100" />
+                            <MenuItem
+                              icon={Edit3}
+                              label="កែប្រែ"
+                              onClick={() => openEdit(house)}
+                            />
+                            <MenuItem
+                              icon={Trash2}
+                              label="លុប"
+                              danger
+                              onClick={() => {
+                                setDeleteTarget(house);
+                                setMenuOpen(null);
+                              }}
+                            />
+                          </>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* ---- Body ---- */}
+              <div className="flex flex-1 flex-col p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-[14.5px] font-semibold text-[#0f2942]">
+                      {house.name}
+                    </h3>
+                    {house.code && (
+                      <p className="mt-0.5 font-mono text-[11.5px] text-gray-400">
+                        {house.code}
+                      </p>
+                    )}
                   </div>
                   <Badge variant={STATUS_VARIANT[house.status] || "default"}>
-                    {STATUS_OPTIONS.find((o) => o.value === house.status)?.label || house.status}
+                    {STATUS_OPTIONS.find((o) => o.value === house.status)
+                      ?.label || house.status}
                   </Badge>
                 </div>
 
+                {house.address && (
+                  <div className="mt-3 flex items-start gap-1.5 text-[12.5px] text-gray-500">
+                    <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    <span className="line-clamp-2">{house.address}</span>
+                  </div>
+                )}
+
                 {house.description && (
-                  <p className="mt-3 line-clamp-2 text-[13px] text-slate-500 dark:text-slate-400">
+                  <p className="mt-3 line-clamp-2 text-[12.5px] leading-[1.9] text-gray-500">
                     {house.description}
                   </p>
                 )}
+
+                {typeof house.totalRooms === "number" && (
+                  <div className="mt-4 flex items-center gap-1.5 text-[12.5px] text-gray-600">
+                    <BedDouble className="h-3.5 w-3.5 text-gray-400" />
+                    <span>
+                      <span className="font-semibold text-[#0f2942]">
+                        {house.availableRooms}
+                      </span>
+                      <span className="text-gray-400">
+                        {" "}
+                        / {house.totalRooms}
+                      </span>{" "}
+                      បន្ទប់ទំនេរ
+                    </span>
+                  </div>
+                )}
               </div>
 
-              <div className="border-t border-slate-100 px-5 py-3 dark:border-gray-800">
-                <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                  បានបង្កើត {new Date(house.createdAt).toLocaleDateString()}
+              {/* ---- Footer ---- */}
+              <div className="mt-auto flex items-center justify-between border-t border-gray-100 px-5 py-3">
+                <p className="text-[11px] text-gray-400">
+                  បង្កើត{" "}
+                  {new Date(house.createdAt).toLocaleDateString("en-GB")}
                 </p>
+                <button
+                  onClick={() => navigate(`${basePath}/properties/${house.id}`)}
+                  className="text-[12px] font-medium text-[#0f2942] hover:underline"
+                >
+                  មើលលម្អិត →
+                </button>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       )}
 
-      {/* Delete confirmation */}
+      {/* ======================= DELETE CONFIRM ======================= */}
       <ConfirmDialog
         open={!!deleteTarget}
         title="លុបអចលនទ្រព្យ"
@@ -472,19 +567,27 @@ const Properties = () => {
         onCancel={() => setDeleteTarget(null)}
       />
 
-      {/* Create / Edit modal */}
+      {/* ======================= CREATE / EDIT MODAL ======================= */}
       <Modal
         open={!!formModal}
         onClose={() => setFormModal(null)}
-        title={formModal === "create" ? "បន្ថែមអចលនទ្រព្យ" : "កែប្រែអចលនទ្រព្យ"}
+        title={
+          formModal === "create" ? "បន្ថែមអចលនទ្រព្យ" : "កែប្រែអចលនទ្រព្យ"
+        }
         size="lg"
         footer={
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => setFormModal(null)} disabled={formLoading}>
+          <div className="flex items-center justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setFormModal(null)}
+              disabled={formLoading}
+            >
               បោះបង់
             </Button>
             <Button onClick={handleSubmit} loading={formLoading}>
-              {formModal === "create" ? "បង្កើតអចលនទ្រព្យ" : "រក្សាទុកការផ្លាស់ប្តូរ"}
+              {formModal === "create"
+                ? "បង្កើតអចលនទ្រព្យ"
+                : "រក្សាទុកការផ្លាស់ប្តូរ"}
             </Button>
           </div>
         }
@@ -520,6 +623,12 @@ const Properties = () => {
             value={form.postalCode}
             onChange={(e) => handleFormChange("postalCode", e.target.value)}
           />
+          <Input
+            label="ក្រុង/ខេត្ត (City/Province)"
+            placeholder="ឧ. រាជធានីភ្នំពេញ"
+            value={form.cityProvince}
+            onChange={(e) => handleFormChange("cityProvince", e.target.value)}
+          />
           <div className="sm:col-span-2">
             <Input
               label="អាសយដ្ឋាន"
@@ -530,6 +639,16 @@ const Properties = () => {
               error={formErrors.address}
             />
           </div>
+          <div className="sm:col-span-2">
+            <Input
+              label="Google Maps URL"
+              placeholder="https://maps.google.com/..."
+              value={form.googleMapsUrl}
+              onChange={(e) =>
+                handleFormChange("googleMapsUrl", e.target.value)
+              }
+            />
+          </div>
           <Input
             label="រយៈទទឹង"
             type="number"
@@ -537,6 +656,7 @@ const Properties = () => {
             placeholder="ឧ. 10.762622"
             value={form.latitude}
             onChange={(e) => handleFormChange("latitude", e.target.value)}
+            error={formErrors.latitude}
           />
           <Input
             label="រយៈបណ្តោយ"
@@ -545,7 +665,27 @@ const Properties = () => {
             placeholder="ឧ. 106.660172"
             value={form.longitude}
             onChange={(e) => handleFormChange("longitude", e.target.value)}
+            error={formErrors.longitude}
           />
+          <div className="sm:col-span-2">
+            <Button
+              variant="outline"
+              size="sm"
+              leftIcon={<ExternalLink className="h-4 w-4" />}
+              disabled={
+                !getMapsUrl(form.latitude, form.longitude, form.googleMapsUrl)
+              }
+              onClick={() =>
+                openInGoogleMaps(
+                  form.latitude,
+                  form.longitude,
+                  form.googleMapsUrl
+                )
+              }
+            >
+              មើលដោយ Google Maps
+            </Button>
+          </div>
           <Input
             label="ចំនួនបន្ទប់សរុប"
             type="number"
@@ -560,7 +700,9 @@ const Properties = () => {
             min="0"
             placeholder="0"
             value={form.availableRooms}
-            onChange={(e) => handleFormChange("availableRooms", e.target.value)}
+            onChange={(e) =>
+              handleFormChange("availableRooms", e.target.value)
+            }
           />
           <Select
             label="ស្ថានភាព"
@@ -580,7 +722,7 @@ const Properties = () => {
         </div>
       </Modal>
 
-      {/* Onboarding choice after creating a house */}
+      {/* ======================= ONBOARDING MODAL ======================= */}
       <Modal
         open={!!onboardingTarget}
         onClose={() => {
@@ -594,101 +736,66 @@ const Properties = () => {
         }
         size="lg"
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           {onboardingStep === "choice" ? (
             <>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-[13.5px] leading-[1.9] text-gray-500">
                 តើផ្ទះ "{onboardingTarget?.name}" ជាអចលនទ្រព្យថ្មី ឬមានទិន្នន័យជួលដែលមានស្រាប់?
               </p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <button
+                <ChoiceCard
+                  icon={Plus}
+                  title="អចលនទ្រព្យថ្មី"
+                  description="មិនទាន់មានទិន្នន័យជួល។ បន្ថែមបន្ទប់ អ្នកជួល និងកិច្ចសន្យាពេលក្រោយ។"
                   onClick={() => {
                     setOnboardingTarget(null);
                     setOnboardingStep("choice");
                     navigate(`${basePath}/properties/${onboardingTarget.id}`);
                   }}
-                  className="group flex flex-col items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 text-left transition-all hover:border-sky-500 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:hover:border-sky-600"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400">
-                    <Plus className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                      អចលនទ្រព្យថ្មី
-                    </p>
-                    <p className="mt-1 text-[13px] text-slate-500 dark:text-slate-400">
-                      មិនទាន់មានទិន្នន័យជួល។ បន្ថែមបន្ទប់ អ្នកជួល និងកិច្ចសន្យាពេលក្រោយ។
-                    </p>
-                  </div>
-                </button>
-                <button
+                />
+                <ChoiceCard
+                  icon={FileSpreadsheet}
+                  title="អចលនទ្រព្យដែលមានស្រាប់"
+                  description="ផ្ទះនេះមានបន្ទប់ អ្នកជួល និងកិច្ចសន្យាដែលមានស្រាប់។"
                   onClick={() => setOnboardingStep("existing")}
-                  className="group flex flex-col items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 text-left transition-all hover:border-emerald-500 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:hover:border-emerald-600"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
-                    <FileSpreadsheet className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                      អចលនទ្រព្យដែលមានស្រាប់
-                    </p>
-                    <p className="mt-1 text-[13px] text-slate-500 dark:text-slate-400">
-                      ផ្ទះនេះមានបន្ទប់ អ្នកជួល និងកិច្ចសន្យាដែលមានស្រាប់។
-                    </p>
-                  </div>
-                </button>
+                />
               </div>
             </>
           ) : (
             <>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-[13.5px] leading-[1.9] text-gray-500">
                 តើអ្នកចង់បញ្ចូលទិន្នន័យដែលមានស្រាប់ដោយរបៀបណា?
               </p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <button
+                <ChoiceCard
+                  icon={Hand}
+                  title="បញ្ចូលដោយដៃ"
+                  description="បញ្ចូលព័ត៌មានបន្ទប់ អ្នកជួល និងកិច្ចសន្យាដោយដៃ។"
                   onClick={() => {
                     setOnboardingTarget(null);
                     setOnboardingStep("choice");
-                    navigate(`${basePath}/properties/${onboardingTarget.id}/onboarding/manual`);
+                    navigate(
+                      `${basePath}/properties/${onboardingTarget.id}/onboarding/manual`
+                    );
                   }}
-                  className="group flex flex-col items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 text-left transition-all hover:border-violet-500 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:hover:border-violet-600"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400">
-                    <Hand className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                      បញ្ចូលដោយដៃ
-                    </p>
-                    <p className="mt-1 text-[13px] text-slate-500 dark:text-slate-400">
-                      បញ្ចូលព័ត៌មានបន្ទប់ អ្នកជួល និងកិច្ចសន្យាដោយដៃ។
-                    </p>
-                  </div>
-                </button>
-                <button
+                />
+                <ChoiceCard
+                  icon={FileSpreadsheet}
+                  title="នាំចូល CSV/Excel"
+                  description="ផ្ទុកឡើងឯកសារ CSV/Excel ដើម្បីនាំចូលទិន្នន័យ។"
                   onClick={() => {
                     setOnboardingTarget(null);
                     setOnboardingStep("choice");
-                    navigate(`${basePath}/properties/${onboardingTarget.id}/onboarding/import`);
+                    navigate(
+                      `${basePath}/properties/${onboardingTarget.id}/onboarding/import`
+                    );
                   }}
-                  className="group flex flex-col items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 text-left transition-all hover:border-emerald-500 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:hover:border-emerald-600"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
-                    <FileSpreadsheet className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                      នាំចូល CSV/Excel
-                    </p>
-                    <p className="mt-1 text-[13px] text-slate-500 dark:text-slate-400">
-                      ផ្ទុកឡើងឯកសារ CSV/Excel ដើម្បីនាំចូលទិន្នន័យ។
-                    </p>
-                  </div>
-                </button>
+                />
               </div>
             </>
           )}
-          <div className="flex items-center justify-between border-t border-slate-100 pt-4 dark:border-gray-800">
+
+          <div className="flex items-center justify-between border-t border-gray-100 pt-4">
             <div>
               {onboardingStep === "existing" && (
                 <Button
@@ -714,7 +821,7 @@ const Properties = () => {
         </div>
       </Modal>
 
-      {/* View details modal */}
+      {/* ======================= VIEW DETAILS MODAL ======================= */}
       <Modal
         open={!!viewTarget}
         onClose={() => setViewTarget(null)}
@@ -724,66 +831,83 @@ const Properties = () => {
         {viewTarget && (
           <div className="space-y-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
-                <Building2 className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#0f2942]">
+                <Building2 className="h-5 w-5 text-white" />
               </div>
               <div>
-                <p className="text-[13px] font-mono text-slate-400 dark:text-slate-500">{viewTarget.code}</p>
-                <Badge variant={STATUS_VARIANT[viewTarget.status] || "default"} className="mt-1">
-                  {STATUS_OPTIONS.find((o) => o.value === viewTarget.status)?.label || viewTarget.status}
+                <p className="font-mono text-[12px] text-gray-400">
+                  {viewTarget.code}
+                </p>
+                <Badge
+                  variant={STATUS_VARIANT[viewTarget.status] || "default"}
+                  className="mt-1"
+                >
+                  {STATUS_OPTIONS.find((o) => o.value === viewTarget.status)
+                    ?.label || viewTarget.status}
                 </Badge>
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">Slug</p>
-                <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{viewTarget.slug}</p>
-              </div>
-              <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">អាសយដ្ឋាន</p>
-                <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-200">
-                  <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                  {viewTarget.address}
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">លេខកូដប្រៃសណីយ៍</p>
-                <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{viewTarget.postalCode || "—"}</p>
-              </div>
-              <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">បន្ទប់</p>
-                <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-700 dark:text-slate-200">
-                  <BedDouble className="h-4 w-4 text-slate-400" />
-                  {viewTarget.availableRooms}/{viewTarget.totalRooms} ទំនេរ
-                </p>
-              </div>
-              <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">រយៈទទឹង</p>
-                <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{viewTarget.latitude ?? "—"}</p>
-              </div>
-              <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">រយៈបណ្តោយ</p>
-                <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{viewTarget.longitude ?? "—"}</p>
-              </div>
+              <DetailField label="Slug" value={viewTarget.slug} />
+              <DetailField
+                label="អាសយដ្ឋាន"
+                value={viewTarget.address}
+                icon={MapPin}
+              />
+              <DetailField
+                label="លេខកូដប្រៃសណីយ៍"
+                value={viewTarget.postalCode || "—"}
+              />
+              <DetailField
+                label="បន្ទប់"
+                value={`${viewTarget.availableRooms}/${viewTarget.totalRooms} ទំនេរ`}
+                icon={BedDouble}
+              />
+              <DetailField
+                label="រយៈទទឹង"
+                value={viewTarget.latitude ?? "—"}
+              />
+              <DetailField
+                label="រយៈបណ្តោយ"
+                value={viewTarget.longitude ?? "—"}
+              />
+            </div>
+
+            <div>
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<ExternalLink className="h-4 w-4" />}
+                disabled={!getMapsUrl(viewTarget.latitude, viewTarget.longitude)}
+                onClick={() =>
+                  openInGoogleMaps(viewTarget.latitude, viewTarget.longitude)
+                }
+              >
+                មើលដោយ Google Maps
+              </Button>
             </div>
 
             {viewTarget.description && (
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">ការពិពណ៌នា</p>
-                <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{viewTarget.description}</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400">
+                  ការពិពណ៌នា
+                </p>
+                <p className="mt-1 text-[13.5px] leading-[1.9] text-[#0f2942]">
+                  {viewTarget.description}
+                </p>
               </div>
             )}
 
-            <div className="flex items-center gap-6 border-t border-slate-100 pt-4 dark:border-gray-800">
-              <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">បានបង្កើត</p>
-                <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{new Date(viewTarget.createdAt).toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">បានធ្វើបច្ចុប្បន្នភាព</p>
-                <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{new Date(viewTarget.updatedAt).toLocaleString()}</p>
-              </div>
+            <div className="grid grid-cols-2 gap-4 border-t border-gray-100 pt-4">
+              <DetailField
+                label="បានបង្កើត"
+                value={new Date(viewTarget.createdAt).toLocaleString()}
+              />
+              <DetailField
+                label="បានធ្វើបច្ចុប្បន្នភាព"
+                value={new Date(viewTarget.updatedAt).toLocaleString()}
+              />
             </div>
           </div>
         )}
@@ -791,5 +915,53 @@ const Properties = () => {
     </div>
   );
 };
+
+/* ======================= Sub-components ======================= */
+
+const MenuItem = ({ icon: Icon, label, danger, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`flex w-full items-center gap-2.5 px-3 py-2 text-[13px] transition-colors ${
+      danger
+        ? "text-red-600 hover:bg-red-50"
+        : "text-gray-700 hover:bg-gray-50"
+    }`}
+  >
+    <Icon className="h-4 w-4" />
+    {label}
+  </button>
+);
+
+const ChoiceCard = ({ icon: Icon, title, description, onClick }) => (
+  <button
+    onClick={onClick}
+    className="group flex flex-col items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 text-left transition-colors hover:border-[#0f2942]/40"
+  >
+    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 transition-colors group-hover:bg-[#0f2942]">
+      <Icon
+        className="h-5 w-5 text-[#0f2942] transition-colors group-hover:text-white"
+        strokeWidth={1.75}
+      />
+    </div>
+    <div>
+      <p className="text-[13.5px] font-semibold text-[#0f2942]">{title}</p>
+      <p className="mt-1 text-[12.5px] leading-[1.9] text-gray-500">
+        {description}
+      </p>
+    </div>
+  </button>
+);
+
+const DetailField = ({ label, value, icon: Icon }) => (
+  <div>
+    <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400">
+      {label}
+    </p>
+    <p className="mt-1 flex items-center gap-1.5 text-[13.5px] text-[#0f2942]">
+      {Icon && <Icon className="h-3.5 w-3.5 shrink-0 text-gray-400" />}
+      {value}
+    </p>
+  </div>
+);
 
 export default Properties;

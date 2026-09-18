@@ -4,6 +4,7 @@ import { userApi } from "../api/user.api";
 const ROLE_OWNER = "OWNER";
 const ROLE_MANAGER = "MANAGER";
 const ROLE_TENANT = "TENANT";
+const ROLE_SUPER_ADMIN = "SUPER_ADMIN";
 
 export function useMyRoles() {
   const [roles, setRoles] = useState([]);
@@ -35,6 +36,7 @@ export function useMyRoles() {
   const isOwner = codes.includes(ROLE_OWNER);
   const isManager = codes.includes(ROLE_MANAGER);
   const isTenant = codes.includes(ROLE_TENANT);
+  const isSuperAdmin = codes.includes(ROLE_SUPER_ADMIN);
   const hasAdminAccess = isOwner || isManager;
 
   return {
@@ -43,6 +45,7 @@ export function useMyRoles() {
     isOwner,
     isManager,
     isTenant,
+    isSuperAdmin,
     hasAdminAccess,
     loading,
     error,

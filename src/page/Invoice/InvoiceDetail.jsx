@@ -29,7 +29,6 @@ import {
   Skeleton,
   Modal,
   Input,
-  Select,
   ConfirmDialog,
 } from '../../components/ui/index.js';
 
@@ -82,7 +81,6 @@ export default function InvoiceDetail() {
   const [cancelling, setCancelling] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
-  const [paymentMethods, setPaymentMethods] = useState([]);
   const [paymentMethodId, setPaymentMethodId] = useState('');
   const [paying, setPaying] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -111,18 +109,6 @@ export default function InvoiceDetail() {
       toast.success('បានសម្គាល់ជាបង់រួច', 'វិក្កយបត្រត្រូវបានសម្គាល់ថាបានបង់ពេញ។');
     } catch (err) {
       toast.error('ការបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'មិនអាចធ្វើបានទេ។');
-    }
-  };
-
-  const openPaymentModal = async () => {
-    setPaymentAmount('');
-    setPaymentMethodId('');
-    setPaymentOpen(true);
-    try {
-      const data = await paymentApi.listPaymentMethods();
-      setPaymentMethods((data || []).filter((m) => m.status === 'ACTIVE'));
-    } catch {
-      setPaymentMethods([]);
     }
   };
 

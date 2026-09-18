@@ -57,6 +57,12 @@ export function useNotifications() {
       if (entity === "contract") {
         return isTenant ? "/tenant/dashboard" : `${basePath}/contracts/${id}`;
       }
+      if (entity === "room") {
+        return id == null ? "/admin/submissions" : `/admin/submissions?roomId=${id}`;
+      }
+      if (entity === "listing") {
+        return id == null ? "/admin/submissions" : `/admin/submissions?listingId=${id}`;
+      }
       return null;
     },
     [isTenant, basePath]

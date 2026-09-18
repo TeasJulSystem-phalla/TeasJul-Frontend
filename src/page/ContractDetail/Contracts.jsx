@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useContracts } from '../../hooks/useContracts.js';
 import { useRooms } from '../../hooks/useRooms.js';
+import { useHouses } from '../../hooks/useHouses.js';
 import { useBasePath } from '../../hooks/useBasePath.js';
 import { useToast } from '../../components/ui/Toast.jsx';
 import {
@@ -37,6 +38,7 @@ import {
   Dropdown,
   Table,
   CountUp,
+  Pagination,
 } from '../../components/ui/index.js';
 
 const STATUS_META = {
@@ -93,6 +95,7 @@ const contractProgress = (c) => {
 export default function Contracts() {
   const { contracts, loading, error, fetchContracts, deleteContract } = useContracts();
   const { rooms } = useRooms();
+  const { houses } = useHouses();
   const navigate = useNavigate();
   const toast = useToast();
   const basePath = useBasePath();
@@ -100,10 +103,13 @@ export default function Contracts() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [activeTab, setActiveTab] = useState('');
+  const [houseFilter, setHouseFilter] = useState('');
   const [sortBy, setSortBy] = useState('recent');
   const [view, setView] = useState('grid');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [page, setPage] = useState(0);
+  const pageSize = 10;
 
   const refresh = useCallback(() => {
     return fetchContracts();
@@ -140,11 +146,20 @@ export default function Contracts() {
     [rooms]
   );
 
+  const roomHouseId = useCallback(
+    (rid) => {
+      const r = rooms.find((x) => x.id === rid);
+      return r ? r.houseId : null;
+    },
+    [rooms]
+  );
+
   const effectiveStatus = activeTab || statusFilter;
 
   const filtered = useMemo(() => {
     let result = [...contracts];
     if (effectiveStatus) result = result.filter((c) => c.status === effectiveStatus);
+    if (houseFilter) result = result.filter((c) => String(roomHouseId(c.roomId)) === String(houseFilter));
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       result = result.filter(
@@ -173,14 +188,28 @@ export default function Contracts() {
         result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
     return result;
-  }, [contracts, effectiveStatus, searchTerm, roomName, sortBy]);
+  }, [contracts, effectiveStatus, houseFilter, roomHouseId, searchTerm, roomName, sortBy]);
 
-  const hasFilters = searchTerm || effectiveStatus;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+
+  const paginated = useMemo(() => {
+    const start = page * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, page, pageSize]);
+
+  useEffect(() => {
+    const maxPage = Math.max(0, Math.ceil(filtered.length / pageSize) - 1);
+    if (page > maxPage) setPage(maxPage);
+  }, [filtered.length, page, pageSize]);
+
+  const hasFilters = searchTerm || effectiveStatus || houseFilter;
 
   const clearFilters = () => {
     setSearchTerm('');
     setStatusFilter('');
     setActiveTab('');
+    setHouseFilter('');
+    setPage(0);
   };
 
   const openDetail = (c) => navigate(`${basePath}/contracts/${c.id}`);
@@ -189,6 +218,7 @@ export default function Contracts() {
   const handleTabChange = (status) => {
     setActiveTab(status);
     setStatusFilter('');
+    setPage(0);
   };
 
   const handleDelete = async () => {
@@ -363,7 +393,10 @@ export default function Contracts() {
                 placeholder="ស្វែងរកកិច្ចសន្យា បន្ទប់ កំណត់ចំណាំ..."
                 leftIcon={<Search className="h-4 w-4" />}
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setPage(0);
+                }}
               />
             </div>
             <div className="grid grid-cols-2 gap-3 sm:flex">
@@ -374,6 +407,18 @@ export default function Contracts() {
                   const v = e.target.value;
                   setStatusFilter(v);
                   setActiveTab('');
+                  setPage(0);
+                }}
+              />
+              <Select
+                options={[
+                  { value: '', label: 'ផ្ទះទាំងអស់' },
+                  ...houses.map((h) => ({ value: String(h.id), label: h.name })),
+                ]}
+                value={houseFilter}
+                onChange={(e) => {
+                  setHouseFilter(e.target.value);
+                  setPage(0);
                 }}
               />
               <Select
@@ -412,7 +457,7 @@ export default function Contracts() {
         />
       ) : view === 'grid' ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((c) => (
+          {paginated.map((c) => (
             <ContractCard
               key={c.id}
               contract={c}
@@ -424,7 +469,17 @@ export default function Contracts() {
           ))}
         </div>
       ) : (
-        <ListView contracts={filtered} roomName={roomName} onOpen={openDetail} onEdit={openEdit} onDelete={setDeleteTarget} />
+        <ListView contracts={paginated} roomName={roomName} onOpen={openDetail} onEdit={openEdit} onDelete={setDeleteTarget} />
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex justify-end pt-1">
+          <Pagination
+            currentPage={page + 1}
+            totalPages={totalPages}
+            onPageChange={(p) => setPage(p - 1)}
+          />
+        </div>
       )}
 
       {/* Delete */}

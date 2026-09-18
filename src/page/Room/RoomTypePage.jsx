@@ -17,7 +17,10 @@ import {
   Filter,
 } from 'lucide-react';
 import { useRoomTypes } from '../../hooks/useRoomType.js';
+import { useRoomTypeImages } from '../../hooks/useRoomTypeImages.js';
+import { useMyRoles } from '../../hooks/useMyRoles.js';
 import { useToast } from '../../components/ui/Toast.jsx';
+import ImageGallery from '../../components/ImageGallery';
 import {
   Card,
   CountUp,
@@ -83,6 +86,8 @@ export default function RoomTypes() {
     deleteRoomType,
   } = useRoomTypes();
   const toast = useToast();
+  const { isOwner, isManager } = useMyRoles();
+  const canManage = isOwner || isManager;
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -95,6 +100,7 @@ export default function RoomTypes() {
   const [deleting, setDeleting] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [formErrors, setFormErrors] = useState({});
+  const images = useRoomTypeImages(editTarget?.id ?? viewTarget?.id ?? null);
   const [submitting, setSubmitting] = useState(false);
 
   const refresh = useCallback(() => {
@@ -148,6 +154,21 @@ export default function RoomTypes() {
       render: (row) => (
         <span className="font-medium text-slate-800 dark:text-white">{row.name}</span>
       ),
+    },
+    {
+      header: 'រូបភាព',
+      render: (row) =>
+        row.primaryImage ? (
+          <img
+            src={row.primaryImage}
+            alt={row.name}
+            className="h-10 w-14 rounded-lg object-cover"
+          />
+        ) : (
+          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-400 dark:bg-gray-800">
+            <Home className="h-4 w-4" />
+          </span>
+        ),
     },
     {
       header: 'សមត្ថភាព',
@@ -520,6 +541,11 @@ export default function RoomTypes() {
                 onClick={() => handleOpenView(rt)}
                 className="group cursor-pointer rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-slate-300 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700"
               >
+                {rt.primaryImage && (
+                  <div className="mb-3 h-28 overflow-hidden rounded-lg">
+                    <img src={rt.primaryImage} alt={rt.name} className="h-full w-full object-cover" />
+                  </div>
+                )}
                 <div className="flex items-start justify-between">
                   <div className="min-w-0">
                     <p className="font-mono text-xs text-slate-400 dark:text-slate-500">
@@ -655,6 +681,24 @@ export default function RoomTypes() {
           onChange={handleFormChange}
           onSubmit={handleSubmit}
         />
+        {editTarget && (
+          <div className="mt-6 border-t border-slate-100 pt-4 dark:border-gray-800">
+            <ImageGallery
+              images={images.images}
+              loading={images.loading}
+              error={images.error}
+              uploading={images.uploading}
+              uploadError={images.uploadError}
+              canManage={canManage}
+              onUpload={images.upload}
+              onRemove={images.removeImage}
+              onSetPrimary={images.setAsPrimary}
+              onMove={images.moveImage}
+              onRetry={images.fetchImages}
+              title={`រូបភាព (${images.images.length})`}
+            />
+          </div>
+        )}
       </Modal>
 
       {/* View modal */}
@@ -734,6 +778,23 @@ export default function RoomTypes() {
                 icon={<Calendar className="h-4 w-4 text-slate-400" />}
                 label="បានធ្វើបច្ចុប្បន្នភាព"
                 value={formatDate(viewData.updatedAt)}
+              />
+            </div>
+
+            <div className="border-t border-slate-100 pt-4 dark:border-gray-800">
+              <ImageGallery
+                images={images.images}
+                loading={images.loading}
+                error={images.error}
+                uploading={images.uploading}
+                uploadError={images.uploadError}
+                canManage={canManage}
+                onUpload={images.upload}
+                onRemove={images.removeImage}
+                onSetPrimary={images.setAsPrimary}
+                onMove={images.moveImage}
+                onRetry={images.fetchImages}
+                title={`រូបភាព (${images.images.length})`}
               />
             </div>
           </div>

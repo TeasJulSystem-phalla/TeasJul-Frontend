@@ -23,4 +23,27 @@ export const roomTypeApi = {
   // Delete room type
   deleteRoomType: (id) =>
     api.delete(`/room-types/${id}`).then((res) => res.data),
+
+  // Get room type images
+  getRoomTypeImages: (roomTypeId) =>
+    api.get(`/room-types/${roomTypeId}/images`).then((res) => res.data),
+
+  uploadRoomTypeImages: (roomTypeId, files) => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+    return api
+      .post(`/room-types/${roomTypeId}/images`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((res) => res.data);
+  },
+
+  deleteRoomTypeImage: (roomTypeId, imageId) =>
+    api.delete(`/room-types/${roomTypeId}/images/${imageId}`).then((res) => res.data),
+
+  setRoomTypeImagePrimary: (roomTypeId, imageId) =>
+    api.patch(`/room-types/${roomTypeId}/images/${imageId}/primary`).then((res) => res.data),
+
+  updateRoomTypeImageOrder: (roomTypeId, imageId, sortOrder) =>
+    api.patch(`/room-types/${roomTypeId}/images/${imageId}/order`, { sortOrder }).then((res) => res.data),
 };

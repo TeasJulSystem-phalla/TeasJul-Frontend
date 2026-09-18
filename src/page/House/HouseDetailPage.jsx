@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -9,18 +9,25 @@ import {
   MapPin,
   RefreshCw,
   Search,
-  Wrench,
-  CheckCircle2,
-  DoorOpen,
+  Mail,
+  LocateFixed,
   Calendar,
   Hand,
   FileSpreadsheet,
+  ExternalLink,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import {
   useRoomTypes,
 } from '../../hooks/useRoomType';
 import { useHouseDetail } from '../../hooks/useHouseDetail';
+import { useHouseImages } from '../../hooks/useHouseImages';
+import { useMyRoles } from '../../hooks/useMyRoles';
 import { useBasePath } from '../../hooks/useBasePath.js';
+import { houseApi } from '../../api/house.api';
+import ImageGallery from '../../components/ImageGallery';
+import useToast from '../../components/ui/Toast';
 import {
   Card,
   Button,
@@ -74,16 +81,14 @@ const CONTRACT_STATUS_OPTIONS = [
   { value: 'CANCELLED', label: 'បានលុបចោល' },
 ];
 
-const StatCard = ({ icon: Icon, label, value, iconBg, iconColor }) => (
-  <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-    <div className="flex items-center gap-3">
-      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${iconBg}`}>
-        <Icon className={`h-5 w-5 ${iconColor}`} />
-      </div>
-      <div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
-        <p className="text-2xl font-bold text-slate-800 dark:text-white">{value ?? '—'}</p>
-      </div>
+const InfoRow = ({ icon: Icon, label, value }) => (
+  <div className="flex items-center gap-3">
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 dark:bg-gray-800 dark:text-slate-400">
+      <Icon className="h-4 w-4" />
+    </span>
+    <div className="min-w-0">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">{label}</p>
+      <p className="truncate text-sm text-slate-700 dark:text-slate-200">{value ?? '—'}</p>
     </div>
   </div>
 );
@@ -95,6 +100,9 @@ export default function HouseDetailPage() {
   const navigate = useNavigate();
 
   const { roomTypes } = useRoomTypes();
+  const { isOwner, isManager } = useMyRoles();
+  const canManage = isOwner || isManager;
+  const houseImages = useHouseImages(houseId);
 
   const {
     house,
@@ -138,6 +146,83 @@ export default function HouseDetailPage() {
   } = useHouseDetail(houseId);
 
   const [tab, setTab] = useState('rooms');
+  const toast = useToast();
+  const [nearbyLocations, setNearbyLocations] = useState([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [nearbyError, setNearbyError] = useState(null);
+  const [newNearby, setNewNearby] = useState({ name: '', category: 'SCHOOL', distanceKm: '', travelMinutes: '' });
+  const [addingNearby, setAddingNearby] = useState(false);
+
+  const fetchNearby = useCallback(async () => {
+    if (!houseId) return;
+    setNearbyLoading(true);
+    try {
+      const data = await houseApi.getNearbyLocations(houseId);
+      setNearbyLocations(data || []);
+    } catch {
+      // ignore
+    } finally {
+      setNearbyLoading(false);
+    }
+  }, [houseId]);
+
+  useEffect(() => {
+    fetchNearby();
+  }, [fetchNearby]);
+
+  const handleAddNearby = async (e) => {
+    e.preventDefault();
+    setNearbyError(null);
+
+    if (!newNearby.name.trim()) {
+      toast.error('សូមបញ្ចូលឈ្មោះទីតាំង', 'Name is required');
+      return;
+    }
+    if (newNearby.distanceKm === '' || isNaN(parseFloat(newNearby.distanceKm))) {
+      toast.error('សូមបញ្ចូលចម្ងាយ (Km)', 'Distance in km is required');
+      return;
+    }
+    if (newNearby.travelMinutes === '' || isNaN(parseInt(newNearby.travelMinutes))) {
+      toast.error('សូមបញ្ចូលរយៈពេលធ្វើដំណើរ (នាទី)', 'Travel minutes is required');
+      return;
+    }
+
+    setAddingNearby(true);
+    try {
+      await houseApi.createNearbyLocation(houseId, {
+        name: newNearby.name.trim(),
+        category: newNearby.category,
+        distanceKm: parseFloat(newNearby.distanceKm),
+        travelMinutes: parseInt(newNearby.travelMinutes),
+      });
+      toast.success('ទីតាំងជិតខាងត្រូវបានបន្ថែម', 'បន្ថែមទីតាំងជិតខាងដោយជោគជ័យ');
+      setNewNearby({ name: '', category: 'SCHOOL', distanceKm: '', travelMinutes: '' });
+      fetchNearby();
+    } catch (err) {
+      const errRes = err.response?.data;
+      let errMsg = errRes?.message || errRes?.error || 'ការបន្ថែមទីតាំងជិតខាងបរាជ័យ';
+      if (errRes?.errors && typeof errRes.errors === 'object') {
+        const detailErrs = Object.entries(errRes.errors)
+          .map(([fld, msg]) => `${fld}: ${msg}`)
+          .join('; ');
+        errMsg = `${errMsg} (${detailErrs})`;
+      }
+      setNearbyError(errMsg);
+      toast.error('កំហុស Validation', errMsg);
+    } finally {
+      setAddingNearby(false);
+    }
+  };
+
+  const handleDeleteNearby = async (locId) => {
+    try {
+      await houseApi.deleteNearbyLocation(houseId, locId);
+      toast.success('ទីតាំងជិតខាងត្រូវបានលុប');
+      fetchNearby();
+    } catch (err) {
+      toast.error('ការលុបបរាជ័យ', err.response?.data?.message || 'មិនអាចលុបទីតាំងបានទេ');
+    }
+  };
 
   const roomTypeMap = useMemo(
     () => Object.fromEntries(roomTypes.map((rt) => [String(rt.id), rt])),
@@ -383,21 +468,141 @@ export default function HouseDetailPage() {
         </div>
       </div>
 
-      {/* Summary stats */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
-        <StatCard icon={BedDouble} label="បន្ទប់សរុប" value={summary?.totalRooms} iconBg="bg-slate-100 dark:bg-gray-800" iconColor="text-slate-600 dark:text-slate-300" />
-        <StatCard icon={DoorOpen} label="ទំនេរ" value={summary?.availableRooms} iconBg="bg-emerald-50 dark:bg-emerald-900/20" iconColor="text-emerald-600 dark:text-emerald-400" />
-        <StatCard icon={CheckCircle2} label="មានអ្នកស្នាក់នៅ" value={summary?.occupiedRooms} iconBg="bg-sky-50 dark:bg-sky-900/20" iconColor="text-sky-600 dark:text-sky-400" />
-        <StatCard icon={Wrench} label="កំពុងជួសជុល" value={summary?.maintenanceRooms} iconBg="bg-amber-50 dark:bg-amber-900/20" iconColor="text-amber-600 dark:text-amber-400" />
-        <StatCard icon={Users} label="អ្នកជួលសកម្ម" value={summary?.activeTenants} iconBg="bg-violet-50 dark:bg-violet-900/20" iconColor="text-violet-600 dark:text-violet-400" />
-        <StatCard icon={FileText} label="កិច្ចសន្យាសកម្ម" value={summary?.activeContracts} iconBg="bg-rose-50 dark:bg-rose-900/20" iconColor="text-rose-600 dark:text-rose-400" />
-      </div>
-
-      {house?.description && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <p className="text-sm text-slate-600 dark:text-slate-300">{house.description}</p>
+      {/* House information */}
+      <Card className="p-5">
+        <div className="mb-4 flex items-center gap-2">
+          <Building2 className="h-4 w-4 text-slate-400" />
+          <h2 className="text-sm font-semibold text-slate-800 dark:text-white">ព័ត៌មានអចលនទ្រព្យ</h2>
         </div>
-      )}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <InfoRow icon={MapPin} label="អាសយដ្ឋាន" value={house?.address} />
+          <InfoRow icon={MapPin} label="ក្រុង/ខេត្ត" value={house?.cityProvince} />
+          <InfoRow icon={Mail} label="លេខកូដប្រៃសណីយ៍" value={house?.postalCode} />
+          {house?.latitude != null && <InfoRow icon={LocateFixed} label="រយៈទទឹង" value={house.latitude} />}
+          {house?.longitude != null && <InfoRow icon={LocateFixed} label="រយៈបណ្តោយ" value={house.longitude} />}
+        </div>
+        {(house?.googleMapsUrl || (house?.latitude != null && house?.longitude != null)) && (
+          <a
+            href={house?.googleMapsUrl || `https://www.google.com/maps?q=${house.latitude},${house.longitude}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            មើលដោយ Google Maps
+          </a>
+        )}
+        {house?.description && (
+          <p className="mt-4 border-t border-slate-100 pt-4 text-sm leading-relaxed text-slate-600 dark:border-gray-800 dark:text-slate-300">
+            {house.description}
+          </p>
+        )}
+      </Card>
+
+      {/* Images */}
+      <Card className="p-5">
+        <ImageGallery
+          images={houseImages.images}
+          loading={houseImages.loading}
+          error={houseImages.error}
+          uploading={houseImages.uploading}
+          uploadError={houseImages.uploadError}
+          canManage={canManage}
+          onUpload={houseImages.upload}
+          onRemove={houseImages.removeImage}
+          onSetPrimary={houseImages.setAsPrimary}
+          onMove={houseImages.moveImage}
+          onRetry={houseImages.fetchImages}
+        />
+      </Card>
+
+      {/* Nearby Locations */}
+      <Card className="p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-slate-400" />
+            <h2 className="text-sm font-semibold text-slate-800 dark:text-white">ទីតាំងនៅជិតខាង (Nearby Locations)</h2>
+          </div>
+        </div>
+
+        {canManage && (
+          <form onSubmit={handleAddNearby} className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-6">
+            <Input
+              placeholder="ឈ្មោះទីតាំង (ឧ. សាលារៀន ផ្សារ...)"
+              value={newNearby.name}
+              onChange={(e) => setNewNearby({ ...newNearby, name: e.target.value })}
+              className="sm:col-span-2"
+            />
+            <Select
+              options={[
+                { value: 'SCHOOL', label: 'សាលារៀន (School)' },
+                { value: 'UNIVERSITY', label: 'សាកលវិទ្យាល័យ (University)' },
+                { value: 'HOSPITAL', label: 'មន្ទីរពេទ្យ (Hospital)' },
+                { value: 'MALL', label: 'ផ្សារទំនើប (Mall)' },
+                { value: 'MARKET', label: 'ផ្សារ (Market)' },
+                { value: 'RESTAURANT', label: 'ភោជនីយដ្ឋាន (Restaurant)' },
+                { value: 'BANK', label: 'ធនាគារ (Bank)' },
+                { value: 'TOURIST_SPOT', label: 'កន្លែងទេសចរណ៍ (Tourist Spot)' },
+                { value: 'BUS_STOP', label: 'ចំណតឡានក្រុង (Bus Stop)' },
+                { value: 'OTHER', label: 'ផ្សេងៗ (Other)' },
+              ]}
+              value={newNearby.category}
+              onChange={(e) => setNewNearby({ ...newNearby, category: e.target.value })}
+            />
+            <Input
+              placeholder="ចម្ងាយ (Km)"
+              type="number"
+              step="0.1"
+              min="0"
+              value={newNearby.distanceKm}
+              onChange={(e) => setNewNearby({ ...newNearby, distanceKm: e.target.value })}
+            />
+            <Input
+              placeholder="ធ្វើដំណើរ (នាទី)"
+              type="number"
+              min="0"
+              value={newNearby.travelMinutes}
+              onChange={(e) => setNewNearby({ ...newNearby, travelMinutes: e.target.value })}
+            />
+            <Button type="submit" size="sm" loading={addingNearby} leftIcon={<Plus className="h-4 w-4" />}>
+              បន្ថែម
+            </Button>
+          </form>
+        )}
+
+        {nearbyError && (
+          <Alert variant="danger" title="កំហុស Validation" description={nearbyError} dismissible className="mb-3" />
+        )}
+
+        {nearbyLoading ? (
+          <Skeleton className="h-12 w-full" />
+        ) : nearbyLocations.length === 0 ? (
+          <p className="text-xs text-slate-400">មិនទាន់មានទីតាំងនៅជិតខាងទេ</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {nearbyLocations.map((loc) => (
+              <div
+                key={loc.id}
+                className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-700 dark:border-gray-700 dark:bg-gray-800 dark:text-slate-200"
+              >
+                <span className="font-medium">{loc.name}</span>
+                <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[10px] dark:bg-gray-700">{loc.category}</span>
+                {loc.distanceKm != null && <span className="text-slate-400">{loc.distanceKm} km</span>}
+                {loc.travelMinutes != null && <span className="text-slate-400">{loc.travelMinutes} នាទី</span>}
+                {canManage && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteNearby(loc.id)}
+                    className="text-red-400 hover:text-red-600"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
 
       {/* Tabs */}
       <Tabs

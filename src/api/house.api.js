@@ -39,4 +39,39 @@ export const houseApi = {
 
   revokeAccess: (houseId, userId) =>
     api.delete(`/houses/${houseId}/access/${userId}`).then((res) => res.data),
+
+  getHouseImages: (houseId) =>
+    api.get(`/houses/${houseId}/images`).then((res) => res.data),
+
+  uploadHouseImages: (houseId, files) => {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+    return api
+      .post(`/houses/${houseId}/images`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((res) => res.data);
+  },
+
+  deleteHouseImage: (houseId, imageId) =>
+    api.delete(`/houses/${houseId}/images/${imageId}`).then((res) => res.data),
+
+  setHouseImagePrimary: (houseId, imageId) =>
+    api.patch(`/houses/${houseId}/images/${imageId}/primary`).then((res) => res.data),
+
+  updateHouseImageOrder: (houseId, imageId, sortOrder) =>
+    api.patch(`/houses/${houseId}/images/${imageId}/order`, { sortOrder }).then((res) => res.data),
+
+  getNearbyLocations: (houseId) =>
+    api.get(`/houses/${houseId}/nearby-locations`).then((res) => res.data),
+
+  createNearbyLocation: (houseId, data) =>
+    api.post(`/houses/${houseId}/nearby-locations`, data).then((res) => res.data),
+
+  updateNearbyLocation: (houseId, id, data) =>
+    api.put(`/houses/${houseId}/nearby-locations/${id}`, data).then((res) => res.data),
+
+  deleteNearbyLocation: (houseId, id) =>
+    api.delete(`/houses/${houseId}/nearby-locations/${id}`).then((res) => res.data),
 };
+

@@ -1,5 +1,6 @@
 // src/page/Dashboard.jsx
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import {
   Building2,
   DoorOpen,
@@ -11,6 +12,12 @@ import {
   Wrench,
   BarChart3,
   Clock,
+  Send,
+  XCircle,
+  FileText,
+  Globe,
+  CheckCircle2,
+  Star,
 } from 'lucide-react';
 import {
   BarChart,
@@ -25,11 +32,17 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { Alert, Button, Card, CountUp, EmptyState, Select, Input, Skeleton } from '../components/ui/index.js';
+import { Alert, Button, Card, CountUp, EmptyState, Select, Input, Skeleton, Textarea } from '../components/ui/index.js';
+import useToast from '../components/ui/Toast.jsx';
+import StarRating from '../components/feedback/StarRating.jsx';
+import FeedbackStatusBadge from '../components/feedback/FeedbackStatusBadge.jsx';
 import RevenueTrendChart from '../components/charts/RevenueTrendChart';
 import { useHouses } from '../hooks/useHouses.js';
 import { useOwnerDashboard } from '../hooks/useOwnerDashboard.js';
-import { formatCompactCurrency, formatCurrency, formatMonth } from '../utils/format';
+import { useOwnerFeedback } from '../hooks/useOwnerFeedback.js';
+import { useRooms } from '../hooks/useRooms.js';
+import { useMyRoles } from '../hooks/useMyRoles.js';
+import { formatCompactCurrency, formatCurrency, formatDate, formatMonth } from '../utils/format';
 
 const PAYMENT_STATUS_COLORS = {
   PAID: '#059669',
@@ -129,6 +142,30 @@ const KpiCard = ({ label, value, subValue, icon: Icon, accent, formatter, subFor
   </div>
 );
 
+const SummaryStat = ({ label, value, icon: Icon, tone = 'slate', onClick }) => {
+  const tones = {
+    slate: 'text-slate-600 dark:text-slate-300',
+    amber: 'text-amber-600 dark:text-amber-400',
+    emerald: 'text-emerald-600 dark:text-emerald-400',
+    red: 'text-red-600 dark:text-red-400',
+    sky: 'text-sky-600 dark:text-sky-400',
+    violet: 'text-violet-600 dark:text-violet-400',
+  };
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-white p-4 text-left transition-all hover:border-slate-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700"
+    >
+      <div>
+        <p className="text-xl font-bold text-slate-800 dark:text-white">{value}</p>
+        <p className="mt-0.5 text-[12px] text-slate-500 dark:text-slate-400">{label}</p>
+      </div>
+      <Icon className={`h-5 w-5 ${tones[tone] || tones.slate}`} />
+    </button>
+  );
+};
+
 const chartTooltipStyle = {
   borderRadius: '0.5rem',
   border: '1px solid #e2e8f0',
@@ -152,8 +189,25 @@ const formatTimeAgo = (dateStr) => {
 };
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { houses, loading: housesLoading } = useHouses();
   const { dashboard, loading, error, fetchDashboard } = useOwnerDashboard();
+  const { rooms } = useRooms();
+  const { isSuperAdmin, isOwner, loading: rolesLoading } = useMyRoles();
+
+  const publicationSummaries = useMemo(() => {
+    const count = (status) =>
+      rooms.filter((r) => r.publicationStatus === status).length;
+    const roomCount = (status) => rooms.filter((r) => r.status === status).length;
+    return {
+      draft: count('DRAFT'),
+      pending: count('PENDING_APPROVAL'),
+      published: count('PUBLISHED'),
+      rejected: count('REJECTED'),
+      available: roomCount('AVAILABLE'),
+      occupied: roomCount('OCCUPIED'),
+    };
+  }, [rooms]);
 
   const [houseId, setHouseId] = useState('');
   const [dateRange, setDateRange] = useState('this-month');
@@ -209,6 +263,44 @@ export default function Dashboard() {
     setCustomTo('');
   };
 
+  // ---- Owner Feedback (Rate TeasJul) ----
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [ratingError, setRatingError] = useState('');
+  const [commentError, setCommentError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { feedback, loading: feedbackLoading, submitFeedback } = useOwnerFeedback();
+  const toast = useToast();
+
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+    setRatingError('');
+    setCommentError('');
+    if (!rating) {
+      setRatingError('សូមជ្រើសរើសចំណាត់ថ្នាក់ (Please select a rating)');
+      return;
+    }
+    if (!comment.trim()) {
+      setCommentError('សូមបញ្ចូលមតិយោបល់ (Please enter a comment)');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await submitFeedback({ rating, comment: comment.trim() });
+      toast.success('បានដាក់ស្នើ', 'Feedback submitted. TeaJul will review and publish it.');
+      setComment('');
+      setRating(0);
+    } catch (err) {
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        'ការដាក់ស្នើមតិបរាជ័យ។';
+      toast.error('កំហុស', message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const kpis = dashboard?.kpis;
   const revenueTrend = useMemo(
     () =>
@@ -248,6 +340,18 @@ export default function Dashboard() {
   const hasRevenueByHouse = revenueByHouse.length > 0;
 
   const chartLoading = loading && !dashboard;
+
+  if (rolesLoading && !isOwner) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <RefreshCw className="h-6 w-6 animate-spin text-slate-300" />
+      </div>
+    );
+  }
+
+  if (isSuperAdmin && !isOwner) {
+    return <Navigate to="/admin" replace />;
+  }
 
   return (
     <div className="space-y-6">
@@ -416,6 +520,57 @@ export default function Dashboard() {
               accent="bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400"
             />
           </div>
+
+          {/* Room Publication Summary */}
+          <Card
+            title="ការផ្សាយបន្ទប់ (Room Publication)"
+            description="ស្ថានភាពផ្សាយ និងការកាន់កាប់បន្ទប់របស់អ្នក"
+          >
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+              <SummaryStat
+                label="ព្រាង (Draft)"
+                value={publicationSummaries.draft}
+                icon={FileText}
+                tone="slate"
+                onClick={() => navigate('/submissions')}
+              />
+              <SummaryStat
+                label="រង់ចាំយល់ព្រម (Pending)"
+                value={publicationSummaries.pending}
+                icon={Send}
+                tone="amber"
+                onClick={() => navigate('/submissions')}
+              />
+              <SummaryStat
+                label="បានផ្សាយ (Published)"
+                value={publicationSummaries.published}
+                icon={Globe}
+                tone="emerald"
+                onClick={() => navigate('/submissions')}
+              />
+              <SummaryStat
+                label="បានបដិសេធ (Rejected)"
+                value={publicationSummaries.rejected}
+                icon={XCircle}
+                tone="red"
+                onClick={() => navigate('/submissions')}
+              />
+              <SummaryStat
+                label="ទំនេរ (Available)"
+                value={publicationSummaries.available}
+                icon={CheckCircle2}
+                tone="sky"
+                onClick={() => navigate('/submissions')}
+              />
+              <SummaryStat
+                label="មានអ្នកស្នាក់នៅ (Occupied)"
+                value={publicationSummaries.occupied}
+                icon={Users}
+                tone="violet"
+                onClick={() => navigate('/submissions')}
+              />
+            </div>
+          </Card>
 
           {/* Revenue Trend + Payment Status */}
           <div className="grid gap-6 xl:grid-cols-3">
@@ -720,6 +875,88 @@ export default function Dashboard() {
           កំពុងផ្ទុកអចលនទ្រព្យ...
         </div>
       )}
+
+      {/* Owner Feedback — Rate TeasJul */}
+      <Card
+        title="វាយតម្លៃ TeasJul (Rate TeasJul)"
+        description="ចែករំលែកបទពិសោធន៍របស់អ្នកជាមួយប្រព័ន្ធ TeasJul ជាអ្នកជួល ឬម្ចាស់អចលនទ្រព្យ"
+      >
+        <div className="grid gap-6 lg:grid-cols-5">
+          {/* Submit form */}
+          <form onSubmit={handleFeedbackSubmit} className="space-y-4 lg:col-span-2">
+            <div>
+              <span className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                ចំណាត់ថ្នាក់ (Rating)
+              </span>
+              <StarRating value={rating} onChange={setRating} size="h-7 w-7" />
+              {ratingError && (
+                <p role="alert" className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {ratingError}
+                </p>
+              )}
+            </div>
+
+            <Textarea
+              label="មតិយោបល់ (Comment)"
+              rows={4}
+              maxLength={1000}
+              placeholder="ចែករំលែកពីបទពិសោធន៍របស់អ្នកជាមួយ TeasJul..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              error={commentError}
+            />
+
+            <div className="flex items-center justify-between gap-2">
+              <span
+                className={`text-xs ${
+                  comment.length >= 950 ? 'text-red-500' : 'text-slate-400'
+                }`}
+                aria-live="polite"
+              >
+                {comment.length}/1000
+              </span>
+              <Button type="submit" loading={submitting} leftIcon={<Send className="h-4 w-4" />}>
+                ដាក់ស្នើ
+              </Button>
+            </div>
+          </form>
+
+          {/* Submissions list */}
+          <div className="lg:col-span-3">
+            <h3 className="mb-3 text-[13px] font-semibold text-slate-700 dark:text-slate-200">
+              ការដាក់ស្នើរបស់អ្នក (Your Submissions)
+            </h3>
+
+            {feedbackLoading ? (
+              <Skeleton className="h-44 rounded-xl" />
+            ) : feedback.length === 0 ? (
+              <EmptyState
+                icon={Star}
+                title="មិនទាន់មានមតិទេ"
+                description="មតិរបស់អ្នកនឹងបង្ហាញនៅទីនេះបន្ទាប់ពីដាក់ស្នើ និងត្រូវបានផ្សាយដោយក្រុមការងារ។"
+              />
+            ) : (
+              <div className="space-y-3">
+                {feedback.map((f) => (
+                  <div
+                    key={f.id}
+                    className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 dark:border-gray-800 dark:bg-gray-800/40"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <StarRating value={f.rating} readOnly size="h-4 w-4" />
+                      <FeedbackStatusBadge status={f.status} />
+                    </div>
+                    <p className="mt-2 text-[13px] leading-relaxed text-slate-700 dark:text-slate-200">
+                      {f.comment}
+                    </p>
+                    <p className="mt-2 text-[12px] text-slate-400">{formatDate(f.createdAt)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }

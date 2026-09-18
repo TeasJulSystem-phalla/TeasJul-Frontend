@@ -32,6 +32,8 @@ import {
   X,
   Home,
   ChevronDown,
+  Send,
+  Plus,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { useMyRoles } from '../../hooks/useMyRoles';
@@ -39,6 +41,7 @@ import { useMyRoles } from '../../hooks/useMyRoles';
 const NAV_GROUPS = [
   {
     label: 'មេ',
+    hideForRoles: ['SUPER_ADMIN'],
     items: [
       { to: '/', label: 'ផ្ទាំងគ្រប់គ្រង', icon: LayoutDashboard, end: true },
       { to: '/owner-report', label: 'របាយការណ៍ប្រចាំខែ', icon: BarChart3 },
@@ -47,9 +50,11 @@ const NAV_GROUPS = [
   },
   {
     label: 'អចលនទ្រព្យ',
+    hideForRoles: ['SUPER_ADMIN'],
     items: [
       { to: '/properties', label: 'អចលនទ្រព្យ', icon: Building2 },
       { to: '/rooms', label: 'បន្ទប់', icon: DoorOpen },
+      { to: '/submissions', label: 'ការផ្សាយបន្ទប់', icon: Send, roles: ['OWNER'] },
       { to: '/roomtype', label: 'ប្រភេទបន្ទប់', icon: Layers },
       { to: '/amenities', label: 'គ្រឿងបរិក្ខារ', icon: Sparkles },
       { to: '/access', label: 'ការចូលដំណើរការផ្ទះ', icon: KeyRound },
@@ -57,6 +62,7 @@ const NAV_GROUPS = [
   },
   {
     label: 'អ្នកជួល និងកិច្ចសន្យា',
+    hideForRoles: ['SUPER_ADMIN'],
     items: [
       { to: '/tenants', label: 'អ្នកជួល', icon: Users },
       { to: '/tenant-invitations', label: 'អញ្ជើញអ្នកជួល', icon: MailPlus },
@@ -65,6 +71,7 @@ const NAV_GROUPS = [
   },
   {
     label: 'ហិរញ្ញវត្ថុ',
+    hideForRoles: ['SUPER_ADMIN'],
     items: [
       {
         basePath: '/finance',
@@ -80,6 +87,7 @@ const NAV_GROUPS = [
   },
   {
     label: 'ប្រតិបត្តិការ',
+    hideForRoles: ['SUPER_ADMIN'],
     items: [
       {
         basePath: '/utilities',
@@ -109,6 +117,20 @@ const NAV_GROUPS = [
       { to: '/users', label: 'អ្នកប្រើប្រាស់', icon: UserCircle },
       { to: '/roles', label: 'តួនាទី', icon: Shield },
       { to: '/profile', label: 'ប្រវត្តិរបស់ខ្ញុំ', icon: UserCircle },
+    ],
+  },
+  {
+    label: 'រដ្ឋបាល (Admin)',
+    roles: ['SUPER_ADMIN'],
+    items: [
+      { to: '/admin', label: 'ផ្ទាំងគ្រប់គ្រង', icon: Gauge, end: true },
+      { to: '/admin/owners', label: 'ម្ចាស់អចលនទ្រព្យ', icon: Users },
+      { to: '/admin/properties', label: 'បញ្ជីអចលនទ្រព្យ', icon: Building2 },
+      { to: '/admin/properties/new', label: 'ផ្សាយអចលនទ្រព្យថ្មី', icon: Plus },
+      { to: '/admin/properties/drafts', label: 'ព្រាងអចលនទ្រព្យ', icon: FileText },
+      { to: '/admin/submissions', label: 'ការពិនិត្យផ្សាយ', icon: Send },
+      { to: '/roles', label: 'តួនាទី និងសិទ្ធិ', icon: Shield },
+      { to: '/users', label: 'អ្នកប្រើប្រាស់', icon: UserCircle },
     ],
   },
   {
@@ -368,7 +390,7 @@ const UserCard = ({ isCollapsed }) => {
 const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
-  const { isTenant } = useMyRoles();
+  const { isTenant, codes } = useMyRoles();
 
   const handleNavigate = () => {
     if (window.innerWidth < 1024) onClose();
@@ -380,16 +402,31 @@ const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
   };
 
   const visibleGroups = NAV_GROUPS.map((group) => {
+    if (group.roles && !group.roles.some((role) => codes.includes(role))) {
+      return null;
+    }
+    if (group.hideForRoles && group.hideForRoles.some((role) => codes.includes(role))) {
+      return null;
+    }
+    const items = (group.items || [])
+      .filter((item) => !item.roles || item.roles.some((role) => codes.includes(role)))
+      .map((item) => {
+        const copy = { ...item };
+        if (item.children) {
+          copy.children = item.children.filter(
+            (child) => !child.roles || child.roles.some((role) => codes.includes(role))
+          );
+        }
+        return copy;
+      });
     if (group.label === 'ហិរញ្ញវត្ថុ' && isTenant) {
-      const items = [...group.items];
       const finance = items[0];
       if (finance?.children && !finance.children.some((child) => child.to === '/tenant/payments')) {
         finance.children.push({ to: '/tenant/payments', label: 'ការទូទាត់របស់ខ្ញុំ', icon: Wallet });
       }
-      return { ...group, items };
     }
-    return group;
-  });
+    return { ...group, items };
+  }).filter((group) => group !== null && group.items.length > 0);
 
   return (
     <>
@@ -422,7 +459,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
           <X className="h-5 w-5" />
         </button>
 
-        <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
+        <nav className="flex-1 space-y-6 overflow-y-auto overflow-x-hidden pl-3 pr-1.5 py-5 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] dark:[scrollbar-color:#374151_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-gray-700 hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
           {visibleGroups.map((group) => (
             <div key={group.label}>
               {!isCollapsed && (
