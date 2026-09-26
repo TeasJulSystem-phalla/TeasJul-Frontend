@@ -32,6 +32,7 @@ import {
   MoreVertical,
 } from 'lucide-react';
 import { useRooms, useRoomAmenities } from '../../hooks/useRooms.js';
+import { useRoomBookings } from '../../hooks/useRoomBookings.js';
 import { useHouses } from '../../hooks/useHouses.js';
 import { useRoomTypes } from '../../hooks/useRoomType.js';
 import { useRoomOccupants } from '../../hooks/useRoomOccupants.js';
@@ -71,6 +72,12 @@ const STATUS_META = {
     bg: 'bg-emerald-50/80 dark:bg-emerald-950/30 border-emerald-200/60 dark:border-emerald-800/40',
     dot: 'bg-emerald-500',
   },
+  BOOKED: {
+    label: 'បានកក់',
+    color: 'text-blue-700 dark:text-blue-300',
+    bg: 'bg-blue-50/80 dark:bg-blue-950/30 border-blue-200/60 dark:border-blue-800/40',
+    dot: 'bg-blue-500',
+  },
   OCCUPIED: {
     label: 'មានអ្នកស្នាក់នៅ',
     color: 'text-slate-700 dark:text-slate-300',
@@ -94,6 +101,7 @@ const STATUS_META = {
 const STATUS_OPTIONS = [
   { value: '', label: 'ស្ថានភាពទាំងអស់' },
   { value: 'AVAILABLE', label: 'ទំនេរ' },
+  { value: 'BOOKED', label: 'បានកក់' },
   { value: 'OCCUPIED', label: 'មានអ្នកស្នាក់នៅ' },
   { value: 'MAINTENANCE', label: 'កំពុងជួសជុល' },
   { value: 'RESERVED', label: 'បានកក់' },
@@ -131,6 +139,7 @@ export default function Rooms() {
   const { houses } = useHouses();
   const { roomTypes } = useRoomTypes();
   const { occupants: roomOccupants, loading: occupantsLoading } = useRoomOccupants();
+  const { bookings, createBooking, cancelBooking } = useRoomBookings();
   const toast = useToast();
   const basePath = useBasePath();
 
@@ -181,6 +190,11 @@ export default function Rooms() {
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [bookingTarget, setBookingTarget] = useState(null);
+  const [bookingForm, setBookingForm] = useState({ customerName: '', customerPhone: '', customerEmail: '', expectedMoveInDate: '', note: '' });
+  const [bookingErrors, setBookingErrors] = useState({});
+  const [bookingSubmitting, setBookingSubmitting] = useState(false);
+  const [cancelBookingTarget, setCancelBookingTarget] = useState(null);
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [formErrors, setFormErrors] = useState({});
@@ -243,6 +257,7 @@ export default function Rooms() {
     return {
       total,
       available: count('AVAILABLE'),
+      booked: count('BOOKED'),
       occupied: count('OCCUPIED'),
       maintenance: count('MAINTENANCE'),
       reserved: count('RESERVED'),
@@ -295,6 +310,49 @@ export default function Rooms() {
       return `${room.tenant.firstName || ''} ${room.tenant.lastName || ''}`.trim() || `អ្នកជួល #${room.tenant.id}`;
     }
     return null;
+  };
+
+  const activeBookingForRoom = useCallback(
+    (roomId) => bookings.find((booking) => booking.roomId === roomId && booking.status === 'BOOKED'),
+    [bookings]
+  );
+
+  const openBooking = (room) => {
+    setBookingTarget(room);
+    setBookingForm({ customerName: '', customerPhone: '', customerEmail: '', expectedMoveInDate: '', note: '' });
+    setBookingErrors({});
+  };
+
+  const submitBooking = async (event) => {
+    event.preventDefault();
+    const errors = {};
+    if (!bookingForm.customerName.trim()) errors.customerName = 'សូមបញ្ចូលឈ្មោះអតិថិជន។';
+    if (!bookingForm.customerPhone.trim()) errors.customerPhone = 'សូមបញ្ចូលលេខទូរស័ព្ទអតិថិជន។';
+    if (!bookingForm.expectedMoveInDate) errors.expectedMoveInDate = 'សូមជ្រើសរើសថ្ងៃចូលស្នាក់នៅ។';
+    if (Object.keys(errors).length) { setBookingErrors(errors); return; }
+    setBookingSubmitting(true);
+    try {
+      await createBooking({ roomId: bookingTarget.id, ...bookingForm, customerName: bookingForm.customerName.trim(), customerPhone: bookingForm.customerPhone.trim() });
+      await fetchRooms();
+      setBookingTarget(null);
+      toast.success('បានកក់បន្ទប់រួចរាល់', `បន្ទប់ ${bookingTarget.roomNumber} ត្រូវបានកក់រួចរាល់។`);
+    } catch (err) {
+      toast.error('ការកក់បរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'មិនអាចកក់បន្ទប់នេះបានទេ។');
+    } finally {
+      setBookingSubmitting(false);
+    }
+  };
+
+  const confirmCancelBooking = async () => {
+    if (!cancelBookingTarget) return;
+    try {
+      await cancelBooking(cancelBookingTarget.id);
+      await fetchRooms();
+      setCancelBookingTarget(null);
+      toast.success('បានបោះបង់ការកក់', 'បន្ទប់នេះអាចកក់បានម្ដងទៀត។');
+    } catch (err) {
+      toast.error('មិនអាចបោះបង់ការកក់បានទេ', err.response?.data?.message || err.response?.data?.error || 'សូមព្យាយាមម្ដងទៀត។');
+    }
   };
 
   const renderTenantCell = (room) => {
@@ -451,6 +509,7 @@ export default function Rooms() {
             onUtilities={() => setUtilityTarget(row)}
             onDelete={() => setDeleteTarget(row)}
             onCreateContract={() => handleCreateContractForRoom(row.id)}
+            onBook={() => openBooking(row)}
           />
         </div>
       ),
@@ -927,6 +986,11 @@ export default function Rooms() {
                             កិច្ចសន្យា
                           </Button>
                         )}
+                        {room.status === 'AVAILABLE' && (
+                          <Button variant="primary" size="xs" leftIcon={<FilePlus className="h-3.5 w-3.5" />} onClick={() => openBooking(room)} className="hidden text-xs sm:inline-flex">
+                            កក់បន្ទប់
+                          </Button>
+                        )}
                         {canSubmitRoom(room) && (
                           <SubmitForReviewButton room={room} onSuccess={() => fetchRooms()} iconOnly preview={previewNodeFor(room)} />
                         )}
@@ -952,6 +1016,7 @@ export default function Rooms() {
                           onUtilities={() => setUtilityTarget(room)}
                           onDelete={() => setDeleteTarget(room)}
                           onCreateContract={() => handleCreateContractForRoom(room.id)}
+                          onBook={() => openBooking(room)}
                         />
                       </div>
                     </div>
@@ -1009,6 +1074,27 @@ export default function Rooms() {
         />
       </Modal>
 
+      <Modal
+        open={!!bookingTarget}
+        onClose={() => !bookingSubmitting && setBookingTarget(null)}
+        title={`កក់បន្ទប់ ${bookingTarget?.roomNumber || ''}`}
+        description="បញ្ចូលព័ត៌មានអតិថិជនសម្រាប់ការកក់។ ការកក់នេះមិនបង្កើតអ្នកជួលទេ។"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" disabled={bookingSubmitting} onClick={() => setBookingTarget(null)}>បោះបង់</Button>
+            <Button type="submit" form="roomBookingForm" loading={bookingSubmitting}>បញ្ជាក់ការកក់</Button>
+          </div>
+        }
+      >
+        <form id="roomBookingForm" onSubmit={submitBooking} className="space-y-4">
+          <Input label="ឈ្មោះអតិថិជន" required value={bookingForm.customerName} error={bookingErrors.customerName} onChange={(e) => setBookingForm((form) => ({ ...form, customerName: e.target.value }))} />
+          <Input label="លេខទូរស័ព្ទអតិថិជន" required value={bookingForm.customerPhone} error={bookingErrors.customerPhone} onChange={(e) => setBookingForm((form) => ({ ...form, customerPhone: e.target.value }))} />
+          <Input label="អ៊ីមែលអតិថិជន (ជម្រើស)" type="email" value={bookingForm.customerEmail} onChange={(e) => setBookingForm((form) => ({ ...form, customerEmail: e.target.value }))} />
+          <Input label="ថ្ងៃចូលស្នាក់នៅរំពឹងទុក" required type="date" value={bookingForm.expectedMoveInDate} error={bookingErrors.expectedMoveInDate} onChange={(e) => setBookingForm((form) => ({ ...form, expectedMoveInDate: e.target.value }))} />
+          <Textarea label="កំណត់ចំណាំ (ជម្រើស)" rows={3} value={bookingForm.note} onChange={(e) => setBookingForm((form) => ({ ...form, note: e.target.value }))} />
+        </form>
+      </Modal>
+
       {/* View Modal */}
       <Modal
         open={!!viewTarget}
@@ -1033,6 +1119,7 @@ export default function Rooms() {
             viewUtilities={viewUtilities}
             images={viewTypeImages.images}
             occupants={roomTenants((viewData || viewTarget).id)}
+            booking={activeBookingForRoom((viewData || viewTarget).id)}
             onRoomSubmitted={async () => {
               await fetchRooms();
               handleOpenView(viewData || viewTarget);
@@ -1054,6 +1141,8 @@ export default function Rooms() {
               setViewTarget(null);
               handleCreateContractForRoom(target.id);
             }}
+            onBook={() => openBooking(viewData || viewTarget)}
+            onCancelBooking={(booking) => setCancelBookingTarget(booking)}
           />
         ) : null}
       </Modal>
@@ -1105,6 +1194,16 @@ export default function Rooms() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
+
+      <ConfirmDialog
+        open={!!cancelBookingTarget}
+        title="បោះបង់ការកក់"
+        description={`តើអ្នកចង់បោះបង់ការកក់បន្ទប់ #${cancelBookingTarget?.roomId}? បន្ទប់នឹងត្រឡប់ទៅជាទំនេរ។`}
+        confirmText="បោះបង់ការកក់"
+        danger
+        onConfirm={confirmCancelBooking}
+        onCancel={() => setCancelBookingTarget(null)}
+      />
     </div>
   );
 }
@@ -1113,7 +1212,7 @@ export default function Rooms() {
    RoomActionsMenu – collapses secondary actions into a
    dropdown so card/table rows don't overflow on small screens.
    ───────────────────────────────────────────────────────── */
-const RoomActionsMenu = ({ room, onListing, onPreview, onAmenities, onUtilities, onDelete, onCreateContract }) => {
+const RoomActionsMenu = ({ room, onListing, onPreview, onAmenities, onUtilities, onDelete, onCreateContract, onBook }) => {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
 
@@ -1145,6 +1244,8 @@ const RoomActionsMenu = ({ room, onListing, onPreview, onAmenities, onUtilities,
         <>
           <div className="fixed inset-0 z-10" onClick={close} />
           <div className="absolute right-0 top-full z-20 mt-1 w-48 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+            {room.status === 'AVAILABLE' &&
+              item(<FilePlus className="h-3.5 w-3.5 text-blue-500" />, 'កក់បន្ទប់', onBook)}
             {room.status === 'AVAILABLE' &&
               item(<FilePlus className="h-3.5 w-3.5 text-emerald-500" />, 'បង្កើតកិច្ចសន្យា', onCreateContract)}
             {item(<FileText className="h-3.5 w-3.5 text-indigo-500" />, 'បញ្ជីផ្សាយ', onListing)}
@@ -1256,7 +1357,7 @@ const RoomForm = ({ form, errors, onChange, houses, roomTypes, onSubmit }) => {
 const ViewRoomDetails = ({
   room, house, roomType, viewAmenities, viewUtilities,
   images = [], occupants = [],
-  onManageAmenities, onManageUtilities, onEdit, onCreateContract, onRoomSubmitted,
+  booking, onManageAmenities, onManageUtilities, onEdit, onCreateContract, onRoomSubmitted, onBook, onCancelBooking,
 }) => {
   const hName = house?.name || `ផ្ទះ #${room.houseId}`;
   const rtName = roomType?.name || `ប្រភេទ #${room.roomTypeId}`;
@@ -1281,6 +1382,11 @@ const ViewRoomDetails = ({
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           {room.status === 'AVAILABLE' && (
+            <Button variant="primary" size="sm" leftIcon={<FilePlus className="h-4 w-4" />} onClick={onBook}>
+              កក់បន្ទប់
+            </Button>
+          )}
+          {room.status === 'AVAILABLE' && (
             <Button variant="primary" size="sm" leftIcon={<FilePlus className="h-4 w-4" />} onClick={onCreateContract}>
               បង្កើតកិច្ចសន្យា
             </Button>
@@ -1290,6 +1396,22 @@ const ViewRoomDetails = ({
           </Button>
         </div>
       </div>
+
+      {room.status === 'BOOKED' && booking && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50/60 p-3 dark:border-blue-900/60 dark:bg-blue-950/20">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <p className="text-xs font-bold tracking-wider text-blue-700 dark:text-blue-300">ព័ត៌មានការកក់</p>
+            <Button variant="danger" size="xs" onClick={() => onCancelBooking(booking)}>បោះបង់ការកក់</Button>
+          </div>
+          <div className="grid grid-cols-1 gap-1 text-sm text-slate-700 dark:text-slate-200 sm:grid-cols-2">
+            <p><span className="text-slate-400">អតិថិជន៖</span> {booking.customerName}</p>
+            <p><span className="text-slate-400">ទូរស័ព្ទ៖</span> {booking.customerPhone}</p>
+            <p><span className="text-slate-400">ថ្ងៃចូលស្នាក់នៅ៖</span> {formatDate(booking.expectedMoveInDate)}</p>
+            <p><span className="text-slate-400">ថ្ងៃកក់៖</span> {formatDate(booking.bookingDate)}</p>
+          </div>
+          {booking.note && <p className="mt-2 text-xs text-slate-500">កំណត់ចំណាំ៖ {booking.note}</p>}
+        </div>
+      )}
 
       {/* ── HOUSE section ── */}
       <div className="rounded-lg border border-slate-200/80 bg-slate-50/60 p-3 dark:border-gray-800 dark:bg-gray-800/40">

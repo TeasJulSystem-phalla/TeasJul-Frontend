@@ -1,5 +1,4 @@
-// src/components/layout/navigation/sharedNavigation.js
-import { UserCircle, Shield, Users, HelpCircle } from 'lucide-react';
+import { UserCircle, Shield, Users, HelpCircle, Settings, Settings2 } from 'lucide-react';
 
 export const systemManagementGroup = {
   label: 'ការគ្រប់គ្រងប្រព័ន្ធ',
@@ -17,9 +16,11 @@ export const systemManagementGroup = {
   ],
 };
 
-// Admin settings live under their own SUPER_ADMIN entry in adminNavigation.js
-// (ការកំណត់ប្រព័ន្ធ → /admin/settings); owners use /owner/settings instead.
 export const helpGroup = {
   label: 'ជំនួយ',
-  items: [{ to: '/owner/help', label: 'ជំនួយ និងការគាំទ្រ', icon: HelpCircle }],
+  items: [
+    { to: '/owner/help', label: 'ជំនួយ និងការគាំទ្រ', icon: HelpCircle },
+    { to: '/owner/settings', label: 'ការកំណត់', icon: Settings }
+  ],
+
 };

@@ -14,13 +14,6 @@ import {
 import { systemManagementGroup, helpGroup } from './sharedNavigation';
 
 export const ADMIN_BRAND_SUBTITLE = 'អ្នកគ្រប់គ្រងប្រព័ន្ធ';
-
-/**
- * Admin sidebar, grouped by what a SUPER_ADMIN actually does. One entry per
- * destination: users, roles and profile live only in the shared system
- * management group, and the property sub-pages are nested under their parent
- * instead of sitting beside it as top-level peers.
- */
 export const adminNavigation = [
   {
     label: 'ទូទៅ',
@@ -57,5 +50,4 @@ export const adminNavigation = [
       { to: '/admin/settings/security/login-history', label: 'ប្រវត្តិចូលប្រព័ន្ធ', icon: History },
     ],
   },
-  helpGroup,
 ];

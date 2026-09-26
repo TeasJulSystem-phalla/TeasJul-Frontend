@@ -1,56 +1,30 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
-  Plus,
-  RefreshCw,
-  QrCode,
-  Copy,
-  Trash2,
   Mail,
-  Building2,
-  Users as UsersIcon,
+  CheckCircle2,
   ShieldAlert,
   Clock,
-  CheckCircle2,
-  Search,
-  Filter,
+  Building2,
+  KeyRound,
+  UserRound,
+  AlertTriangle,
 } from 'lucide-react';
-import { QRCodeSVG } from 'qrcode.react';
-import { useMyRoles } from '../../hooks/useMyRoles.js';
-import { useHouses } from '../../hooks/useHouses.js';
-import { useTenantInvitations } from '../../hooks/useTenantInvitations.js';
-import { useToast } from '../../components/ui/Toast.jsx';
+import { tenantInvitationApi } from '../../api/tenantInvitation.api';
 import {
   Card,
   Button,
-  Badge,
-  Alert,
-  Modal,
   Input,
-  Select,
-  IconButton,
-  ConfirmDialog,
-  EmptyState,
-  Table,
-  Pagination,
-  Skeleton,
+  Alert,
+  Spinner,
 } from '../../components/ui/index.js';
 
-const STATUS_MAP = {
-  PENDING: { label: 'រង់ចាំមានសុពលភាព', variant: 'warning' },
-  USED: { label: 'បានប្រើ', variant: 'info' },
-  EXPIRED: { label: 'ផុតកំណត់', variant: 'danger' },
-  REVOKED: { label: 'បានលុបចោល', variant: 'neutral' },
-};
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+const REASON_MESSAGES = {
+  INVALID_TOKEN: 'តំណអញ្ជើញមិនត្រឹមត្រូវ ឬមិនមាន។',
+  INVITATION_EXPIRED:
+    'តំណអញ្ជើញបានផុតកំណត់ហើយ។ សូមទាក់ទងអ្នកគ្រប់គ្រងអចលនទ្រព្យ ដើម្បីស្នើសុំតំណថ្មី។',
+  INVITATION_ALREADY_USED: 'តំណអញ្ជើញនេះត្រូវបានប្រើប្រាស់រួចហើយ។',
+  INVITATION_REVOKED: 'តំណអញ្ជើញត្រូវបានលុបចោលដោយអ្នកគ្រប់គ្រង។',
 };
 
 const getServerMessage = (err, fallback) =>
@@ -65,449 +39,302 @@ const formatClock = (total) => {
   return `${mm}:${ss}`;
 };
 
-const InvitationPreviewModal = ({ created, onClose }) => {
-  const toast = useToast();
-  const [secondsLeft, setSecondsLeft] = useState(() => secondsUntil(created.expiresAt));
+const INITIAL_FORM = {
+  firstName: '',
+  lastName: '',
+  phone: '',
+  username: '',
+  email: '',
+  password: '',
+};
 
-  useEffect(() => {
-    const id = setInterval(() => setSecondsLeft(secondsUntil(created.expiresAt)), 1000);
-    return () => clearInterval(id);
-  }, [created.expiresAt]);
+const TenantInvitePage = () => {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
 
-  const inviteUrl = `${window.location.origin}${created.invitationPath}`;
-  const expired = secondsLeft <= 0;
+  const [stage, setStage] = useState('validating'); // validating | valid | invalid | done
+  const [reason, setReason] = useState(null);
+  const [invite, setInvite] = useState(null); // { email, houseName, expiresAt }
+  const [loadError, setLoadError] = useState(null);
+  const [secondsLeft, setSecondsLeft] = useState(0);
+  const [form, setForm] = useState(INITIAL_FORM);
+  const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState(null);
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(inviteUrl);
-      toast.success('បានចម្លងតំណភ្ជាប់', 'សូមផ្ញើតំណនេះទៅកាន់អ្នកជួល។');
-    } catch {
-      toast.error(
-        'ការចម្លងបានបរាជ័យ',
-        'សូមជ្រើសរើស និងចម្លងតំណដោយដៃពីប្រអប់ខាងលើ។'
-      );
+  const emailLocked = !!invite?.email;
+
+  const applyValidation = (data) => {
+    if (data && data.valid) {
+      setInvite(data);
+      setSecondsLeft(secondsUntil(data.expiresAt));
+      setForm((prev) => ({ ...prev, email: data.email || prev.email }));
+      setStage('valid');
+    } else {
+      setReason(data?.reason || 'INVALID_TOKEN');
+      setStage('invalid');
     }
   };
 
-  return (
-    <Modal
-      open
-      onClose={onClose}
-      title="អញ្ជើញអ្នកជួល"
-      description={`បានបង្កើតសម្រាប់អចលនទ្រព្យ "${created.houseName}"`}
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>
-            បិទ
-          </Button>
-        </>
-      }
-    >
-      <div className="space-y-4">
-        <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300">
-          <p className="flex items-center gap-2">
-            <Clock className="h-4 w-4 shrink-0" />
-            <span>
-              {expired
-                ? 'តំណបានផុតកំណត់ហើយ។ សូមបង្កើតការអញ្ជើញថ្មី។'
-                : `តំណនឹងផុតកំណត់ក្នុងរយៈពេល ${formatClock(secondsLeft)}`}
-            </span>
-          </p>
-        </div>
+  useEffect(() => {
+    if (!token) {
+      setReason('INVALID_TOKEN');
+      setStage('invalid');
+      return;
+    }
+    let cancelled = false;
+    tenantInvitationApi
+      .validateInvitation(token)
+      .then((data) => {
+        if (!cancelled) applyValidation(data);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setLoadError('មិនអាចផ្ទៀងផ្ទាត់តំណអញ្ជើញបានទេ។ សូមពិនិត្យការតភ្ជាប់បណ្តាញរបស់អ្នក។');
+          setStage('invalid');
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
-        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-          <div className="shrink-0 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700">
-            {expired ? (
-              <div className="flex h-40 w-40 items-center justify-center sm:h-48 sm:w-48">
-                <ShieldAlert className="h-10 w-10 text-gray-400" />
-              </div>
-            ) : (
-              <QRCodeSVG
-                value={inviteUrl}
-                size={160}
-                level="M"
-                bgColor="#ffffff"
-                fgColor="#111827"
-              />
-            )}
-          </div>
-          <div className="w-full min-w-0 flex-1 space-y-3">
-            <div>
-              <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
-                តំណអញ្ជើញ
-              </span>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <div className="min-w-0 flex-1">
-                  <Input readOnly value={inviteUrl} className="font-mono text-xs" />
-                </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleCopy}
-                  disabled={expired}
-                  leftIcon={<Copy className="h-4 w-4" />}
-                  className="w-full shrink-0 sm:w-auto"
-                >
-                  ចម្លង
-                </Button>
-              </div>
-            </div>
-            <div className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
-              <p className="flex items-start gap-2">
-                <Building2 className="mt-0.5 h-4 w-4 shrink-0" />
-                <span className="min-w-0 break-words">អចលនទ្រព្យ: {created.houseName}</span>
-              </p>
-              {created.email && (
-                <p className="flex items-start gap-2">
-                  <Mail className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span className="min-w-0 break-all">អ៊ីមែល: {created.email}</span>
-                </p>
-              )}
-              <p className="flex items-start gap-2">
-                <Clock className="mt-0.5 h-4 w-4 shrink-0" />
-                <span className="min-w-0 break-words">ផុតកំណត់: {formatDate(created.expiresAt)}</span>
-              </p>
-            </div>
-          </div>
+  useEffect(() => {
+    if (stage !== 'valid') return;
+    const id = setInterval(() => {
+      const left = secondsUntil(invite.expiresAt);
+      setSecondsLeft(left);
+      if (left <= 0) {
+        setReason('INVITATION_EXPIRED');
+        setStage('invalid');
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [stage, invite]);
+
+  const handleChange = (field) => (e) => {
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
+  const validateForm = () => {
+    const next = {};
+    if (!form.firstName.trim()) next.firstName = 'សូមបញ្ចូលនាមខ្លួន។';
+    if (!form.lastName.trim()) next.lastName = 'សូមបញ្ចូលគោត្រកូល។';
+    if (!form.phone.trim()) next.phone = 'សូមបញ្ចូលលេខទូរស័ព្ទ។';
+    if (!emailLocked && !form.email.trim()) next.email = 'សូមបញ្ចូលអ៊ីមែល។';
+    if (!form.username.trim()) next.username = 'សូមបញ្ចូលឈ្មោះអ្នកប្រើប្រាស់។';
+    if (form.password.length < 8) next.password = 'ពាក្យសម្ងាត់ត្រូវមានយ៉ាងហោចណាស់ ៨ តួអក្សរ។';
+    return next;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const next = validateForm();
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const data = await tenantInvitationApi.consumeInvitation({
+        token,
+        username: form.username.trim(),
+        email: form.email.trim(),
+        password: form.password,
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        phone: form.phone.trim(),
+      });
+      setResult(data);
+      setStage('done');
+    } catch (err) {
+      setSubmitError(getServerMessage(err, 'ការចុះឈ្មោះបានបរាជ័យ។ សូមព្យាយាមម្តងទៀត។'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const renderInvalid = () => (
+    <Card className="p-6 text-center sm:p-8">
+      <div className="mx-auto mb-4 rounded-full bg-red-50 p-4 dark:bg-red-950">
+        <ShieldAlert className="h-10 w-10 text-red-600 dark:text-red-400" />
+      </div>
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-white sm:text-xl">
+        តំណអញ្ជើញមិនអាចប្រើបាន
+      </h2>
+      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+        {loadError || REASON_MESSAGES[reason] || 'តំណអញ្ជើញមិនត្រឹមត្រូវ។'}
+      </p>
+      <Link
+        to="/login"
+        className="mt-6 inline-flex items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+      >
+        ត្រឡប់ទៅចូលប្រព័ន្ធ
+      </Link>
+    </Card>
+  );
+
+  const renderValid = () => (
+    <>
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <div className="rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+          <Building2 className="h-8 w-8 text-gray-400" />
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
+            {invite.houseName}
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">អចលនទ្រព្យ</p>
         </div>
       </div>
-    </Modal>
+
+      <div className="mb-6 flex items-center justify-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-center text-xs text-yellow-800 sm:text-sm dark:border-yellow-900 dark:bg-yellow-950 dark:text-yellow-300">
+        <Clock className="h-4 w-4 shrink-0" />
+        <span>តំណនឹងផុតកំណត់ក្នុងរយៈពេល {formatClock(secondsLeft)}</span>
+      </div>
+
+      <Alert
+        variant="info"
+        className="mb-4"
+        title="បំពេញព័ត៌មានរបស់អ្នក"
+        description="សូមបំពេញព័ត៌មានខាងក្រោម ដើម្បីបង្កើតគណនីអ្នកជួលរបស់អ្នក។"
+      />
+
+      {submitError && (
+        <Alert variant="danger" className="mb-4" title="ការចុះឈ្មោះបានបរាជ័យ" description={submitError} dismissible />
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Input
+            label="នាមខ្លួន"
+            required
+            value={form.firstName}
+            onChange={handleChange('firstName')}
+            error={errors.firstName}
+            placeholder="ឧ. សុភា"
+          />
+          <Input
+            label="គោត្រកូល"
+            required
+            value={form.lastName}
+            onChange={handleChange('lastName')}
+            error={errors.lastName}
+            placeholder="ឧ. ច័ន្ទ"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Input
+            label="លេខទូរស័ព្ទ"
+            required
+            type="tel"
+            value={form.phone}
+            onChange={handleChange('phone')}
+            error={errors.phone}
+            placeholder="ឧ. 012 345 678"
+            leftIcon={<UserRound className="h-4 w-4" />}
+          />
+          <Input
+            label="អ៊ីមែល"
+            required={!emailLocked}
+            type="email"
+            value={form.email}
+            onChange={handleChange('email')}
+            error={errors.email}
+            placeholder="john@rental.com"
+            helpText="អ៊ីមែលគណនីត្រូវបញ្ចប់ដោយ @rental.com (ឧ. john@rental.com)"
+            disabled={emailLocked}
+            leftIcon={<Mail className="h-4 w-4" />}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Input
+            label="ឈ្មោះអ្នកប្រើប្រាស់"
+            required
+            value={form.username}
+            onChange={handleChange('username')}
+            error={errors.username}
+            placeholder="ឧ. sopha.chan"
+          />
+          <Input
+            label="ពាក្យសម្ងាត់"
+            required
+            type="password"
+            minLength={8}
+            value={form.password}
+            onChange={handleChange('password')}
+            error={errors.password}
+            placeholder="យ៉ាងហោចណាស់ ៨ តួអក្សរ"
+            leftIcon={<KeyRound className="h-4 w-4" />}
+          />
+        </div>
+
+        <Button type="submit" fullWidth loading={submitting}>
+          បង្កើតគណនីអ្នកជួល
+        </Button>
+      </form>
+    </>
+  );
+
+  const renderDone = () => (
+    <Card className="p-6 text-center sm:p-8">
+      <div className="mx-auto mb-4 rounded-full bg-green-50 p-4 dark:bg-green-950">
+        <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
+      </div>
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-white sm:text-xl">
+        ស្វាគមន៍ លោកអ្នក {result?.firstName} {result?.lastName}!
+      </h2>
+      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+        គណនីអ្នកជួលរបស់អ្នកត្រូវបានបង្កើតដោយជោគជ័យ។ អ្នកអាចចូលប្រព័ន្ធបានភ្លាមៗនៅពេលដែល
+        អ្នកគ្រប់គ្រងអចលនទ្រព្យសកម្មគណនីរបស់អ្នក។
+      </p>
+      <Link
+        to="/login"
+        className="mt-6 inline-flex items-center justify-center rounded-md bg-gray-900 px-6 py-2.5 text-sm font-medium text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+      >
+        ចូលប្រព័ន្ធ
+      </Link>
+    </Card>
+  );
+
+  return (
+    <div className="flex min-h-screen w-full items-center justify-center bg-slate-100 p-3 sm:p-4">
+      <div className="w-full min-w-0 max-w-lg space-y-5 sm:space-y-6">
+        <div className="flex items-center gap-2">
+          <div className="rounded-xl bg-slate-900 p-2.5 text-white">
+            <Building2 className="h-6 w-6" />
+          </div>
+          <span className="text-xl font-bold text-slate-900">Teasjul</span>
+        </div>
+
+        <Card className="p-5 sm:p-6 md:p-8">
+          {stage === 'validating' ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Spinner />
+              <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                កំពុងផ្ទៀងផ្ទាត់តំណអញ្ជើញ...
+              </p>
+            </div>
+          ) : stage === 'valid' ? (
+            renderValid()
+          ) : stage === 'done' ? (
+            renderDone()
+          ) : (
+            renderInvalid()
+          )}
+        </Card>
+
+        <p className="flex items-center justify-center gap-1.5 px-2 text-center text-xs text-gray-400">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+          <span>តំណនេះអាចប្រើបានតែម្តងប៉ុណ្ណោះ និងផុតកំណត់ក្នុងរយៈពេល ៥ នាទី។</span>
+        </p>
+      </div>
+    </div>
   );
 };
 
-export default function TenantInvitationsPage() {
-  const toast = useToast();
-  const { houses, loading: housesLoading } = useHouses();
-  const {
-    invitations,
-    loading,
-    error,
-    submitting,
-    createInvitation,
-    revokeInvitation,
-    fetchInvitations,
-  } = useTenantInvitations();
-  const { isOwner, isManager, loading: rolesLoading } = useMyRoles();
-
-  const [houseId, setHouseId] = useState('');
-  const [email, setEmail] = useState('');
-  const [created, setCreated] = useState(null);
-  const [revokeTarget, setRevokeTarget] = useState(null);
-  const [revoking, setRevoking] = useState(false);
-
-  const [page, setPage] = useState(0);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const pageSize = 10;
-
-  const handleSearchChange = (val) => {
-    setSearchTerm(val);
-    setPage(0);
-  };
-
-  const handleStatusFilterChange = (val) => {
-    setStatusFilter(val);
-    setPage(0);
-  };
-
-  const canInvite = !rolesLoading && (isOwner || isManager);
-  const houseOptions = houses.map((h) => ({ value: h.id, label: h.name }));
-
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    if (!houseId) {
-      toast.error('កំហុស', 'សូមជ្រើសរើសអចលនទ្រព្យសម្រាប់អ្នកជួល។');
-      return;
-    }
-    try {
-      const result = await createInvitation({ houseId, email: email.trim() || null });
-      setCreated(result);
-      setEmail('');
-      toast.success('បានបង្កើតការអញ្ជើញ', 'តំណអញ្ជើញបានត្រៀមខ្លួនជាស្រេច។');
-    } catch (err) {
-      toast.error('ការបង្កើតបានបរាជ័យ', getServerMessage(err, 'សូមព្យាយាមម្តងទៀត។'));
-    }
-  };
-
-  const handleRevoke = async () => {
-    if (!revokeTarget) return;
-    setRevoking(true);
-    try {
-      await revokeInvitation(revokeTarget.id);
-      setRevokeTarget(null);
-      toast.success('បានលុបចោលការអញ្ជើញ', 'ការអញ្ជើញមិនអាចប្រើប្រាស់បានទៀតទេ។');
-    } catch (err) {
-      toast.error('ការលុបបានបរាជ័យ', getServerMessage(err, 'សូមព្យាយាមម្តងទៀត។'));
-    } finally {
-      setRevoking(false);
-    }
-  };
-
-  const filteredInvitations = useMemo(() => {
-    let result = invitations;
-    if (searchTerm) {
-      const q = searchTerm.toLowerCase();
-      result = result.filter(
-        (i) =>
-          (i.houseName && i.houseName.toLowerCase().includes(q)) ||
-          (i.email && i.email.toLowerCase().includes(q))
-      );
-    }
-    if (statusFilter) {
-      result = result.filter((i) => i.status === statusFilter);
-    }
-    return result;
-  }, [invitations, searchTerm, statusFilter]);
-
-  const totalPages = Math.ceil(filteredInvitations.length / pageSize);
-
-  const paginatedInvitations = useMemo(() => {
-    const start = page * pageSize;
-    return filteredInvitations.slice(start, start + pageSize);
-  }, [filteredInvitations, page, pageSize]);
-
-  if (rolesLoading) {
-    return (
-      <div className="min-w-0 space-y-4">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-40 w-full" />
-        <Skeleton className="h-64 w-full" />
-      </div>
-    );
-  }
-
-  if (!canInvite) {
-    return (
-      <div className="min-w-0 space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">អញ្ជើញអ្នកជួល</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            បង្កើតតំណអញ្ជើញសម្រាប់អ្នកជួលថ្មី
-          </p>
-        </div>
-        <Card className="p-6">
-          <Alert
-            variant="warning"
-            title="គ្មានសិទ្ធិចូលដំណើរការ"
-            description="អ្នកគ្មានសិទ្ធិអញ្ជើញអ្នកជួលទេ។ ត្រូវការតួនាទីម្ចាស់ផ្ទះ ឬអ្នកគ្រប់គ្រង។"
-          />
-        </Card>
-      </div>
-    );
-  }
-
-  const columns = [
-    {
-      header: 'អចលនទ្រព្យ',
-      render: (row) => (
-        <span className="flex items-center gap-2">
-          <Building2 className="h-4 w-4 shrink-0 text-gray-400" />
-          <span className="truncate">{row.houseName}</span>
-        </span>
-      ),
-    },
-    {
-      header: 'អ៊ីមែល',
-      accessor: 'email',
-      render: (row) => <span className="truncate">{row.email || '—'}</span>,
-    },
-    {
-      header: 'ស្ថានភាព',
-      render: (row) => {
-        const s = STATUS_MAP[row.status] || { label: row.status, variant: 'neutral' };
-        return <Badge variant={s.variant}>{s.label}</Badge>;
-      },
-    },
-    {
-      header: 'បង្កើតនៅ',
-      accessor: 'createdAt',
-      render: (row) => <span className="whitespace-nowrap">{formatDate(row.createdAt)}</span>,
-    },
-    {
-      header: 'ផុតកំណត់',
-      accessor: 'expiresAt',
-      render: (row) => <span className="whitespace-nowrap">{formatDate(row.expiresAt)}</span>,
-    },
-    {
-      header: 'សកម្មភាព',
-      render: (row) =>
-        row.status === 'PENDING' ? (
-          <IconButton
-            icon={<Trash2 className="h-4 w-4" />}
-            tooltip="លុបចោលការអញ្ជើញ"
-            onClick={() => setRevokeTarget(row)}
-            variant="danger"
-            size="sm"
-          />
-        ) : null,
-    },
-  ];
-
-  return (
-    <div className="min-w-0 space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">អញ្ជើញអ្នកជួល</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            បង្កើតតំណអញ្ជើញមានសុវត្ថិភាពសម្រាប់អ្នកជួលថ្មីចុះឈ្មោះ
-          </p>
-        </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={fetchInvitations}
-          leftIcon={<RefreshCw className="h-4 w-4" />}
-          loading={loading}
-          className="self-start sm:self-auto"
-        >
-          ធ្វើឱ្យស្រស់
-        </Button>
-      </div>
-
-      {/* ---------- បង្កើតការអញ្ជើញថ្មី (Card ធម្មតា) ---------- */}
-      <Card className="p-4 sm:p-6">
-        <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white">
-          <QrCode className="h-5 w-5 shrink-0 text-gray-400" />
-          បង្កើតការអញ្ជើញថ្មី
-        </h2>
-        <form onSubmit={handleCreate} className="grid grid-cols-1 gap-4 md:grid-cols-12">
-          <div className="md:col-span-5">
-            <Select
-              label="អចលនទ្រព្យ"
-              placeholder="ជ្រើសរើសអចលនទ្រព្យ"
-              required
-              value={houseId}
-              onChange={(e) => setHouseId(e.target.value)}
-              options={houseOptions}
-              disabled={housesLoading}
-            />
-          </div>
-          <div className="md:col-span-4">
-            <Input
-              label="អ៊ីមែល (មិនចាំបាច់)"
-              type="email"
-              placeholder="tenant@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div className="flex items-end md:col-span-3">
-            <Button
-              type="submit"
-              fullWidth
-              leftIcon={<Plus className="h-4 w-4" />}
-              loading={submitting}
-            >
-              បង្កើតការអញ្ជើញ
-            </Button>
-          </div>
-        </form>
-      </Card>
-
-      {/* ---------- ការអញ្ជើញរបស់ខ្ញុំ (Card ដែល noPadding សម្រាប់ Table) ---------- */}
-      <Card className="p-4 sm:p-6" noPadding>
-        {/* Header + filter — បន្ថែម padding ដោយខ្លួនឯង */}
-        <div className="px-4 pt-4 sm:px-6 sm:pt-6">
-          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white">
-                <UsersIcon className="h-5 w-5 shrink-0 text-gray-400" />
-                ការអញ្ជើញរបស់ខ្ញុំ
-              </h2>
-              <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-                តំណអញ្ជើញត្រូវផុតកំណត់បន្ទាប់ពីរយៈពេល ៥ នាទី ឬក្រោយពេលអ្នកជួលចុះឈ្មោះ។
-              </p>
-            </div>
-          </div>
-
-          {invitations.length > 0 && (
-            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="min-w-0 flex-1">
-                <Input
-                  placeholder="ស្វែងរកតាមអចលនទ្រព្យ ឬអ៊ីមែល..."
-                  leftIcon={<Search className="h-4 w-4 text-gray-400" />}
-                  value={searchTerm}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                />
-              </div>
-              <div className="w-full sm:w-48">
-                <Select
-                  options={[
-                    { value: '', label: 'ស្ថានភាពទាំងអស់' },
-                    { value: 'PENDING', label: 'រង់ចាំមានសុពលភាព' },
-                    { value: 'USED', label: 'បានប្រើ' },
-                    { value: 'EXPIRED', label: 'ផុតកំណត់' },
-                    { value: 'REVOKED', label: 'បានលុបចោល' },
-                  ]}
-                  value={statusFilter}
-                  onChange={(e) => handleStatusFilterChange(e.target.value)}
-                />
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <Alert variant="danger" title="កំហុស" description={error} dismissible className="mb-4" />
-          )}
-        </div>
-
-        {/* Table ពេញ Card width — scroll បានត្រឹមត្រូវ */}
-        {loading ? (
-          <div className="space-y-3 px-4 pb-4 sm:px-6 sm:pb-6">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ) : invitations.length === 0 ? (
-          <div className="px-4 pb-4 sm:px-6 sm:pb-6">
-            <EmptyState
-              icon={CheckCircle2}
-              title="មិនទាន់មានការអញ្ជើញ"
-              description="បង្កើតការអញ្ជើញដំបូងរបស់អ្នក ហើយចែករំលែកតំណ ឬ QR ជាមួយអ្នកជួលថ្មី។"
-            />
-          </div>
-        ) : filteredInvitations.length === 0 ? (
-          <div className="px-4 pb-4 sm:px-6 sm:pb-6">
-            <EmptyState
-              icon={Filter}
-              title="រកមិនឃើញលទ្ធផល"
-              description="សូមព្យាយាមកែតម្រូវលក្ខណៈវិនិច្ឆ័យស្វែងរក ឬតម្រងរបស់អ្នក។"
-            />
-          </div>
-        ) : (
-          <>
-            <Table
-              columns={columns}
-              data={paginatedInvitations}
-              emptyMessage="មិនមានការអញ្ជើញទេ"
-            />
-
-            {totalPages > 1 && (
-              <div className="flex justify-center px-4 py-4 sm:justify-end sm:px-6 sm:py-6">
-                <Pagination
-                  currentPage={page + 1}
-                  totalPages={totalPages}
-                  onPageChange={(p) => setPage(p - 1)}
-                />
-              </div>
-            )}
-          </>
-        )}
-      </Card>
-
-      {created && <InvitationPreviewModal created={created} onClose={() => setCreated(null)} />}
-
-      <ConfirmDialog
-        open={!!revokeTarget}
-        title="លុបចោលការអញ្ជើញ"
-        description={`តើអ្នកប្រាកដថាចង់លុបចោលការអញ្ជើញ សម្រាប់ "${revokeTarget?.houseName}" ឬទេ? អ្នកជួលនឹងមិនអាចចុះឈ្មោះបានទេ។`}
-        confirmText="លុបចោល"
-        cancelText="បោះបង់"
-        danger
-        loading={revoking}
-        onConfirm={handleRevoke}
-        onCancel={() => setRevokeTarget(null)}
-      />
-    </div>
-  );
-}
+export default TenantInvitePage;
