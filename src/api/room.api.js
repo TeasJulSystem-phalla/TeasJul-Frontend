@@ -52,6 +52,40 @@ export const roomApi = {
   confirmRoomImport: (rows, houseId) =>
     api.post("/rooms/import", { houseId, rows }).then((res) => res.data),
 
+  // ---- Combined Room + Meters Import ----
+  previewRoomMeterImport: (file, houseId, roomTypeId, installDate) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    if (houseId) {
+      formData.append("houseId", houseId);
+    }
+    if (roomTypeId) {
+      formData.append("roomTypeId", roomTypeId);
+    }
+    if (installDate) {
+      formData.append("installDate", installDate);
+    }
+    return api
+      .post("/rooms/meters-import/preview", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((res) => res.data);
+  },
+
+  confirmRoomMeterImport: (request) =>
+    api.post("/rooms/meters-import", request).then((res) => res.data),
+
+  // ---- Bulk room assignments (`/rooms/bulk-*`) ----
+  bulkAssignUtilities: ({ roomIds, utilityTypeIds, isIncluded }) =>
+    api
+      .post("/rooms/bulk-utilities", { roomIds, utilityTypeIds, isIncluded })
+      .then((res) => res.data),
+
+  bulkAssignAmenities: ({ roomIds, amenityIds }) =>
+    api
+      .post("/rooms/bulk-amenities", { roomIds, amenityIds })
+      .then((res) => res.data),
+
   // ---- Room Amenities (`/rooms/{roomId}/amenities`) ----
   getRoomAmenities: (roomId) =>
     api.get(`/rooms/${roomId}/amenities`).then((res) => res.data),

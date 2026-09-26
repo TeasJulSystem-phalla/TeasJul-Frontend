@@ -49,8 +49,8 @@ const s = StyleSheet.create({
   page: {
     fontFamily: 'Khmer',
     backgroundColor: '#ffffff',
-    padding: 36,
-    paddingBottom: 60,
+    padding: 24,
+    paddingBottom: 44,
     fontSize: 9,
     color: INK,
   },
@@ -59,55 +59,55 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     borderBottomWidth: 2,
     borderBottomColor: INK,
-    paddingBottom: 12,
+    paddingBottom: 8,
   },
   company: { flex: 7, paddingRight: 12 },
-  companyName: { fontSize: 13, fontWeight: 700 },
-  companyLatin: { fontSize: 8, fontWeight: 700, marginTop: 2, letterSpacing: 1 },
-  companyAddress: { fontSize: 7.5, color: MUTED, marginTop: 6, lineHeight: 1.5 },
+  companyName: { fontSize: 12, fontWeight: 700 },
+  companyLatin: { fontSize: 7.5, fontWeight: 700, marginTop: 2, letterSpacing: 1 },
+  companyAddress: { fontSize: 7, color: MUTED, marginTop: 4, lineHeight: 1.3 },
   titleBox: {
     flex: 5,
     borderWidth: 2,
     borderColor: INK,
-    paddingVertical: 6,
-    paddingHorizontal: 16,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
     backgroundColor: ROW,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  titleKhmer: { fontSize: 15, fontWeight: 700 },
-  titleLatin: { fontSize: 8, fontWeight: 700, letterSpacing: 2, marginTop: 1 },
-  metaGrid: { flexDirection: 'row', marginTop: 14 },
+  titleKhmer: { fontSize: 13, fontWeight: 700 },
+  titleLatin: { fontSize: 7.5, fontWeight: 700, letterSpacing: 2, marginTop: 1 },
+  metaGrid: { flexDirection: 'row', marginTop: 8 },
   metaCol: { flex: 1, paddingRight: 12 },
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     borderBottomWidth: 1,
     borderBottomColor: DASH,
-    paddingVertical: 4,
+    paddingVertical: 3,
   },
   metaLabel: { fontSize: 8, color: MUTED },
-  metaValue: { fontSize: 8.5, fontWeight: 700 },
-  section: { marginTop: 16 },
+  metaValue: { fontSize: 8, fontWeight: 700 },
+  section: { marginTop: 10 },
   sectionTitle: {
     fontSize: 9.5,
     fontWeight: 700,
     borderBottomWidth: 1.5,
     borderBottomColor: INK,
-    paddingBottom: 3,
-    marginBottom: 8,
+    paddingBottom: 2,
+    marginBottom: 5,
   },
   tableRow: { flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: '#94a3b8' },
   tableRowAlt: { backgroundColor: '#f8fafc' },
   tableRowLast: { borderBottomWidth: 0 },
   labelCol: { flex: 2.2 },
   valueCol: { flex: 1, textAlign: 'right' },
-  cell: { fontSize: 8, paddingVertical: 4, paddingHorizontal: 6 },
-  cellR: { fontSize: 8, paddingVertical: 4, paddingHorizontal: 6, textAlign: 'right' },
+  cell: { fontSize: 8, paddingVertical: 2.5, paddingHorizontal: 6 },
+  cellR: { fontSize: 8, paddingVertical: 2.5, paddingHorizontal: 6, textAlign: 'right' },
   netRow: { backgroundColor: ROW },
-  netLabel: { fontSize: 9, fontWeight: 700, paddingVertical: 6, paddingHorizontal: 6 },
-  netValue: { fontSize: 10, fontWeight: 700, paddingVertical: 6, paddingHorizontal: 6, textAlign: 'right' },
-  panelRow: { flexDirection: 'row', marginTop: 14 },
+  netLabel: { fontSize: 9, fontWeight: 700, paddingVertical: 4, paddingHorizontal: 6 },
+  netValue: { fontSize: 10, fontWeight: 700, paddingVertical: 4, paddingHorizontal: 6, textAlign: 'right' },
+  panelRow: { flexDirection: 'row', marginTop: 8 },
   panel: { flex: 1, borderWidth: 1, borderColor: INK },
   panelRight: { flex: 1, borderWidth: 1, borderColor: INK, marginLeft: 10 },
   panelTitle: {
@@ -116,13 +116,16 @@ const s = StyleSheet.create({
     backgroundColor: ROW,
     borderBottomWidth: 1,
     borderBottomColor: INK,
-    paddingVertical: 5,
+    paddingVertical: 4,
     paddingHorizontal: 6,
   },
+  panelCols: { flexDirection: 'row' },
+  panelCol: { flex: 1, paddingRight: 4 },
+  panelColLast: { flex: 1, paddingLeft: 4, paddingRight: 0 },
   smallRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 3.5,
+    paddingVertical: 2.5,
     paddingHorizontal: 6,
     borderBottomWidth: 0.5,
     borderBottomColor: '#e2e8f0',
@@ -131,12 +134,12 @@ const s = StyleSheet.create({
   smallValue: { fontSize: 8, fontWeight: 700 },
   footer: {
     position: 'absolute',
-    bottom: 24,
-    left: 36,
-    right: 36,
+    bottom: 14,
+    left: 24,
+    right: 24,
     borderTopWidth: 1,
     borderTopColor: DASH,
-    paddingTop: 6,
+    paddingTop: 5,
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
@@ -161,15 +164,15 @@ export default function OwnerReportPdfDocument({ report }) {
   return (
     <Document
       title={`របាយការណ៍ប្រចាំខែ ${monthName} ${meta.year || ''}`}
-      author="RentalHub"
+      author="TeasJul"
       subject="Monthly owner report"
-      creator="RentalHub Rental Management"
+      creator="TeasJul Rental Management"
     >
       <Page size="A4" style={s.page}>
         {/* Header */}
         <View style={s.header}>
           <View style={s.company}>
-            <Text style={s.companyName}>សហគ្រាសជួលផ្ទះ និងអគារ RentalHub</Text>
+            <Text style={s.companyName}>សហគ្រាសជួលផ្ទះ និងអគារ TeasJul</Text>
             <Text style={s.companyLatin}>RENTALHUB PROPERTY MANAGEMENT</Text>
             <Text style={s.companyAddress}>
               អាសយដ្ឋាន៖ រាជធានីភ្នំពេញ, ព្រះរាជាណាចក្រកម្ពុជា
@@ -341,12 +344,7 @@ export default function OwnerReportPdfDocument({ report }) {
                 <Text style={s.smallLabel}>គ្មានទិន្នន័យ</Text>
               </View>
             ) : (
-              revenueTrend.map((p, i) => (
-                <View key={p.month} style={[s.smallRow, i % 2 === 1 && s.tableRowAlt]}>
-                  <Text style={s.smallLabel}>{p.month}</Text>
-                  <Text style={s.smallValue}>{fmtUSD(p.amount)}</Text>
-                </View>
-              ))
+              <RevenueTrendColumns items={revenueTrend} />
             )}
           </View>
           <View style={s.panelRight}>
@@ -371,7 +369,7 @@ export default function OwnerReportPdfDocument({ report }) {
         {/* Footer */}
         <View fixed style={s.footer}>
           <Text style={s.footerNote}>
-            Generated by RentalHub Management System · របាយការណ៍ប្រចាំខែ {periodLabel}
+            Generated by TeasJul Management System · របាយការណ៍ប្រចាំខែ {periodLabel}
           </Text>
         </View>
       </Page>
@@ -398,6 +396,35 @@ function FinancialRows({ fin }) {
       <View style={[s.tableRow, s.tableRowLast, s.netRow]}>
         <Text style={[s.netLabel, s.labelCol]}>ចំណូលសុទ្ធ / NET REVENUE</Text>
         <Text style={[s.netValue, s.valueCol]}>{fmtUSD(fin.netRevenue)}</Text>
+      </View>
+    </View>
+  );
+}
+
+/** Renders the 12-month revenue trend in two side-by-side columns so the whole
+ *  report fits on a single A4 page. */
+function RevenueTrendColumns({ items }) {
+  const split = Math.ceil(items.length / 2);
+  return (
+    <View style={s.panelCols}>
+      <View style={s.panelCol}>
+        {items.slice(0, split).map((p, i) => (
+          <View key={p.month} style={[s.smallRow, i % 2 === 1 && s.tableRowAlt]}>
+            <Text style={s.smallLabel}>{p.month}</Text>
+            <Text style={s.smallValue}>{fmtUSD(p.amount)}</Text>
+          </View>
+        ))}
+      </View>
+      <View style={s.panelColLast}>
+        {items.slice(split).map((p, i) => (
+          <View
+            key={p.month}
+            style={[s.smallRow, (i + split) % 2 === 1 && s.tableRowAlt]}
+          >
+            <Text style={s.smallLabel}>{p.month}</Text>
+            <Text style={s.smallValue}>{fmtUSD(p.amount)}</Text>
+          </View>
+        ))}
       </View>
     </View>
   );

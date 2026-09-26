@@ -15,4 +15,21 @@ export const utilityMeterApi = {
 
   deactivateMeter: (id) =>
     api.patch(`/utility-meters/${id}/deactivate`).then((res) => res.data),
+
+  // ---- Utility Meter CSV/Excel Import ----
+  previewMeterImport: (file, houseId) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    if (houseId) {
+      formData.append("houseId", houseId);
+    }
+    return api
+      .post("/utility-meters/import/preview", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((res) => res.data);
+  },
+
+  confirmMeterImport: (rows, houseId) =>
+    api.post("/utility-meters/import", { houseId, rows }).then((res) => res.data),
 };

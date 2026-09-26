@@ -1,5 +1,6 @@
 // src/page/public/MarketingPage.jsx
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Sparkles,
   ArrowRight,
@@ -22,69 +23,32 @@ import PublicFooter from "../../components/public/PublicFooter";
 import { usePublicTestimonials } from "../../hooks/usePublicTestimonials.js";
 
 // Import hero image
-import heroImage from "../../assets/image.png";
+import heroImage from "../../assets/poster.png";
 
 const KH = "font-[Kantumruy_Pro,Hanuman,Inter,sans-serif]";
 
 const FEATURES = [
-  {
-    icon: Building2,
-    title: "គ្រប់គ្រងអចលនទ្រព្យ និងបន្ទប់",
-    description:
-      "បង្កើតផ្ទះ វីឡា អាផាតមិន ខុនដូ និងបន្ទប់ ជាមួយមុខងារ សេវាកម្ម និងរូបភាពលម្អិត។",
-  },
-  {
-    icon: Users,
-    title: "អ្នកជួល និងកិច្ចសន្យាជួល",
-    description:
-      "គ្រប់គ្រងអ្នកជួល កិច្ចសន្យា ការអញ្ជើញ និងការប្រគល់សិទ្ធិចូលប្រើប្រាស់ដោយសុវត្ថិភាព។",
-  },
-  {
-    icon: Receipt,
-    title: "វិក្កយបត្រ និងទូទាត់",
-    description:
-      "ចេញវិក្កយបត្រប្រចាំខែ កត់ត្រាថ្លៃភ្លើង/ទឹក គណនា និងតាមដានការទូទាត់ទាំងអស់ក្នុងកន្លែងតែមួយ។",
-  },
-  {
-    icon: BarChart3,
-    title: "របាយការណ៍ចំណូល",
-    description:
-      "របាយការណ៍ចំណូល និងស្ថិតិតាមខែ តាមអចលនទ្រព្យ — ជួយសម្រេចចិត្តលើការគ្រប់គ្រងបានត្រឹមត្រូវ។",
-  },
-  {
-    icon: Wrench,
-    title: "សំណើជួសជុល (Maintenance)",
-    description:
-      "អ្នកជួលដាក់សំណើជួសជុល ហើយក្រុមគ្រប់គ្រងតាមដាន និងដោះស្រាយតាមប្រភេទ។",
-  },
-  {
-    icon: Globe,
-    title: "ផ្សាយបន្ទប់សម្រាប់ជួល",
-    description:
-      "ដាក់បន្ទប់ចូលបញ្ជីសាធារណៈ ជាមួយការពិនិត្យដោយក្រុមការងារមុនផ្សាយ ដើម្បីទាក់ទាញអ្នកជួល។",
-  },
-  {
-    icon: ShieldCheck,
-    title: "សុវត្ថិភាព និងសិទ្ធិច្បាស់លាស់",
-    description:
-      "គ្រប់គ្រងតួនាទី និងសិទ្ធិរបស់ម្ចាស់ អ្នកគ្រប់គ្រង និងអ្នកជួល ជាមួយការផ្ទៀងផ្ទាត់ពីរជំហាន។",
-  },
-  {
-    icon: DoorOpen,
-    title: "ទ្វារចូលអ្នកជួល",
-    description:
-      "អ្នកជួលអាចមើលរាល់ប្រវត្តិ វិក្កយបត្រ ការទូទាត់ និងដាក់សំណើបានដោយខ្លួនឯង។",
-  },
+  { icon: Building2, key: "property" },
+  { icon: Users, key: "tenants" },
+  { icon: Receipt, key: "billing" },
+  { icon: BarChart3, key: "reports" },
+  { icon: Wrench, key: "maintenance" },
+  { icon: Globe, key: "publish" },
+  { icon: ShieldCheck, key: "security" },
+  { icon: DoorOpen, key: "tenantData" },
 ];
+
+const HOW_STEPS = ["account", "property", "manage"];
 
 const TESTIMONIAL_META = [1, 2, 3, 4, 5];
 
 const MarketingPage = () => {
+  const { t } = useTranslation();
   const { testimonials, loading, error, refetch } = usePublicTestimonials();
 
   const hasTestimonials = testimonials.length > 0;
   const avgRating = hasTestimonials
-    ? testimonials.reduce((sum, t) => sum + (t.rating || 0), 0) /
+    ? testimonials.reduce((sum, tst) => sum + (tst.rating || 0), 0) /
       testimonials.length
     : 0;
 
@@ -119,34 +83,32 @@ const MarketingPage = () => {
           <div className="max-w-xl">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 bg-gray-100 px-3 py-1 text-[11.5px] font-medium text-[#0f2942]">
               <Sparkles className="h-3 w-3" />
-              ប្រព័ន្ធគ្រប់គ្រងការជួលដ៏ទូលំទូលាយ
+              {t("marketing.heroBadge")}
             </span>
 
             <h1 className="mt-5 text-[32px] font-extrabold leading-[1.4] tracking-tight text-[#0f2942] sm:text-[42px] lg:text-[46px]">
-              គ្រប់គ្រងការជួលទាំងអស់របស់អ្នក
-              <span className="text-gray-500"> ក្នុងប្រព័ន្ធតែមួយ</span>
+              {t("marketing.heroTitle1")}
+              <span className="text-gray-500"> {t("marketing.heroTitleAccent")}</span>
             </h1>
 
             <p className="mt-5 text-[15px] leading-[1.9] text-gray-600">
-              TeasJul ជួយម្ចាស់អចលនទ្រព្យ និងអ្នកគ្រប់គ្រង គ្រប់គ្រងបន្ទប់
-              អ្នកជួល កិច្ចសន្យា វិក្កយបត្រ ទឹក/ភ្លើង ការជួសជុល
-              និងការផ្សាយបន្ទប់សម្រាប់ជួល — ងាយស្រួល និងមានសុវត្ថិភាព។
+              {t("marketing.heroSubtitle")}
             </p>
 
             {/* Buttons */}
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
-                to="/public/register-business"
+                to="/register-business"
                 className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-[#0f2942] px-6 py-3.5 text-[13.5px] font-semibold text-white transition-colors hover:bg-black"
               >
-                ចាប់ផ្តើមជាមួយ TeasJul
+                {t("marketing.startBtn")}
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                to="/public/rooms"
+                to="/rooms"
                 className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-[#0f2942] bg-transparent px-6 py-3.5 text-[13.5px] font-semibold text-[#0f2942] transition-colors hover:bg-gray-100"
               >
-                រកបន្ទប់ជួល
+                {t("marketing.findRoomBtn")}
               </Link>
             </div>
 
@@ -154,15 +116,15 @@ const MarketingPage = () => {
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-[12.5px] text-gray-600">
               <span className="inline-flex items-center gap-1.5">
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                គ្មានការចំណាយដំបូង
+                {t("marketing.trust.noCost")}
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                សុវត្ថិភាពពីរជំហាន
+                {t("marketing.trust.twoFactor")}
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <CalendarClock className="h-4 w-4 text-amber-500" />
-                គាំទ្រពេញ ២៤/៧
+                {t("marketing.trust.support247")}
               </span>
             </div>
           </div>
@@ -174,7 +136,7 @@ const MarketingPage = () => {
 
             <img
               src={heroImage}
-              alt="TeasJul rental management"
+              alt={t("marketing.heroImageAlt")}
               className="relative w-full max-w-[560px] rounded-2xl object-contain"
             />
           </div>
@@ -217,7 +179,7 @@ const MarketingPage = () => {
               </span>
             </p>
             <p className="mt-1.5 text-[12px] text-white/60">
-              ចំណាត់ថ្នាក់មធ្យម
+              {t("marketing.strip.avgRating")}
             </p>
           </div>
         </div>
@@ -232,7 +194,7 @@ const MarketingPage = () => {
               {testimonials.length}
             </p>
             <p className="mt-1.5 text-[12px] text-white/60">
-              មតិពីម្ចាស់អចលនទ្រព្យ
+              {t("marketing.strip.reviews")}
             </p>
           </div>
         </div>
@@ -247,7 +209,7 @@ const MarketingPage = () => {
               100%
             </p>
             <p className="mt-1.5 text-[12px] text-white/60">
-              បានផ្សាយបន្ទាប់ពីពិនិត្យ
+              {t("marketing.strip.published")}
             </p>
           </div>
         </div>
@@ -264,10 +226,10 @@ const MarketingPage = () => {
         >
           <div className="mb-8 max-w-2xl">
             <h2 className="text-[22px] font-bold text-[#0f2942] sm:text-[26px]">
-              លក្ខណៈពិសេសរបស់ប្រព័ន្ធ
+              {t("marketing.featuresTitle")}
             </h2>
             <p className="mt-1 text-[13.5px] leading-[1.9] text-gray-500">
-              អ្វីគ្រប់យ៉ាងដែលអ្នកត្រូវការសម្រាប់គ្រប់គ្រងអាជីវកម្មជួលតាំងពីដើមដល់ចប់។
+              {t("marketing.featuresSub")}
             </p>
           </div>
 
@@ -276,7 +238,7 @@ const MarketingPage = () => {
               const Icon = f.icon;
               return (
                 <div
-                  key={f.title}
+                  key={f.key}
                   className="rounded-xl border border-gray-200 bg-white p-5 transition-colors hover:border-[#0f2942]/40"
                 >
                   <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0f2942]">
@@ -286,10 +248,10 @@ const MarketingPage = () => {
                     />
                   </span>
                   <h3 className="mt-4 text-[14.5px] font-semibold text-[#0f2942]">
-                    {f.title}
+                    {t(`marketing.features.${f.key}.title`)}
                   </h3>
                   <p className="mt-1.5 text-[12.5px] leading-[1.9] text-gray-600">
-                    {f.description}
+                    {t(`marketing.features.${f.key}.description`)}
                   </p>
                 </div>
               );
@@ -305,11 +267,10 @@ const MarketingPage = () => {
         >
           <div className="mb-8 max-w-2xl">
             <h2 className="text-[22px] font-bold text-[#0f2942] sm:text-[26px]">
-              មតិ និងចំណាត់ថ្នាក់ពីម្ចាស់អចលនទ្រព្យ
+              {t("marketing.testiTitle")}
             </h2>
             <p className="mt-1 text-[13.5px] leading-[1.9] text-gray-500">
-              មតិពិតដែលត្រូវបានត្រួតពិនិត្យ និងផ្សាយដោយក្រុមការងារ TeasJul
-              (published after review by the admin team)។
+              {t("marketing.testiSub")}
             </p>
           </div>
 
@@ -337,17 +298,17 @@ const MarketingPage = () => {
                 onClick={refetch}
                 className="mt-4 flex items-center gap-2 rounded-md bg-[#0f2942] px-4 py-2 text-[12.5px] font-medium text-white transition-colors hover:bg-black"
               >
-                ព្យាយាមម្តងទៀត
+                {t("common.tryAgain")}
               </button>
             </div>
           ) : !hasTestimonials ? (
             <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-gray-50 py-16 text-center">
               <Quote className="h-10 w-10 text-gray-300" />
               <p className="mt-3 text-[14px] font-medium text-[#0f2942]">
-                មិនទាន់មានមតិទេ
+                {t("marketing.testiEmpty")}
               </p>
               <p className="mt-1 text-[12.5px] text-gray-500">
-                មតិដែលបានផ្សាយដោយក្រុមការងារនឹងបង្ហាញនៅទីនេះ។
+                {t("marketing.testiEmptySub")}
               </p>
             </div>
           ) : (
@@ -362,14 +323,14 @@ const MarketingPage = () => {
                 </span>
                 <span className="h-4 w-px bg-gray-300" aria-hidden="true" />
                 <span className="text-[13px] text-gray-600">
-                  ផ្អែកលើមតិ {testimonials.length} ពីម្ចាស់អចលនទ្រព្យបានផ្សាយរួច
+                  {t("marketing.testiBasedOn", { count: testimonials.length })}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {testimonials.map((t) => (
+                {testimonials.map((tst) => (
                   <figure
-                    key={t.id}
+                    key={tst.id}
                     className="relative flex flex-col rounded-xl border border-gray-200 bg-gray-50 p-6 transition-colors hover:border-[#0f2942]/30"
                   >
                     <Quote
@@ -378,14 +339,14 @@ const MarketingPage = () => {
                     />
                     <div
                       className="flex items-center gap-0.5"
-                      aria-label={`ចំណាត់ថ្នាក់ ${t.rating}/5`}
+                      aria-label={t("marketing.testiRating", { rating: tst.rating })}
                     >
                       {TESTIMONIAL_META.map((n) => (
                         <Star
                           key={n}
                           aria-hidden="true"
                           className={`h-4 w-4 ${
-                            n <= t.rating
+                            n <= tst.rating
                               ? "fill-amber-400 text-amber-400"
                               : "fill-gray-300 text-gray-300"
                           }`}
@@ -393,18 +354,18 @@ const MarketingPage = () => {
                       ))}
                     </div>
                     <blockquote className="mt-4 flex-1 text-[13.5px] leading-[1.9] text-gray-700">
-                      “{t.comment}”
+                      “{tst.comment}”
                     </blockquote>
                     <figcaption className="mt-5 flex items-center gap-3 border-t border-gray-200 pt-4">
                       <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0f2942] text-[13px] font-bold text-white">
-                        {(t.ownerName || "ម្ចាស់").charAt(0).toUpperCase()}
+                        {(tst.ownerName || t("marketing.testiOwner")).charAt(0).toUpperCase()}
                       </span>
                       <div>
                         <p className="text-[13px] font-semibold text-[#0f2942]">
-                          {t.ownerName}
+                          {tst.ownerName}
                         </p>
                         <p className="text-[11.5px] text-gray-400">
-                          ម្ចាស់អចលនទ្រព្យ
+                          {t("marketing.testiOwner")}
                         </p>
                       </div>
                     </figcaption>
@@ -423,41 +384,27 @@ const MarketingPage = () => {
         >
           <div className="mb-8 max-w-2xl">
             <h2 className="text-[22px] font-bold text-[#0f2942] sm:text-[26px]">
-              ចាប់ផ្តើមប្រើក្នុងបីជំហាន
+              {t("marketing.howTitle")}
             </h2>
             <p className="mt-1 text-[13.5px] leading-[1.9] text-gray-500">
-              ដំណើរការសាមញ្ញ — ដោយក្រុមការងារ TeasJul ជួយអ្នករៀបចំ។
+              {t("marketing.howSub")}
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {[
-              {
-                title: "កំណត់គណនី",
-                description:
-                  "ក្រុមការងារជួយរៀបចំគណនីម្ចាស់ ឬអ្នកគ្រប់គ្រង។",
-              },
-              {
-                title: "បន្ថែមអចលនទ្រព្យ",
-                description: "ដាក់ផ្ទះ បន្ទប់ មុខងារ និងតម្លៃជួល។",
-              },
-              {
-                title: "ផ្សាយ និងគ្រប់គ្រង",
-                description: "ផ្សាយបន្ទប់ជួល និងគ្រប់គ្រងប្រចាំថ្ងៃ។",
-              },
-            ].map((step, i) => (
+            {HOW_STEPS.map((key, i) => (
               <div
-                key={step.title}
+                key={key}
                 className="relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6"
               >
                 <span className="text-[36px] font-extrabold text-gray-200">
                   0{i + 1}
                 </span>
                 <h3 className="mt-2 text-[16px] font-bold text-[#0f2942]">
-                  {step.title}
+                  {t(`marketing.how.${key}.title`)}
                 </h3>
                 <p className="mt-2 text-[13px] leading-[1.9] text-gray-600">
-                  {step.description}
+                  {t(`marketing.how.${key}.description`)}
                 </p>
               </div>
             ))}
@@ -475,26 +422,26 @@ const MarketingPage = () => {
         >
           <div className="flex-1">
             <h2 className="text-[24px] font-bold text-white sm:text-[28px]">
-              ត្រៀមធ្វើឱ្យការគ្រប់គ្រងជួលកាន់តែងាយស្រួល?
+              {t("marketing.ctaTitle")}
             </h2>
             <p className="mt-2 max-w-lg text-[14px] leading-[1.9] text-white/70">
-              ទាក់ទងក្រុមការងារ ដើម្បីពិភាក្សា និងចាប់ផ្តើមប្រើប្រាស់ TeasJul។
+              {t("marketing.ctaSub")}
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-3">
             <Link
-              to="/public/register-business"
+              to="/register-business"
               className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-white px-6 py-3.5 text-[13.5px] font-semibold text-[#0f2942] transition-colors hover:bg-gray-100"
             >
-              សម្រាប់ម្ចាស់អចលនទ្រព្យ
+              {t("marketing.ctaForOwners")}
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              to="/public/rooms"
+              to="/rooms"
               className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-white/40 px-6 py-3.5 text-[13.5px] font-semibold text-white transition-colors hover:border-white hover:bg-white/10"
             >
               <MonitorSmartphone className="h-4 w-4" />
-              រកបន្ទប់ជួល
+              {t("marketing.ctaFindRoom")}
             </Link>
           </div>
         </div>

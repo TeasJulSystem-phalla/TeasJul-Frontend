@@ -87,7 +87,7 @@ export function RoomTypeFormModal({
       newErrors.defaultRent = 'ថ្លៃជួលមិនអាចជាលេខអវិជ្ជមានបានទេ';
     }
     if (formData.defaultDeposit < 0) {
-      newErrors.defaultDeposit = 'ប្រាក់ដាក់ប្រាកដមិនអាចជាលេខអវិជ្ជមានបានទេ';
+      newErrors.defaultDeposit = 'ប្រាក់កក់មិនអាចជាលេខអវិជ្ជមានបានទេ';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -255,7 +255,7 @@ export function RoomTypeFormModal({
               <div>
                 <Label htmlFor="defaultDeposit" className="text-gray-300 font-semibold flex items-center gap-2">
                   <CreditCard className="w-4 h-4 text-emerald-400" />
-                  ប្រាក់ដាក់ប្រាកដលំនាំដើម ($)
+                  ប្រាក់កក់លំនាំដើម ($)
                 </Label>
                 <Input
                   id="defaultDeposit"

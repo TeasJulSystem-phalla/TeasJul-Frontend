@@ -1,157 +1,18 @@
-// src/components/layout/Sidebar.jsx
+// src/components/layout/SidebarShell.jsx
 import { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  BarChart3,
-  Bell,
-  Building2,
-  DoorOpen,
-  Layers,
-  Sparkles,
-  KeyRound,
-  Users,
-  MailPlus,
-  FileText,
-  Wallet,
-  Receipt,
-  CreditCard,
-  Zap,
-  Wrench,
-  Tags,
-  Gauge,
-  ClipboardList,
-  CircleDollarSign,
-  Folder,
-  UserCircle,
-  Shield,
-  Bot,
-  Settings,
-  HelpCircle,
-  LogOut,
-  X,
-  Home,
-  ChevronDown,
-  Send,
-  Plus,
-} from 'lucide-react';
+import { ChevronDown, Home, LogOut, X } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
-import { useMyRoles } from '../../hooks/useMyRoles';
 
-const NAV_GROUPS = [
-  {
-    label: 'មេ',
-    hideForRoles: ['SUPER_ADMIN'],
-    items: [
-      { to: '/', label: 'ផ្ទាំងគ្រប់គ្រង', icon: LayoutDashboard, end: true },
-      { to: '/owner-report', label: 'របាយការណ៍ប្រចាំខែ', icon: BarChart3 },
-      { to: '/notifications', label: 'ការជូនដំណឹង', icon: Bell },
-    ],
-  },
-  {
-    label: 'អចលនទ្រព្យ',
-    hideForRoles: ['SUPER_ADMIN'],
-    items: [
-      { to: '/properties', label: 'អចលនទ្រព្យ', icon: Building2 },
-      { to: '/rooms', label: 'បន្ទប់', icon: DoorOpen },
-      { to: '/submissions', label: 'ការផ្សាយបន្ទប់', icon: Send, roles: ['OWNER'] },
-      { to: '/roomtype', label: 'ប្រភេទបន្ទប់', icon: Layers },
-      { to: '/amenities', label: 'គ្រឿងបរិក្ខារ', icon: Sparkles },
-      { to: '/access', label: 'ការចូលដំណើរការផ្ទះ', icon: KeyRound },
-    ],
-  },
-  {
-    label: 'អ្នកជួល និងកិច្ចសន្យា',
-    hideForRoles: ['SUPER_ADMIN'],
-    items: [
-      { to: '/tenants', label: 'អ្នកជួល', icon: Users },
-      { to: '/tenant-invitations', label: 'អញ្ជើញអ្នកជួល', icon: MailPlus },
-      { to: '/contracts', label: 'កិច្ចសន្យា', icon: FileText },
-    ],
-  },
-  {
-    label: 'ហិរញ្ញវត្ថុ',
-    hideForRoles: ['SUPER_ADMIN'],
-    items: [
-      {
-        basePath: '/finance',
-        label: 'ហិរញ្ញវត្ថុ',
-        icon: Wallet,
-        children: [
-          { to: '/finance/payments', label: 'ការទូទាត់', icon: Wallet, end: true },
-          { to: '/invoices', label: 'វិក្កយបត្រ', icon: Receipt },
-          { to: '/finance/payment-methods', label: 'វិធីសាស្ត្រទូទាត់', icon: CreditCard },
-        ],
-      },
-    ],
-  },
-  {
-    label: 'ប្រតិបត្តិការ',
-    hideForRoles: ['SUPER_ADMIN'],
-    items: [
-      {
-        basePath: '/utilities',
-        label: 'ប្រើប្រាស់ទឹកភ្លើង',
-        icon: Zap,
-        children: [
-          { to: '/utilities', label: 'ប្រភេទប្រើប្រាស់', icon: Tags, end: true },
-          { to: '/utilities/meters', label: 'ម៉ែត្រប្រើប្រាស់', icon: Gauge },
-          { to: '/utilities/readings', label: 'ការអានម៉ែត្រ', icon: ClipboardList },
-          { to: '/utilities/rates', label: 'តម្លៃប្រើប្រាស់', icon: CircleDollarSign },
-        ],
-      },
-      {
-        basePath: '/maintenance',
-        label: 'ការជួសជុល',
-        icon: Wrench,
-        children: [
-          { to: '/maintenance', label: 'សំណើជួសជុល', icon: Wrench, end: true },
-          { to: '/maintenance/categories', label: 'ប្រភេទការជួសជុល', icon: Folder },
-        ],
-      },
-    ],
-  },
-  {
-    label: 'ការគ្រប់គ្រងប្រព័ន្ធ',
-    items: [
-      { to: '/users', label: 'អ្នកប្រើប្រាស់', icon: UserCircle },
-      { to: '/roles', label: 'តួនាទី', icon: Shield },
-      { to: '/profile', label: 'ប្រវត្តិរបស់ខ្ញុំ', icon: UserCircle },
-    ],
-  },
-  {
-    label: 'រដ្ឋបាល (Admin)',
-    roles: ['SUPER_ADMIN'],
-    items: [
-      { to: '/admin', label: 'ផ្ទាំងគ្រប់គ្រង', icon: Gauge, end: true },
-      { to: '/admin/owners', label: 'ម្ចាស់អចលនទ្រព្យ', icon: Users },
-      { to: '/admin/properties', label: 'បញ្ជីអចលនទ្រព្យ', icon: Building2 },
-      { to: '/admin/properties/new', label: 'ផ្សាយអចលនទ្រព្យថ្មី', icon: Plus },
-      { to: '/admin/properties/drafts', label: 'ព្រាងអចលនទ្រព្យ', icon: FileText },
-      { to: '/admin/submissions', label: 'ការពិនិត្យផ្សាយ', icon: Send },
-      { to: '/roles', label: 'តួនាទី និងសិទ្ធិ', icon: Shield },
-      { to: '/users', label: 'អ្នកប្រើប្រាស់', icon: UserCircle },
-    ],
-  },
-  {
-    label: 'ជំនួយ',
-    items: [
-      { to: '/assistant', label: 'ជំនួយការ AI', icon: Bot },
-      { to: '/settings', label: 'ការកំណត់', icon: Settings },
-      { to: '/help', label: 'ជំនួយ និងការគាំទ្រ', icon: HelpCircle },
-    ],
-  },
-];
-
-const Brand = ({ isCollapsed }) => (
+const Brand = ({ isCollapsed, subtitle }) => (
   <div className="flex h-16 items-center gap-3 border-b border-slate-100 px-5 dark:border-gray-800">
     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 text-white shadow-sm shadow-gray-800/30">
       <Home className="h-5 w-5" />
     </div>
     {!isCollapsed && (
       <div className="min-w-0">
-        <p className="truncate text-[15px] font-semibold text-slate-800 dark:text-white">RentalHub</p>
-        <p className="truncate text-[11px] font-medium text-slate-400 dark:text-slate-500">អ្នកជាម្ចាស់អចលនទ្រព្យ</p>
+        <p className="truncate text-[15px] font-semibold text-slate-800 dark:text-white">TeasJul</p>
+        <p className="truncate text-[11px] font-medium text-slate-400 dark:text-slate-500">{subtitle}</p>
       </div>
     )}
   </div>
@@ -365,7 +226,7 @@ const UserCard = ({ isCollapsed }) => {
 
   return (
     <button
-      onClick={() => navigate('/profile')}
+      onClick={() => navigate('/owner/profile')}
       title={isCollapsed ? fullName : undefined}
       className={[
         'flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 transition-colors hover:bg-slate-50 dark:hover:bg-gray-800',
@@ -387,10 +248,17 @@ const UserCard = ({ isCollapsed }) => {
   );
 };
 
-const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
+const matchesRole = (entry, codes) => !entry.roles || entry.roles.some((role) => codes.includes(role));
+
+/**
+ * Shared sidebar UI for the Owner and Admin areas: overlay, aside frame, brand,
+ * scroll area, group/item/submenu rendering, user card and logout. All it needs
+ * from a role sidebar is `navGroups`, `brandSubtitle` and the role `codes` used
+ * for item-level permission filtering.
+ */
+const SidebarShell = ({ isOpen, onClose, isCollapsed, navGroups, brandSubtitle, codes = [] }) => {
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
-  const { isTenant, codes } = useMyRoles();
 
   const handleNavigate = () => {
     if (window.innerWidth < 1024) onClose();
@@ -401,32 +269,19 @@ const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
     navigate('/login');
   };
 
-  const visibleGroups = NAV_GROUPS.map((group) => {
-    if (group.roles && !group.roles.some((role) => codes.includes(role))) {
-      return null;
-    }
-    if (group.hideForRoles && group.hideForRoles.some((role) => codes.includes(role))) {
-      return null;
-    }
-    const items = (group.items || [])
-      .filter((item) => !item.roles || item.roles.some((role) => codes.includes(role)))
-      .map((item) => {
-        const copy = { ...item };
-        if (item.children) {
-          copy.children = item.children.filter(
-            (child) => !child.roles || child.roles.some((role) => codes.includes(role))
-          );
-        }
-        return copy;
-      });
-    if (group.label === 'ហិរញ្ញវត្ថុ' && isTenant) {
-      const finance = items[0];
-      if (finance?.children && !finance.children.some((child) => child.to === '/tenant/payments')) {
-        finance.children.push({ to: '/tenant/payments', label: 'ការទូទាត់របស់ខ្ញុំ', icon: Wallet });
-      }
-    }
-    return { ...group, items };
-  }).filter((group) => group !== null && group.items.length > 0);
+  const visibleGroups = navGroups
+    .filter((group) => matchesRole(group, codes))
+    .map((group) => ({
+      ...group,
+      items: (group.items || [])
+        .filter((item) => matchesRole(item, codes))
+        .map((item) =>
+          item.children
+            ? { ...item, children: item.children.filter((child) => matchesRole(child, codes)) }
+            : item
+        ),
+    }))
+    .filter((group) => group.items.length > 0);
 
   return (
     <>
@@ -448,7 +303,7 @@ const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
           isOpen ? 'translate-x-0 shadow-2xl shadow-slate-900/10 dark:shadow-black/30' : '-translate-x-full',
         ].join(' ')}
       >
-        <Brand isCollapsed={isCollapsed} />
+        <Brand isCollapsed={isCollapsed} subtitle={brandSubtitle} />
 
         {/* Mobile close button */}
         <button
@@ -469,25 +324,24 @@ const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
               )}
               {isCollapsed && <div className="mx-auto mb-3 h-px w-8 bg-slate-200 dark:bg-gray-800" />}
               <ul className="space-y-1">
-                {group.items.map((item) => (
-                  <div key={item.to ?? item.basePath}>
-                    {item.children ? (
-                      <SidebarSubMenu
+                {group.items.map((item) =>
+                  item.children ? (
+                    <SidebarSubMenu
+                      key={`${group.label}:${item.basePath}`}
+                      item={item}
+                      isCollapsed={isCollapsed}
+                      onNavigate={handleNavigate}
+                    />
+                  ) : (
+                    <li key={`${group.label}:${item.to}`}>
+                      <SidebarLink
                         item={item}
                         isCollapsed={isCollapsed}
                         onNavigate={handleNavigate}
                       />
-                    ) : (
-                      <li>
-                        <SidebarLink
-                          item={item}
-                          isCollapsed={isCollapsed}
-                          onNavigate={handleNavigate}
-                        />
-                      </li>
-                    )}
-                  </div>
-                ))}
+                    </li>
+                  )
+                )}
               </ul>
             </div>
           ))}
@@ -512,4 +366,4 @@ const Sidebar = ({ isOpen, onClose, isCollapsed }) => {
   );
 };
 
-export default Sidebar;
+export default SidebarShell;

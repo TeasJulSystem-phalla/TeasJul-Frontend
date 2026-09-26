@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -10,11 +10,18 @@ import {
   Users,
   DollarSign,
   Download,
+  Wallet,
+  CheckCircle2,
+  Clock,
+  BarChart3,
 } from 'lucide-react';
 import { useInvoices } from '../../hooks/useInvoices.js';
 import { useHouses } from '../../hooks/useHouses.js';
+import { useInvoiceSummary } from '../../hooks/useInvoiceSummary.js';
 import { useBasePath } from '../../hooks/useBasePath.js';
 import { useToast } from '../../components/ui/Toast.jsx';
+import { formatNumber } from '../../utils/format.js';
+import MonthlyInvoiceChart from '../../components/charts/MonthlyInvoiceChart.jsx';
 import BulkInvoicePreviewModal from './BulkInvoicePreviewModal.jsx';
 import {
   Card,
@@ -27,6 +34,8 @@ import {
   IconButton,
   EmptyState,
   Pagination,
+  CountUp,
+  Skeleton,
 } from '../../components/ui/index.js';
 
 const STATUS_VARIANT = {
@@ -71,6 +80,82 @@ const getStatusBadge = (status) => (
   <Badge variant={STATUS_VARIANT[status] || 'default'}>{status || '—'}</Badge>
 );
 
+const StatCard = ({ label, value, formatter, icon: Icon, iconClass }) => (
+  <div className="rounded-xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-md hover:shadow-slate-900/5 dark:border-gray-800 dark:bg-gray-900 dark:hover:shadow-black/20">
+    <div className="flex items-start justify-between">
+      <span
+        className={`flex h-10 w-10 items-center justify-center rounded-lg ${iconClass}`}
+      >
+        <Icon className="h-5 w-5" />
+      </span>
+    </div>
+    <p className="mt-4 text-2xl font-semibold text-slate-800 dark:text-white">
+      <CountUp value={value} formatter={formatter} />
+    </p>
+    <p className="mt-0.5 text-[13px] text-slate-500 dark:text-slate-400">{label}</p>
+  </div>
+);
+
+const CollectionRate = ({ summary }) => {
+  const rate = Math.max(0, Math.min(100, Number(summary.collectionRate) || 0));
+  const collected = Number(summary.totalCollected) || 0;
+  const invoiced = Number(summary.totalInvoiced) || 0;
+  return (
+    <div className="flex h-full flex-col">
+      <p className="text-4xl font-bold text-slate-800 dark:text-white">
+        <CountUp value={rate} decimals={2} suffix="%" />
+      </p>
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-gray-800">
+        <div
+          className="h-full rounded-full bg-emerald-500 transition-all duration-700"
+          style={{ width: `${rate}%` }}
+        />
+      </div>
+      <p className="mt-4 text-[13px] text-slate-500 dark:text-slate-400">
+        បានទូទាត់ {formatCurrency(collected)} ក្នុងចំណោម {formatCurrency(invoiced)}
+      </p>
+      <div className="mt-auto space-y-2 border-t border-slate-100 pt-4 dark:border-gray-800">
+        <div className="flex items-center justify-between text-[13px]">
+          <span className="text-slate-500 dark:text-slate-400">ចំនួនវិក្កយបត្រ</span>
+          <span className="font-semibold text-slate-800 dark:text-white">
+            {formatNumber(summary.totalInvoices)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between text-[13px]">
+          <span className="text-slate-500 dark:text-slate-400">ហួសកំណត់</span>
+          <span className="font-semibold text-red-600 dark:text-red-400">
+            {formatCurrency(summary.overdue)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AnalyticsSkeleton = () => (
+  <>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="rounded-xl border border-slate-200 p-5 dark:border-gray-800">
+          <Skeleton width={40} height={40} className="rounded-lg" />
+          <Skeleton width={140} height={28} className="mt-4" />
+          <Skeleton width={90} height={12} className="mt-3" />
+        </div>
+      ))}
+    </div>
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="rounded-lg border border-slate-200 p-6 dark:border-gray-800 lg:col-span-2">
+        <Skeleton width={200} height={24} />
+        <Skeleton width="100%" height={280} className="mt-5" />
+      </div>
+      <div className="rounded-lg border border-slate-200 p-6 dark:border-gray-800">
+        <Skeleton width={160} height={24} />
+        <Skeleton width="100%" height={180} className="mt-5" />
+      </div>
+    </div>
+  </>
+);
+
 export default function Invoices() {
   const navigate = useNavigate();
   const {
@@ -93,11 +178,35 @@ export default function Invoices() {
     setPage,
     fetchInvoices,
   } = useInvoices();
+  const {
+    summary,
+    loading: summaryLoading,
+    error: summaryError,
+    fetchSummary,
+  } = useInvoiceSummary();
   const { houses } = useHouses();
   const toast = useToast();
   const basePath = useBasePath();
 
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  const summaryParams = useMemo(() => {
+    const params = {};
+    if (houseFilter) params.houseId = houseFilter;
+    if (yearFilter) params.year = yearFilter;
+    if (monthFilter) params.month = monthFilter;
+    if (statusFilter) params.status = statusFilter;
+    return params;
+  }, [houseFilter, yearFilter, monthFilter, statusFilter]);
+
+  useEffect(() => {
+    fetchSummary(summaryParams);
+  }, [summaryParams, fetchSummary]);
+
+  const handleRefresh = () => {
+    fetchInvoices();
+    fetchSummary(summaryParams);
+  };
 
   const handleBulkDownload = () => {
     if (invoices.length === 0) {
@@ -207,14 +316,10 @@ export default function Invoices() {
           >
             ទាញយក PDF ទាំងអស់
           </Button>
-          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => fetchInvoices()}>ធ្វើឱ្យស្រស់</Button>
+          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={handleRefresh}>ធ្វើឱ្យស្រស់</Button>
           <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => navigate(`${basePath}/invoices/generate`)}>បង្កើតវិក្កយបត្រ</Button>
         </div>
       </div>
-
-      {error && (
-        <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកវិក្កយបត្រ" description={error} dismissible />
-      )}
 
       {/* Filter bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -242,6 +347,87 @@ export default function Invoices() {
           <Button variant="outline" size="sm" onClick={clearFilters}>សម្អាត</Button>
         )}
       </div>
+
+      {/* Financial overview */}
+      <section className="space-y-6" aria-label="Financial overview">
+        {summaryLoading ? (
+          <AnalyticsSkeleton />
+        ) : summaryError ? (
+          <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកទិដ្ឋភាពហិរញ្ញវត្ថុ" description={summaryError}>
+            <div className="mt-3">
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<RefreshCw className="h-4 w-4" />}
+                onClick={() => fetchSummary(summaryParams)}
+              >
+                ព្យាយាមម្តងទៀត
+              </Button>
+            </div>
+          </Alert>
+        ) : summary && summary.totalInvoices > 0 ? (
+          <>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <StatCard
+                label="បានចេញវិក្កយបត្រ (Total Invoiced)"
+                value={summary.totalInvoiced}
+                formatter={formatCurrency}
+                icon={FileText}
+                iconClass="bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+              />
+              <StatCard
+                label="បានទូទាត់ (Total Collected)"
+                value={summary.totalCollected}
+                formatter={formatCurrency}
+                icon={CheckCircle2}
+                iconClass="bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
+              />
+              <StatCard
+                label="នៅសល់ឥណទាន (Outstanding)"
+                value={summary.outstanding}
+                formatter={formatCurrency}
+                icon={Wallet}
+                iconClass="bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"
+              />
+              <StatCard
+                label="ហួសកំណត់ (Overdue)"
+                value={summary.overdue}
+                formatter={formatCurrency}
+                icon={Clock}
+                iconClass="bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <Card
+                title="ទិដ្ឋភាពប្រចាំខែ (Monthly Overview)"
+                description={`វិក្កយបត្រ និងការទូទាត់សម្រាប់ឆ្នាំ ${summary.monthlyYear || new Date().getFullYear()}`}
+                className="lg:col-span-2"
+              >
+                <MonthlyInvoiceChart data={summary.monthly || []} year={summary.monthlyYear} />
+              </Card>
+<Card
+            title="អត្រានៃការទូទាត់ (Collection Rate)"
+            description="សមាមាត្របានទូទាត់បើធៀបនឹងវិក្កយបត្រដែលបានចេញ"
+          >
+            <CollectionRate summary={summary} />
+          </Card>
+        </div>
+          </>
+        ) : (
+          <Card>
+            <EmptyState
+              icon={BarChart3}
+              title="មិនទាន់មានទិន្នន័យហិរញ្ញវត្ថុ"
+              description="បង្កើតវិក្កយបត្រ ដើម្បីមើលស្ថិតិប្រចាំខែ និងអត្រានៃការទូទាត់របស់អ្នក។"
+            />
+          </Card>
+        )}
+      </section>
+
+      {error && (
+        <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកវិក្កយបត្រ" description={error} dismissible />
+      )}
 
       {!loading && invoices.length === 0 ? (
         isFiltered ? (

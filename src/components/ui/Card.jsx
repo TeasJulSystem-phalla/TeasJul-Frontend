@@ -1,4 +1,13 @@
-const Card = ({ header, footer, title, description, children, className = '' }) => {
+const Card = ({
+  header,
+  footer,
+  title,
+  description,
+  children,
+  className = '',
+  bodyClassName = '',
+  noPadding = false,
+}) => {
   return (
     <div
       className={`
@@ -8,7 +17,7 @@ const Card = ({ header, footer, title, description, children, className = '' }) 
       `}
     >
       {(header || title) && (
-        <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+        <div className="border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4 dark:border-gray-800">
           {header || (
             <div>
               {title && (
@@ -25,9 +34,17 @@ const Card = ({ header, footer, title, description, children, className = '' }) 
           )}
         </div>
       )}
-      <div className="px-6 py-4">{children}</div>
+      <div
+        className={
+          noPadding
+            ? bodyClassName
+            : `px-4 py-3 sm:px-6 sm:py-4 ${bodyClassName}`
+        }
+      >
+        {children}
+      </div>
       {footer && (
-        <div className="border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+        <div className="border-t border-gray-200 px-4 py-3 sm:px-6 sm:py-4 dark:border-gray-800">
           {footer}
         </div>
       )}

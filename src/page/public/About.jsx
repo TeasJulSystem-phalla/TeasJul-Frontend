@@ -1,4 +1,5 @@
 // src/page/About.jsx
+import { useTranslation } from 'react-i18next';
 import {
   ChevronRight,
   Target,
@@ -15,74 +16,42 @@ import {
 import PublicHeader from '../../components/public/PublicHeader';
 
 const stats = [
-  { value: '12,000+', label: 'អ្នកប្រើប្រាស់សកម្ម' },
-  { value: '3,500+', label: 'អចលនទ្រព្យ' },
-  { value: '25', label: 'ខេត្ត-ក្រុង' },
-  { value: '4.9', label: 'ការវាយតម្លៃ' },
+  { value: '12,000+', key: 'activeUsers' },
+  { value: '3,500+', key: 'properties' },
+  { value: '25', key: 'provinces' },
+  { value: '4.9', key: 'rating' },
 ];
 
 const values = [
-  {
-    icon: Shield,
-    title: 'ភាពជឿជាក់',
-    description:
-      'យើងផ្ទៀងផ្ទាត់រាល់អចលនទ្រព្យ និងម្ចាស់ផ្ទះ ដើម្បីធានាថាលោកអ្នកទទួលបានព័ត៌មានត្រឹមត្រូវ។',
-  },
-  {
-    icon: Users,
-    title: 'តម្លាភាព',
-    description:
-      'គ្មានកម្រៃលាក់កំបាំង គ្មានការភាន់ច្រឡំ។ តម្លៃ និងលក្ខខណ្ឌត្រូវបានបង្ហាញច្បាស់លាស់។',
-  },
-  {
-    icon: Heart,
-    title: 'ការយកចិត្តទុកដាក់',
-    description:
-      'យើងដាក់អ្នកប្រើប្រាស់ជាចំបង។ ក្រុមការងាររបស់យើងត្រៀមខ្លួនជួយលោកអ្នកគ្រប់ពេល។',
-  },
-  {
-    icon: Sparkles,
-    title: 'នវានុវត្តន៍',
-    description:
-      'យើងអភិវឌ្ឍបច្ចេកវិទ្យាថ្មីៗ ដើម្បីធ្វើឱ្យការស្វែងរកផ្ទះកាន់តែងាយស្រួល និងរហ័ស។',
-  },
+  { icon: Shield, key: 'trust' },
+  { icon: Users, key: 'transparency' },
+  { icon: Heart, key: 'care' },
+  { icon: Sparkles, key: 'innovation' },
 ];
 
 const timeline = [
-  {
-    year: '2019',
-    title: 'ការចាប់ផ្តើម',
-    description:
-      'គម្រោងចាប់ផ្តើមឡើងដោយក្រុមអ្នកសហគ្រិនវ័យក្មេង 3 នាក់ ដែលមានចក្ខុវិស័យធ្វើឱ្យការជួលផ្ទះកាន់តែងាយស្រួល។',
-  },
-  {
-    year: '2020',
-    title: 'ការបើកដំណើរការផ្លូវការ',
-    description:
-      'គេហទំព័រត្រូវបានបើកដំណើរការជាផ្លូវការ ជាមួយអចលនទ្រព្យជាង 500 នៅភ្នំពេញ។',
-  },
-  {
-    year: '2022',
-    title: 'ការពង្រីកខេត្ត',
-    description:
-      'ពង្រីកសេវាកម្មទៅខេត្តសៀមរាប បាត់ដំបង និងក្រុងព្រះសីហនុ ជាមួយអ្នកប្រើប្រាស់ជាង 5,000។',
-  },
-  {
-    year: '2024',
-    title: 'ការរីកចម្រើន',
-    description:
-      'បម្រើអ្នកប្រើប្រាស់ជាង 12,000 នាក់ និងអចលនទ្រព្យជាង 3,500 នៅទូទាំងប្រទេស។',
-  },
+  { year: '2019', key: 'start' },
+  { year: '2020', key: 'launch' },
+  { year: '2022', key: 'expand' },
+  { year: '2024', key: 'growth' },
 ];
 
 const team = [
-  { name: 'សុខ ដារា', role: 'សហស្ថាបនិក & CEO' },
-  { name: 'ចាន់ សុភា', role: 'សហស្ថាបនិក & CTO' },
-  { name: 'លី មុនី', role: 'ប្រធានផ្នែកប្រតិបត្តិការ' },
-  { name: 'ហេង ស្រីនី', role: 'ប្រធានផ្នែកទីផ្សារ' },
+  { name: 'សុខ ដារា', key: 'aRole' },
+  { name: 'ចាន់ សុភា', key: 'bRole' },
+  { name: 'លី មុនី', key: 'cRole' },
+  { name: 'ហេង ស្រីនី', key: 'dRole' },
+];
+
+const whyItems = [
+  { key: 'verified' },
+  { key: 'smart' },
+  { key: 'support' },
+  { key: 'free' },
 ];
 
 const About = () => {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-[#f8f8f6]">
       {/* Grid background */}
@@ -106,22 +75,23 @@ const About = () => {
             {/* Breadcrumb */}
             <div className="mb-4 flex items-center gap-1.5 text-[12px] text-slate-500">
               <a href="#" className="khmer hover:text-[#0f2942]">
-                ទំព័រដើម
+                {t('about.breadcrumbHome')}
               </a>
               <ChevronRight className="h-3 w-3" />
-              <span className="khmer font-medium text-slate-700">អំពីយើង</span>
+              <span className="khmer font-medium text-slate-700">
+                {t('about.breadcrumbAbout')}
+              </span>
             </div>
 
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-center">
               <div>
                 <h1 className="khmer text-[30px] font-bold leading-tight text-[#0f2942] sm:text-[40px] lg:text-[46px]">
-                  យើងជួយលោកអ្នក<br />
-                  ស្វែងរកផ្ទះដ៏ល្អបំផុត
+                  {t('about.heroTitle1')}
+                  <br />
+                  {t('about.heroTitle2')}
                 </h1>
                 <p className="khmer mt-4 max-w-xl text-[14px] leading-relaxed text-slate-600 sm:text-[15px]">
-                  ស្វែងរកផ្ទះ (Rooms) គឺជាវេទិកាឈានមុខគេក្នុងការជួយមនុស្សរាប់ពាន់នាក់
-                  ស្វែងរកអចលនទ្រព្យជួលនៅទូទាំងប្រទេសកម្ពុជា។
-                  យើងភ្ជាប់ម្ចាស់ផ្ទះជាមួយអ្នកជួលតាមរយៈបច្ចេកវិទ្យាទំនើប និងសេវាកម្មដែលអាចទុកចិត្តបាន។
+                  {t('about.heroSubtitle')}
                 </p>
 
                 <div className="mt-6 flex flex-wrap gap-3">
@@ -129,13 +99,13 @@ const About = () => {
                     href="#"
                     className="khmer rounded-md bg-[#0f2942] px-5 py-3 text-[13px] font-medium text-white transition-colors hover:bg-[#1a3d5f]"
                   >
-                    ស្វែងរកផ្ទះ
+                    {t('about.findHomeBtn')}
                   </a>
                   <a
                     href="#"
                     className="khmer rounded-md border border-slate-300 bg-white px-5 py-3 text-[13px] font-medium text-[#0f2942] transition-colors hover:border-[#0f2942]"
                   >
-                    ទាក់ទងយើង
+                    {t('about.contactBtn')}
                   </a>
                 </div>
               </div>
@@ -160,7 +130,7 @@ const About = () => {
                         +250%
                       </p>
                       <p className="khmer text-[11px] text-slate-500">
-                        ការរីកចម្រើន / ឆ្នាំ
+                        {t('about.growthLabel')}
                       </p>
                     </div>
                   </div>
@@ -176,14 +146,14 @@ const About = () => {
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               {stats.map((stat) => (
                 <div
-                  key={stat.label}
+                  key={stat.key}
                   className="rounded-lg border border-slate-200 bg-white p-5 text-center sm:p-6"
                 >
                   <p className="khmer text-[24px] font-bold text-[#0f2942] sm:text-[28px]">
                     {stat.value}
                   </p>
                   <p className="khmer mt-1 text-[12px] text-slate-500">
-                    {stat.label}
+                    {t(`about.stats.${stat.key}`)}
                   </p>
                 </div>
               ))}
@@ -201,12 +171,10 @@ const About = () => {
                   <Target className="h-5 w-5 text-white" strokeWidth={1.75} />
                 </div>
                 <h3 className="khmer mt-4 text-[18px] font-bold text-[#0f2942] sm:text-[20px]">
-                  បេសកកម្ម
+                  {t('about.missionTitle')}
                 </h3>
                 <p className="khmer mt-3 text-[13.5px] leading-relaxed text-slate-600">
-                  ធ្វើឱ្យការស្វែងរកផ្ទះជួលក្នុងប្រទេសកម្ពុជាកាន់តែងាយស្រួល តម្លាភាព
-                  និងគួរឱ្យទុកចិត្តសម្រាប់មនុស្សគ្រប់រូប។ យើងខិតខំបង្កើតបទពិសោធន៍
-                  ដែលអ្នកជួល និងម្ចាស់ផ្ទះអាចទំនាក់ទំនងគ្នាបានយ៉ាងរលូន។
+                  {t('about.missionSub')}
                 </p>
               </div>
 
@@ -216,12 +184,10 @@ const About = () => {
                   <Eye className="h-5 w-5 text-white" strokeWidth={1.75} />
                 </div>
                 <h3 className="khmer mt-4 text-[18px] font-bold text-[#0f2942] sm:text-[20px]">
-                  ចក្ខុវិស័យ
+                  {t('about.visionTitle')}
                 </h3>
                 <p className="khmer mt-3 text-[13.5px] leading-relaxed text-slate-600">
-                  ក្លាយជាវេទិកាអចលនទ្រព្យជួលឈានមុខគេនៅកម្ពុជា និងអាស៊ីអាគ្នេយ៍
-                  ដែលមនុស្សរាប់លាននាក់អាចស្វែងរកផ្ទះជួលដ៏ល្អបំផុត
-                  តាមរយៈបច្ចេកវិទ្យាទំនើប និងសេវាកម្មដែលអាចទុកចិត្តបាន។
+                  {t('about.visionSub')}
                 </p>
               </div>
             </div>
@@ -233,10 +199,10 @@ const About = () => {
           <div className="mx-auto max-w-[1400px] px-4 pb-16 sm:px-6 lg:px-8 lg:pb-20">
             <div className="mb-8 text-center">
               <h2 className="khmer text-[24px] font-bold text-[#0f2942] sm:text-[28px]">
-                គុណតម្លៃរបស់យើង
+                {t('about.valuesTitle')}
               </h2>
               <p className="khmer mx-auto mt-2 max-w-xl text-[13px] text-slate-500">
-                គោលការណ៍ដែលដឹកនាំរាល់សកម្មភាពរបស់យើង
+                {t('about.valuesSub')}
               </p>
             </div>
 
@@ -245,17 +211,17 @@ const About = () => {
                 const Icon = value.icon;
                 return (
                   <div
-                    key={value.title}
+                    key={value.key}
                     className="rounded-lg border border-slate-200 bg-white p-5 transition-colors hover:border-[#0f2942]/30"
                   >
                     <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#e8f0f7]">
                       <Icon className="h-5 w-5 text-[#0f2942]" strokeWidth={1.75} />
                     </div>
                     <h3 className="khmer mt-4 text-[14.5px] font-semibold text-[#0f2942]">
-                      {value.title}
+                      {t(`about.values.${value.key}.title`)}
                     </h3>
                     <p className="khmer mt-2 text-[12.5px] leading-relaxed text-slate-600">
-                      {value.description}
+                      {t(`about.values.${value.key}.description`)}
                     </p>
                   </div>
                 );
@@ -269,10 +235,10 @@ const About = () => {
           <div className="mx-auto max-w-[1400px] px-4 pb-16 sm:px-6 lg:px-8 lg:pb-20">
             <div className="mb-8 text-center">
               <h2 className="khmer text-[24px] font-bold text-[#0f2942] sm:text-[28px]">
-                ដំណើររបស់យើង
+                {t('about.timelineTitle')}
               </h2>
               <p className="khmer mx-auto mt-2 max-w-xl text-[13px] text-slate-500">
-                គន្លឹះសំខាន់ៗក្នុងការអភិវឌ្ឍន៍របស់យើង
+                {t('about.timelineSub')}
               </p>
             </div>
 
@@ -291,11 +257,11 @@ const About = () => {
                           {item.year}
                         </span>
                         <h3 className="khmer text-[14.5px] font-semibold text-[#0f2942]">
-                          {item.title}
+                          {t(`about.timeline.${item.key}.title`)}
                         </h3>
                       </div>
                       <p className="khmer mt-2 text-[12.5px] leading-relaxed text-slate-600">
-                        {item.description}
+                        {t(`about.timeline.${item.key}.description`)}
                       </p>
                     </div>
                   </div>
@@ -310,10 +276,10 @@ const About = () => {
           <div className="mx-auto max-w-[1400px] px-4 pb-16 sm:px-6 lg:px-8 lg:pb-20">
             <div className="mb-8 text-center">
               <h2 className="khmer text-[24px] font-bold text-[#0f2942] sm:text-[28px]">
-                ក្រុមការងាររបស់យើង
+                {t('about.teamTitle')}
               </h2>
               <p className="khmer mx-auto mt-2 max-w-xl text-[13px] text-slate-500">
-                មនុស្សដែលនៅពីក្រោយគ្រប់ជោគជ័យ
+                {t('about.teamSub')}
               </p>
             </div>
 
@@ -335,7 +301,7 @@ const About = () => {
                       {member.name}
                     </h3>
                     <p className="khmer mt-0.5 text-[11.5px] text-slate-500">
-                      {member.role}
+                      {t(`about.team.${member.key}`)}
                     </p>
                   </div>
                 </div>
@@ -351,41 +317,24 @@ const About = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2">
                 <div className="p-6 sm:p-8 lg:p-10">
                   <h2 className="khmer text-[22px] font-bold text-[#0f2942] sm:text-[26px]">
-                    ហេតុអ្វីជ្រើសរើសយើង?
+                    {t('about.whyTitle')}
                   </h2>
                   <p className="khmer mt-2 text-[13px] text-slate-500">
-                    អ្វីដែលធ្វើឱ្យយើងខុសពីអ្នកដទៃ
+                    {t('about.whySub')}
                   </p>
 
                   <ul className="mt-6 space-y-4">
-                    {[
-                      {
-                        title: 'អចលនទ្រព្យផ្ទៀងផ្ទាត់',
-                        desc: 'រាល់ការផ្សាយត្រូវបានពិនិត្យដោយក្រុមការងារ',
-                      },
-                      {
-                        title: 'ស្វែងរកឆ្លាតវៃ',
-                        desc: 'តម្រងជាក់លាក់តាមតម្លៃ ទីតាំង និងលក្ខណៈពិសេស',
-                      },
-                      {
-                        title: 'គាំទ្រ 24/7',
-                        desc: 'ក្រុមការងារជួយលោកអ្នកគ្រប់ពេល',
-                      },
-                      {
-                        title: 'ឥតគិតថ្លៃ',
-                        desc: 'គ្មានកម្រៃសម្រាប់អ្នកជួល',
-                      },
-                    ].map((item, i) => (
-                      <li key={i} className="flex gap-3">
+                    {whyItems.map((item) => (
+                      <li key={item.key} className="flex gap-3">
                         <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#0f2942]">
                           <CheckCircle2 className="h-3 w-3 text-white" strokeWidth={3} />
                         </div>
                         <div>
                           <p className="khmer text-[13.5px] font-medium text-[#0f2942]">
-                            {item.title}
+                            {t(`about.whyItems.${item.key}.title`)}
                           </p>
                           <p className="khmer mt-0.5 text-[12.5px] text-slate-600">
-                            {item.desc}
+                            {t(`about.whyItems.${item.key}.desc`)}
                           </p>
                         </div>
                       </li>
@@ -398,11 +347,10 @@ const About = () => {
                   <div className="flex h-full flex-col justify-between">
                     <div>
                       <h3 className="khmer text-[18px] font-bold text-white sm:text-[20px]">
-                        ចាប់ផ្តើមជាមួយយើងថ្ងៃនេះ
+                        {t('about.sideTitle')}
                       </h3>
                       <p className="khmer mt-3 text-[13px] leading-relaxed text-white/70">
-                        ស្វែងរកផ្ទះជួលដ៏ល្អបំផុតសម្រាប់អ្នក
-                        ឬដាក់ផ្សាយអចលនទ្រព្យរបស់អ្នកជាមួយយើងឥតគិតថ្លៃ។
+                        {t('about.sideSub')}
                       </p>
                     </div>
 
@@ -412,14 +360,14 @@ const About = () => {
                         className="khmer flex items-center justify-center gap-2 rounded-md bg-white py-3 text-[13px] font-medium text-[#0f2942] transition-colors hover:bg-slate-100"
                       >
                         <Home className="h-4 w-4" />
-                        ស្វែងរកផ្ទះជួល
+                        {t('about.findRentBtn')}
                       </a>
                       <a
                         href="#"
                         className="khmer flex items-center justify-center gap-2 rounded-md border border-white/20 py-3 text-[13px] font-medium text-white transition-colors hover:bg-white/10"
                       >
                         <Building2 className="h-4 w-4" />
-                        ដាក់ផ្សាយអចលនទ្រព្យ
+                        {t('about.listPropertyBtn')}
                       </a>
                     </div>
                   </div>
@@ -447,22 +395,24 @@ const About = () => {
                   </svg>
                   <div className="leading-tight">
                     <p className="khmer text-[13px] font-bold text-[#0f2942]">
-                      ស្វែងរកផ្ទះ
+                      {t('footer.brandName')}
                     </p>
-                    <p className="text-[10px] font-medium text-slate-500">Rooms</p>
+                    <p className="text-[10px] font-medium text-slate-500">
+                      {t('footer.brandSub')}
+                    </p>
                   </div>
                 </div>
                 <p className="khmer mt-4 text-[12.5px] leading-relaxed text-slate-500">
-                  ការប្រើប្រាស់ដ៏ងាយស្រួល និងរហ័សសម្រាប់ស្វែងរកការជួលផ្ទះនៅកម្ពុជា។
+                  {t('footer.tagline')}
                 </p>
               </div>
 
               <div>
                 <h4 className="khmer text-[13px] font-semibold text-[#0f2942]">
-                  ទំព័រ
+                  {t('footer.pages')}
                 </h4>
                 <ul className="mt-4 space-y-2.5">
-                  {['អំពីយើង', 'ជួលផ្ទះ', 'ជួលបន្ទប់', 'ទំនាក់ទំនង'].map((l) => (
+                  {[t('footer.about'), t('footer.allRooms'), t('footer.whyTeasJul'), t('footer.contact')].map((l) => (
                     <li key={l}>
                       <a
                         href="#"
@@ -477,10 +427,10 @@ const About = () => {
 
               <div>
                 <h4 className="khmer text-[13px] font-semibold text-[#0f2942]">
-                  ជំនួយ
+                  {t('footer.support')}
                 </h4>
                 <ul className="mt-4 space-y-2.5">
-                  {['សំណួរញឹកញាប់', 'គោលការណ៍', 'លក្ខខណ្ឌ'].map((l) => (
+                  {[t('footer.faq'), t('footer.privacy'), t('footer.terms')].map((l) => (
                     <li key={l}>
                       <a
                         href="#"
@@ -495,19 +445,19 @@ const About = () => {
 
               <div>
                 <h4 className="khmer text-[13px] font-semibold text-[#0f2942]">
-                  ទំនាក់ទំនង
+                  {t('footer.contactTitle')}
                 </h4>
                 <ul className="mt-4 space-y-2.5 text-[12.5px] text-slate-500">
                   <li className="khmer">+855 12 345 678</li>
                   <li className="khmer">hello@rooms.kh</li>
-                  <li className="khmer">ភ្នំពេញ, កម្ពុជា</li>
+                  <li className="khmer">{t('footer.location')}</li>
                 </ul>
               </div>
             </div>
 
             <div className="mt-10 border-t border-slate-100 pt-6">
               <p className="khmer text-center text-[12px] text-slate-400">
-                © 2025 ស្វែងរកផ្ទះ. រក្សាសិទ្ធិទាំងអស់។
+                {t('footer.copyright', { year: new Date().getFullYear() })}
               </p>
             </div>
           </div>

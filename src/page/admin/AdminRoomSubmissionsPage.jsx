@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   Eye,
@@ -23,6 +23,7 @@ import {
   Pagination,
   Skeleton,
   Badge,
+  Select,
 } from "../../components/ui/index.js";
 import PublicationStatusBadge from "../../components/room/PublicationStatusBadge.jsx";
 import { roomPublicationApi } from "../../api/roomPublication.api.js";
@@ -42,6 +43,21 @@ const STATUS_LABELS = {
   MAINTENANCE: "ជួសជុល (Maintenance)",
   RESERVED: "បានកក់ (Reserved)",
 };
+
+const ROOM_STATUS_VARIANT = {
+  AVAILABLE: "success",
+  OCCUPIED: "info",
+  MAINTENANCE: "warning",
+  RESERVED: "neutral",
+};
+
+const ROOM_STATUS_FILTER_OPTIONS = [
+  { value: "", label: "ទាំងអស់ (All)" },
+  { value: "AVAILABLE", label: STATUS_LABELS.AVAILABLE },
+  { value: "OCCUPIED", label: STATUS_LABELS.OCCUPIED },
+  { value: "RESERVED", label: STATUS_LABELS.RESERVED },
+  { value: "MAINTENANCE", label: STATUS_LABELS.MAINTENANCE },
+];
 
 const HOUSE_STATUS_LABELS = {
   ACTIVE: "សកម្ម",
@@ -350,6 +366,9 @@ export default function AdminRoomSubmissionsPage() {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [roomStatusFilter, setRoomStatusFilter] = useState("");
+  const [roomStatusSummary, setRoomStatusSummary] = useState(null);
+  const summaryRequestRef = useRef(0);
   const size = 10;
 
   const [ownersById, setOwnersById] = useState({});
@@ -384,6 +403,7 @@ export default function AdminRoomSubmissionsPage() {
     try {
       const pageData = await roomPublicationApi.getAdminRoomsByPublication({
         status: activeTab,
+        roomStatus: roomStatusFilter,
         page,
         size,
       });
@@ -392,6 +412,20 @@ export default function AdminRoomSubmissionsPage() {
         totalElements: pageData.totalElements || 0,
         totalPages: pageData.totalPages || 0,
       });
+
+      const token = ++summaryRequestRef.current;
+      if (activeTab === "PUBLISHED") {
+        roomPublicationApi
+          .getRoomStatusSummary({ status: "PUBLISHED" })
+          .then((summary) => {
+            if (summaryRequestRef.current === token) setRoomStatusSummary(summary);
+          })
+          .catch(() => {
+            if (summaryRequestRef.current === token) setRoomStatusSummary(null);
+          });
+      } else {
+        setRoomStatusSummary(null);
+      }
     } catch (err) {
       setError(
         err.response?.data?.message ||
@@ -401,7 +435,7 @@ export default function AdminRoomSubmissionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, page]);
+  }, [activeTab, roomStatusFilter, page]);
 
   useEffect(() => {
     fetchOwnersMap();
@@ -460,6 +494,11 @@ export default function AdminRoomSubmissionsPage() {
 
   const switchTab = (tab) => {
     setActiveTab(tab);
+    setPage(0);
+  };
+
+  const switchRoomStatus = (value) => {
+    setRoomStatusFilter(value);
     setPage(0);
   };
 
@@ -583,6 +622,40 @@ export default function AdminRoomSubmissionsPage() {
         </div>
 
         <div className="p-4 sm:p-5">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="w-full sm:w-60">
+              <Select
+                label="ស្ថានភាពបន្ទប់ (Room Status)"
+                value={roomStatusFilter}
+                onChange={(e) => switchRoomStatus(e.target.value)}
+                options={ROOM_STATUS_FILTER_OPTIONS}
+              />
+            </div>
+            {activeTab === "PUBLISHED" && roomStatusSummary && (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+                <span className="inline-flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-200">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                  បានផ្សាយ (Published)
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 font-semibold text-slate-800 dark:bg-gray-800 dark:text-slate-100">
+                    {roomStatusSummary.total}
+                  </span>
+                </span>
+                {Object.entries(roomStatusSummary.counts).map(([key, count]) => (
+                  <span
+                    key={key}
+                    className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-gray-600" />
+                    {STATUS_LABELS[key] || key}
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">
+                      {count}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
           {error && (
             <Alert
               variant="danger"
@@ -626,6 +699,7 @@ export default function AdminRoomSubmissionsPage() {
                         {activeTab === "PENDING_APPROVAL" ? "ដាក់ស្នើ" : activeTab === "REJECTED" ? "បានបដិសេធ" : "ផ្សាយ"}
                       </th>
                       <th className="px-2 pb-2 font-semibold">ស្ថានភាព</th>
+                      <th className="px-2 pb-2 font-semibold">ស្ថានភាពបន្ទប់</th>
                       <th className="px-2 pb-2 text-right font-semibold">សកម្មភាព</th>
                     </tr>
                   </thead>
@@ -671,6 +745,11 @@ export default function AdminRoomSubmissionsPage() {
                         </td>
                         <td className="px-2 py-3">
                           <PublicationStatusBadge status={room.publicationStatus} />
+                        </td>
+                        <td className="px-2 py-3">
+                          <Badge variant={ROOM_STATUS_VARIANT[room.status] || "default"}>
+                            {STATUS_LABELS[room.status] || room.status || "—"}
+                          </Badge>
                         </td>
                         <td className="px-2 py-3">
                           <div className="flex items-center justify-end gap-2">
@@ -744,6 +823,9 @@ export default function AdminRoomSubmissionsPage() {
                       <span className="font-semibold text-slate-800 dark:text-slate-100">
                         {formatCurrency(room.monthlyRent)}
                       </span>
+                      <Badge variant={ROOM_STATUS_VARIANT[room.status] || "default"}>
+                        {STATUS_LABELS[room.status] || room.status || "—"}
+                      </Badge>
                       {room.roomTypeName && (
                         <span className="flex items-center gap-1">
                           <Layers className="h-3.5 w-3.5" />

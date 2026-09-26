@@ -1,10 +1,11 @@
+import { useTranslation } from "react-i18next";
 import { MapPin, Heart, Bed, Check, UsersRound } from "lucide-react";
 
 const STATUS_META = {
-  AVAILABLE: { kh: "ទំនេរ", tone: "bg-emerald-500" },
-  RESERVED: { kh: "បានកក់", tone: "bg-sky-500" },
-  OCCUPIED: { kh: "មានអ្នកស្នាក់នៅ", tone: "bg-slate-400" },
-  MAINTENANCE: { kh: "កំពុងជួសជុល", tone: "bg-amber-500" },
+  AVAILABLE: { tone: "bg-emerald-500" },
+  RESERVED: { tone: "bg-sky-500" },
+  OCCUPIED: { tone: "bg-slate-400" },
+  MAINTENANCE: { tone: "bg-amber-500" },
 };
 
 export const SkeletonCard = ({ view }) => {
@@ -40,16 +41,21 @@ export const RoomCard = ({
   view,
   showGroupSummary = false,
 }) => {
+  const { t } = useTranslation();
   const hero =
     (room.images && room.images[0]) ||
     room.roomTypePrimaryImage ||
     room.housePrimaryImage;
   const name =
-    room.name || (room.roomNumber ? `បន្ទប់លេខ ${room.roomNumber}` : "បន្ទប់");
+    room.name ||
+    (room.roomNumber
+      ? `${t("rooms.card.roomPrefix")} ${room.roomNumber}`
+      : t("rooms.card.fallbackName"));
   const location = [room.houseName, room.houseAddress]
     .filter(Boolean)
     .join(" · ");
   const status = STATUS_META[room.status];
+  const statusText = room.status ? t(`status.${room.status}`) : "";
 
   const stopLink = (e) => {
     e.preventDefault();
@@ -92,7 +98,7 @@ export const RoomCard = ({
             <button
               onClick={stopLink}
               className="shrink-0 p-0.5"
-              aria-label="រក្សាទុក"
+              aria-label={t("rooms.card.saveFav")}
             >
               <Heart
                 className={`h-4 w-4 ${
@@ -106,13 +112,13 @@ export const RoomCard = ({
               {room.roomNumber && (
                 <span className="khmer flex items-center gap-1">
                   <Bed className="h-3.5 w-3.5" />
-                  លេខ {room.roomNumber}
+                  {t("rooms.card.roomPrefix")} {room.roomNumber}
                 </span>
               )}
               {room.capacity && (
                 <span className="khmer flex items-center gap-1">
                   <UsersRound className="h-3.5 w-3.5" />
-                  {room.capacity} នាក់
+                  {t("rooms.card.persons", { count: room.capacity })}
                 </span>
               )}
             </div>
@@ -121,7 +127,7 @@ export const RoomCard = ({
             {status ? (
               <span className="flex items-center gap-1.5 text-[12px] font-medium text-slate-600">
                 <span className={`h-1.5 w-1.5 rounded-full ${status.tone}`} />
-                <span className="khmer">{status.kh}</span>
+                <span className="khmer">{statusText}</span>
               </span>
             ) : (
               <span />
@@ -130,7 +136,7 @@ export const RoomCard = ({
               ${Number(room.monthlyRent ?? 0)}
               <span className="khmer text-[11px] font-normal text-slate-500">
                 {" "}
-                /ខែ
+                {t("rooms.card.perMonth")}
               </span>
             </p>
           </div>
@@ -158,7 +164,7 @@ export const RoomCard = ({
         )}
         <button
           onClick={stopLink}
-          aria-label="រក្សាទុក"
+          aria-label={t("rooms.card.saveFav")}
           className="absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 transition-colors hover:bg-white"
         >
           <Heart
@@ -194,11 +200,12 @@ export const RoomCard = ({
           (room.availableRoomCount != null || room.fromRent != null) && (
             <p className="khmer mt-2 line-clamp-1 text-[12px] text-slate-500">
               {room.availableRoomCount != null &&
-                `${room.availableRoomCount} rooms available`}
+                t("rooms.card.roomsAvailable", { count: room.availableRoomCount })}
               {room.availableRoomCount != null &&
                 room.fromRent != null &&
                 " · "}
-              {room.fromRent != null && `from $${Number(room.fromRent)}`}
+              {room.fromRent != null &&
+                t("rooms.card.fromRent", { price: Number(room.fromRent) })}
             </p>
           )}
 
@@ -208,13 +215,17 @@ export const RoomCard = ({
             {room.roomNumber && (
               <span className="khmer flex items-center gap-1 truncate">
                 <Bed className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">លេខ {room.roomNumber}</span>
+                <span className="truncate">
+                  {t("rooms.card.roomPrefix")} {room.roomNumber}
+                </span>
               </span>
             )}
             {room.capacity && (
               <span className="khmer flex items-center gap-1 truncate">
                 <UsersRound className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{room.capacity} នាក់</span>
+                <span className="truncate">
+                  {t("rooms.card.persons", { count: room.capacity })}
+                </span>
               </span>
             )}
           </div>
@@ -225,7 +236,7 @@ export const RoomCard = ({
           {status ? (
             <span className="flex min-w-0 items-center gap-1.5 truncate text-[12px] font-medium text-slate-600">
               <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${status.tone}`} />
-              <span className="khmer truncate">{status.kh}</span>
+              <span className="khmer truncate">{statusText}</span>
             </span>
           ) : (
             <span />
@@ -234,7 +245,7 @@ export const RoomCard = ({
             ${Number(room.monthlyRent ?? 0)}
             <span className="khmer text-[11px] font-normal text-slate-500">
               {" "}
-              /ខែ
+              {t("rooms.card.perMonth")}
             </span>
           </p>
         </div>

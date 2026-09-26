@@ -107,51 +107,66 @@ const InvitationPreviewModal = ({ created, onClose }) => {
         <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300">
           <p className="flex items-center gap-2">
             <Clock className="h-4 w-4 shrink-0" />
-            {expired
-              ? 'តំណបានផុតកំណត់ហើយ។ សូមបង្កើតការអញ្ជើញថ្មី។'
-              : `តំណនឹងផុតកំណត់ក្នុងរយៈពេល ${formatClock(secondsLeft)}`}
+            <span>
+              {expired
+                ? 'តំណបានផុតកំណត់ហើយ។ សូមបង្កើតការអញ្ជើញថ្មី។'
+                : `តំណនឹងផុតកំណត់ក្នុងរយៈពេល ${formatClock(secondsLeft)}`}
+            </span>
           </p>
         </div>
 
-        <div className="flex items-start gap-4">
+        {/* Responsive: stack on mobile, side-by-side on sm+ */}
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
           <div className="shrink-0 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700">
             {expired ? (
-              <div className="flex h-48 w-48 items-center justify-center">
+              <div className="flex h-40 w-40 items-center justify-center sm:h-48 sm:w-48">
                 <ShieldAlert className="h-10 w-10 text-gray-400" />
               </div>
             ) : (
-              <QRCodeSVG value={inviteUrl} size={160} level="M" bgColor="#ffffff" fgColor="#111827" />
+              <QRCodeSVG
+                value={inviteUrl}
+                size={160}
+                level="M"
+                bgColor="#ffffff"
+                fgColor="#111827"
+              />
             )}
           </div>
-          <div className="min-w-0 flex-1 space-y-3">
+          <div className="w-full min-w-0 flex-1 space-y-3">
             <div>
               <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">
                 តំណអញ្ជើញ
               </span>
-              <div className="flex items-center gap-2">
-                <Input readOnly value={inviteUrl} className="font-mono text-xs" />
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="min-w-0 flex-1">
+                  <Input readOnly value={inviteUrl} className="font-mono text-xs" />
+                </div>
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={handleCopy}
                   disabled={expired}
                   leftIcon={<Copy className="h-4 w-4" />}
+                  className="w-full shrink-0 sm:w-auto"
                 >
                   ចម្លង
                 </Button>
               </div>
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              <p className="flex items-center gap-2">
-                <Building2 className="h-4 w-4 shrink-0" /> អចលនទ្រព្យ: {created.houseName}
+            <div className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
+              <p className="flex items-start gap-2">
+                <Building2 className="mt-0.5 h-4 w-4 shrink-0" />
+                <span className="min-w-0 break-words">អចលនទ្រព្យ: {created.houseName}</span>
               </p>
               {created.email && (
-                <p className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 shrink-0" /> អ៊ីមែល: {created.email}
+                <p className="flex items-start gap-2">
+                  <Mail className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span className="min-w-0 break-all">អ៊ីមែល: {created.email}</span>
                 </p>
               )}
-              <p className="flex items-center gap-2">
-                <Clock className="h-4 w-4 shrink-0" /> ផុតកំណត់: {formatDate(created.expiresAt)}
+              <p className="flex items-start gap-2">
+                <Clock className="mt-0.5 h-4 w-4 shrink-0" />
+                <span className="min-w-0 break-words">ផុតកំណត់: {formatDate(created.expiresAt)}</span>
               </p>
             </div>
           </div>
@@ -254,7 +269,7 @@ export default function TenantInvitationsPage() {
 
   if (rolesLoading) {
     return (
-      <div className="space-y-4">
+      <div className="min-w-0 space-y-4">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-40 w-full" />
         <Skeleton className="h-64 w-full" />
@@ -264,7 +279,7 @@ export default function TenantInvitationsPage() {
 
   if (!canInvite) {
     return (
-      <div className="space-y-6">
+      <div className="min-w-0 space-y-6">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">អញ្ជើញអ្នកជួល</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -288,11 +303,15 @@ export default function TenantInvitationsPage() {
       render: (row) => (
         <span className="flex items-center gap-2">
           <Building2 className="h-4 w-4 shrink-0 text-gray-400" />
-          {row.houseName}
+          <span className="truncate">{row.houseName}</span>
         </span>
       ),
     },
-    { header: 'អ៊ីមែល', accessor: 'email', render: (row) => row.email || '—' },
+    {
+      header: 'អ៊ីមែល',
+      accessor: 'email',
+      render: (row) => <span className="truncate">{row.email || '—'}</span>,
+    },
     {
       header: 'ស្ថានភាព',
       render: (row) => {
@@ -300,8 +319,16 @@ export default function TenantInvitationsPage() {
         return <Badge variant={s.variant}>{s.label}</Badge>;
       },
     },
-    { header: 'បង្កើតនៅ', accessor: 'createdAt', render: (row) => formatDate(row.createdAt) },
-    { header: 'ផុតកំណត់', accessor: 'expiresAt', render: (row) => formatDate(row.expiresAt) },
+    {
+      header: 'បង្កើតនៅ',
+      accessor: 'createdAt',
+      render: (row) => <span className="whitespace-nowrap">{formatDate(row.createdAt)}</span>,
+    },
+    {
+      header: 'ផុតកំណត់',
+      accessor: 'expiresAt',
+      render: (row) => <span className="whitespace-nowrap">{formatDate(row.expiresAt)}</span>,
+    },
     {
       header: 'សកម្មភាព',
       render: (row) =>
@@ -318,9 +345,9 @@ export default function TenantInvitationsPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
+    <div className="min-w-0 space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">អញ្ជើញអ្នកជួល</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             បង្កើតតំណអញ្ជើញមានសុវត្ថិភាពសម្រាប់អ្នកជួលថ្មីចុះឈ្មោះ
@@ -332,17 +359,18 @@ export default function TenantInvitationsPage() {
           onClick={fetchInvitations}
           leftIcon={<RefreshCw className="h-4 w-4" />}
           loading={loading}
+          className="self-start sm:self-auto"
         >
           ធ្វើឱ្យស្រស់
         </Button>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white">
-          <QrCode className="h-5 w-5 text-gray-400" />
+          <QrCode className="h-5 w-5 shrink-0 text-gray-400" />
           បង្កើតការអញ្ជើញថ្មី
         </h2>
-        <form onSubmit={handleCreate} className="grid gap-4 md:grid-cols-12">
+        <form onSubmit={handleCreate} className="grid grid-cols-1 gap-4 md:grid-cols-12">
           <div className="md:col-span-5">
             <Select
               label="អចលនទ្រព្យ"
@@ -364,18 +392,23 @@ export default function TenantInvitationsPage() {
             />
           </div>
           <div className="flex items-end md:col-span-3">
-            <Button type="submit" fullWidth leftIcon={<Plus className="h-4 w-4" />} loading={submitting}>
+            <Button
+              type="submit"
+              fullWidth
+              leftIcon={<Plus className="h-4 w-4" />}
+              loading={submitting}
+            >
               បង្កើតការអញ្ជើញ
             </Button>
           </div>
         </form>
       </Card>
 
-      <Card className="p-6">
+      <Card className="p-4 sm:p-6">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+          <div className="min-w-0">
             <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white">
-              <UsersIcon className="h-5 w-5 text-gray-400" />
+              <UsersIcon className="h-5 w-5 shrink-0 text-gray-400" />
               ការអញ្ជើញរបស់ខ្ញុំ
             </h2>
             <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
@@ -386,7 +419,7 @@ export default function TenantInvitationsPage() {
 
         {invitations.length > 0 && (
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex-1">
+            <div className="min-w-0 flex-1">
               <Input
                 placeholder="ស្វែងរកតាមអចលនទ្រព្យ ឬអ៊ីមែល..."
                 leftIcon={<Search className="h-4 w-4 text-gray-400" />}
@@ -434,10 +467,19 @@ export default function TenantInvitationsPage() {
           />
         ) : (
           <>
-            <Table columns={columns} data={paginatedInvitations} className="w-full" emptyMessage="មិនមានការអញ្ជើញទេ" />
+            <div className="min-w-0 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
+              <div className="w-full min-w-0 overflow-x-auto">
+                <Table
+                  columns={columns}
+                  data={paginatedInvitations}
+                  className="border-0"
+                  emptyMessage="មិនមានការអញ្ជើញទេ"
+                />
+              </div>
+            </div>
 
             {totalPages > 1 && (
-              <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex justify-center sm:justify-end">
                 <Pagination
                   currentPage={page + 1}
                   totalPages={totalPages}

@@ -3,7 +3,7 @@ import Spinner  from "../components/ui/Spinner.jsx";
 import { useMyRoles } from "../hooks/useMyRoles.js";
 
 const TenantRoute = () => {
-  const { isTenant, isOwner, isManager, loading, error } = useMyRoles();
+  const { isTenant, isOwner, isManager, isSuperAdmin, loading, error } = useMyRoles();
 
   if (loading) {
     return (
@@ -14,11 +14,15 @@ const TenantRoute = () => {
   }
 
   if (!error && isOwner) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/owner/dashboard" replace />;
   }
 
   if (!error && isManager) {
     return <Navigate to="/manager" replace />;
+  }
+
+  if (!error && isSuperAdmin) {
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   if (!error && !isTenant) {

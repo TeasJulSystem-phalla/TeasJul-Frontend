@@ -5,6 +5,7 @@ import {
   View,
   StyleSheet,
 } from '@react-pdf/renderer';
+import { invoiceItemName } from '../../utils/invoiceItemName';
 
 // ─── Colour palette ───────────────────────────────────────────────────────────
 const BRAND   = '#1e293b'; // slate-800
@@ -274,9 +275,9 @@ function InvoiceCard({ invoice }) {
               style={[s.tableRow, idx === invoice.items.length - 1 && s.rowLast]}
             >
               <View style={s.tdDesc}>
-                <Text>{ITEM_LABELS[item.itemType] || item.itemType || '—'}</Text>
+                <Text>{invoiceItemName(item, ITEM_LABELS) || '—'}</Text>
                 {item.description &&
-                  item.description !== (ITEM_LABELS[item.itemType] || '') && (
+                  item.description !== invoiceItemName(item, ITEM_LABELS) && (
                     <Text style={s.itemMeta}>{item.description}</Text>
                   )}
               </View>
@@ -318,9 +319,9 @@ export default function BatchInvoiceCardsPdf({ invoices = [], billingYear, billi
   return (
     <Document
       title={period ? `វិក្កយបត្រ_${period}` : 'វិក្កយបត្រ'}
-      author="RentalHub"
+      author="TeasJul"
       subject="របាយការណ៍វិក្កយបត្រ"
-      creator="RentalHub Rental Management"
+      creator="TeasJul Rental Management"
     >
       {chunks.map((cards, index) => (
         <Page key={index} size="A4" style={s.page}>

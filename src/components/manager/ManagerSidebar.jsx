@@ -11,7 +11,6 @@ import {
   HelpCircle,
   LogOut,
   X,
-  Home,
   UserCircle,
   DoorOpen,
   KeyRound,
@@ -20,7 +19,7 @@ import {
   MailPlus,
   Bell,
   BarChart3,
-  Bot,
+  Home,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 
@@ -57,7 +56,6 @@ const NAV_GROUPS = [
   {
     label: 'ជំនួយ',
     items: [
-      { to: '/manager/assistant', label: 'ជំនួយការ AI', icon: Bot },
       { to: '/manager/help', label: 'ជំនួយ និងការគាំទ្រ', icon: HelpCircle },
     ],
   },
@@ -70,7 +68,7 @@ const Brand = ({ isCollapsed }) => (
     </div>
     {!isCollapsed && (
       <div className="min-w-0">
-        <p className="truncate text-[15px] font-semibold text-slate-800 dark:text-white">RentalHub</p>
+        <p className="truncate text-[15px] font-semibold text-slate-800 dark:text-white">TeasJul</p>
         <p className="truncate text-[11px] font-medium text-slate-400 dark:text-slate-500">អ្នកគ្រប់គ្រងផ្ទះ</p>
       </div>
     )}

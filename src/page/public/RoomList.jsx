@@ -1,6 +1,7 @@
 // src/page/public/RoomList.jsx
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Search,
   MapPin,
@@ -28,20 +29,19 @@ import PublicHeader from '../../components/public/PublicHeader';
 import { RoomCard, SkeletonCard } from '../../components/room/RoomCard';
 const PAGE_SIZE = 12;
 
-const categoryToPropertyType = {
-  'អាផាតមិន': 'APARTMENT',
-  'ផ្ទះ': 'HOUSE',
-  'វីឡា': 'VILLA',
-  'បន្ទប់': 'ROOM',
-  'ខុនដូ': 'CONDO',
-};
+const CATEGORY_ALL = 'ALL';
+const CATEGORIES = [CATEGORY_ALL, 'APARTMENT', 'HOUSE', 'VILLA', 'ROOM', 'CONDO'];
+
+const propertyTypeForCategory = (cat) =>
+  cat === CATEGORY_ALL ? undefined : cat;
 
 const RoomList = () => {
+  const { t } = useTranslation();
   const [view, setView] = useState('grid');
   const [favorites, setFavorites] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeCategory, setActiveCategory] = useState('ទាំងអស់');
+  const [activeCategory, setActiveCategory] = useState(CATEGORY_ALL);
 
   // ---- Filters that the public API actually supports (server-side) ----
   const [searchInput, setSearchInput] = useState('');
@@ -69,14 +69,7 @@ const RoomList = () => {
     const minRent = searchParams.get('minRent') || '';
     const maxRent = searchParams.get('maxRent') || '';
 
-    const reversePropertyType = {
-      APARTMENT: 'អាផាតមិន',
-      HOUSE: 'ផ្ទះ',
-      VILLA: 'វីឡា',
-      ROOM: 'បន្ទប់',
-      CONDO: 'ខុនដូ',
-    };
-    const category = reversePropertyType[propertyType];
+    const category = CATEGORIES.includes(propertyType) ? propertyType : null;
 
     setSearchInput(search);
     setSearchApplied(search);
@@ -123,7 +116,7 @@ const RoomList = () => {
     setMinCapacity('');
     setSelectedTypes([]);
     setSelectedBeds(null);
-    setActiveCategory('ទាំងអស់');
+    setActiveCategory(CATEGORY_ALL);
     setCurrentPage(1);
   };
 
@@ -137,14 +130,14 @@ const RoomList = () => {
     selectedTypes.length +
     (selectedBeds ? 1 : 0);
 
-  const categories = ['ទាំងអស់', 'អាផាតមិន', 'ផ្ទះ', 'វីឡា', 'បន្ទប់', 'ខុនដូ'];
+  const categories = CATEGORIES;
 
   const typeOptions = [
-    { id: 'អាផាតមិន', icon: Building2 },
-    { id: 'ផ្ទះ', icon: Home },
-    { id: 'វីឡា', icon: Hotel },
-    { id: 'បន្ទប់', icon: DoorOpen },
-    { id: 'ខុនដូ', icon: Building2 },
+    { id: 'APARTMENT', icon: Building2 },
+    { id: 'HOUSE', icon: Home },
+    { id: 'VILLA', icon: Hotel },
+    { id: 'ROOM', icon: DoorOpen },
+    { id: 'CONDO', icon: Building2 },
   ];
 
   useEffect(() => {
@@ -155,8 +148,8 @@ const RoomList = () => {
 
         const typeFilter =
           selectedTypes.length > 0
-            ? categoryToPropertyType[selectedTypes[0]]
-            : categoryToPropertyType[activeCategory];
+            ? propertyTypeForCategory(selectedTypes[0])
+            : propertyTypeForCategory(activeCategory);
 
         publicRoomApi
           .listRooms({
@@ -184,7 +177,7 @@ const RoomList = () => {
             setError(
               err?.response?.data?.message ||
                 err?.message ||
-                'មិនអាចទាញយកបញ្ជីបន្ទប់បានទេ។'
+                t('roomsList.loadError')
             );
           })
           .finally(() => setLoading(false));
@@ -194,7 +187,7 @@ const RoomList = () => {
         : 0
     );
     return () => clearTimeout(timer);
-  }, [searchApplied, locationApplied, activeCategory, selectedTypes, selectedBeds, priceRange.min, priceRange.max, roomTypeId, minCapacity, sort, currentPage, retryKey]);
+  }, [searchApplied, locationApplied, activeCategory, selectedTypes, selectedBeds, priceRange.min, priceRange.max, roomTypeId, minCapacity, sort, currentPage, retryKey, t]);
 
   const applySearch = () => {
     setSearchApplied(searchInput.trim());
@@ -252,22 +245,22 @@ const RoomList = () => {
           <div className="mx-auto max-w-[1500px] px-4 pt-6 sm:px-6 lg:px-8 lg:pt-8">
             <div className="mb-4 flex items-center gap-1.5 text-[12px] text-slate-500">
               <a href="#" className="khmer hover:text-[#0f2942]">
-                ទំព័រដើម
+                {t('roomsList.breadcrumbHome')}
               </a>
               <ChevronRight className="h-3 w-3" />
-              <span className="khmer font-medium text-slate-700">បន្ទប់ជួល</span>
+              <span className="khmer font-medium text-slate-700">
+                {t('roomsList.breadcrumbRooms')}
+              </span>
             </div>
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h1 className="khmer text-[26px] font-bold leading-tight text-[#0f2942] sm:text-[34px]">
-                  បន្ទប់ជួលទាំងអស់
+                  {t('roomsList.title')}
                 </h1>
                 <p className="khmer mt-1.5 flex items-center gap-2 text-[13px] text-slate-500">
                   <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
-                  រកឃើញ{' '}
-                  <span className="font-semibold text-[#0f2942]">{totalElements}</span>{' '}
-                  លទ្ធផល
+                  {t('roomsList.foundResults', { count: totalElements })}
                 </p>
               </div>
             </div>
@@ -285,12 +278,12 @@ const RoomList = () => {
                       applySearch();
                     }
                   }}
-                  placeholder="ស្វែងរកបន្ទប់, ទីតាំង..."
+                  placeholder={t('roomsList.searchPlaceholder')}
                   className="khmer flex-1 bg-transparent px-3 text-[13.5px] text-slate-800 placeholder:text-slate-400 focus:outline-none"
                 />
                 <button className="khmer hidden items-center gap-1 border-l border-slate-200 pl-3 text-[13px] font-medium text-slate-600 sm:flex">
                   <MapPin className="h-3.5 w-3.5" />
-                  ទីតាំង
+                  {t('roomsList.locationButton')}
                   <ChevronDown className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -301,7 +294,7 @@ const RoomList = () => {
                   className="khmer relative flex flex-1 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-[13px] font-medium text-slate-700 lg:hidden"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
-                  តម្រង
+                  {t('roomsList.filters')}
                   {activeCount > 0 && (
                     <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#0f2942] px-1.5 text-[10px] font-bold text-white">
                       {activeCount}
@@ -315,7 +308,7 @@ const RoomList = () => {
                 >
                   <Search className="h-4 w-4" />
                   <span className="khmer hidden text-[13px] font-medium sm:inline">
-                    ស្វែងរក
+                    {t('roomsList.searchButton')}
                   </span>
                 </button>
               </div>
@@ -332,7 +325,7 @@ const RoomList = () => {
                       : 'border-slate-300 bg-white text-slate-600 hover:border-[#0f2942] hover:text-[#0f2942]'
                   }`}
                 >
-                  {cat}
+                  {t(`propertyType.${cat}`)}
                 </button>
               ))}
             </div>
@@ -354,10 +347,14 @@ const RoomList = () => {
                       </div>
                       <div>
                         <h2 className="khmer text-[13.5px] font-semibold text-[#0f2942]">
-                          តម្រងស្វែងរក
-                        </h2>
+                        {t('roomsList.filterHeading')}
+                      </h2>
                         <p className="khmer text-[10.5px] text-slate-500">
-                          {activeCount > 0 ? `${activeCount} ត្រូវបានជ្រើស` : 'មិនទាន់ជ្រើស'}
+                          {activeCount > 0
+                            ? t('roomsList.countSelected', {
+                                count: activeCount,
+                              })
+                            : t('roomsList.nothingSelected')}
                         </p>
                       </div>
                     </div>
@@ -369,7 +366,7 @@ const RoomList = () => {
                       <div className="flex items-center gap-1.5">
                         <DollarSign className="h-3.5 w-3.5 text-[#0f2942]" />
                         <h3 className="khmer text-[12.5px] font-semibold text-[#0f2942]">
-                          តម្លៃ / ខែ
+                          {t('roomsList.pricePerMonth')}
                         </h3>
                       </div>
                       {(priceRange.min || priceRange.max) && (
@@ -441,7 +438,7 @@ const RoomList = () => {
                     <div className="mb-3 flex items-center gap-1.5">
                       <Building2 className="h-3.5 w-3.5 text-[#0f2942]" />
                       <h3 className="khmer text-[12.5px] font-semibold text-[#0f2942]">
-                        ប្រភេទ
+                        {t('roomsList.type')}
                       </h3>
                       {selectedTypes.length > 0 && (
                         <span className="khmer ml-auto rounded bg-[#e8f0f7] px-1.5 py-0.5 text-[10px] font-semibold text-[#0f2942]">
@@ -450,13 +447,13 @@ const RoomList = () => {
                       )}
                     </div>
                     <div className="space-y-1.5">
-                      {typeOptions.map((t) => {
-                        const Icon = t.icon;
-                        const checked = selectedTypes.includes(t.id);
+                      {typeOptions.map((opt) => {
+                        const Icon = opt.icon;
+                        const checked = selectedTypes.includes(opt.id);
                         return (
                           <button
-                            key={t.id}
-                            onClick={() => toggleType(t.id)}
+                            key={opt.id}
+                            onClick={() => toggleType(opt.id)}
                             className={`group flex w-full items-center gap-2.5 rounded-md border px-2.5 py-2 text-left transition-all ${
                               checked
                                 ? 'border-[#0f2942] bg-[#e8f0f7]'
@@ -485,7 +482,7 @@ const RoomList = () => {
                                 checked ? 'text-[#0f2942]' : 'text-slate-700'
                               }`}
                             >
-                              {t.id}
+                              {t(`propertyType.${opt.id}`)}
                             </span>
                           </button>
                         );
@@ -498,7 +495,7 @@ const RoomList = () => {
                     <div className="mb-3 flex items-center gap-1.5">
                       <Bed className="h-3.5 w-3.5 text-[#0f2942]" />
                       <h3 className="khmer text-[12.5px] font-semibold text-[#0f2942]">
-                        ចំនួនបន្ទប់គេង
+                        {t('roomsList.bedrooms')}
                       </h3>
                     </div>
                     <div className="grid grid-cols-4 gap-1.5">
@@ -526,7 +523,7 @@ const RoomList = () => {
                     <div className="mb-3 flex items-center gap-1.5">
                       <MapPin className="h-3.5 w-3.5 text-[#0f2942]" />
                       <h3 className="khmer text-[12.5px] font-semibold text-[#0f2942]">
-                        ទីតាំង
+                        {t('roomsList.location')}
                       </h3>
                     </div>
                     <div className="relative">
@@ -542,7 +539,7 @@ const RoomList = () => {
                             applyLocation();
                           }
                         }}
-                        placeholder="ភ្នំពេញ, សៀមរាប..."
+                        placeholder={t('roomsList.locationPlaceholder')}
                         className="w-full rounded-md border border-slate-300 bg-white py-2 pl-8 pr-2 text-[12.5px] font-medium text-slate-800 transition-colors focus:border-[#0f2942] focus:outline-none"
                       />
                     </div>
@@ -553,7 +550,7 @@ const RoomList = () => {
                     <div className="mb-3 flex items-center gap-1.5">
                       <DoorOpen className="h-3.5 w-3.5 text-[#0f2942]" />
                       <h3 className="khmer text-[12.5px] font-semibold text-[#0f2942]">
-                        ប្រភេទបន្ទប់
+                        {t('roomsList.roomType')}
                       </h3>
                     </div>
                     <select
@@ -564,7 +561,7 @@ const RoomList = () => {
                       }}
                       className="khmer w-full cursor-pointer rounded-md border border-slate-300 bg-white px-2.5 py-2 text-[12.5px] font-medium text-slate-700 transition-colors focus:border-[#0f2942] focus:outline-none"
                     >
-                      <option value="">គ្រប់ប្រភេទបន្ទប់</option>
+                      <option value="">{t('roomsList.allRoomTypes')}</option>
                       {roomTypes.map((rt) => (
                         <option key={rt.id} value={rt.id}>
                           {rt.name}
@@ -578,12 +575,12 @@ const RoomList = () => {
                     <div className="mb-3 flex items-center gap-1.5">
                       <UsersRound className="h-3.5 w-3.5 text-[#0f2942]" />
                       <h3 className="khmer text-[12.5px] font-semibold text-[#0f2942]">
-                        ចំនួនអ្នកស្នាក់
+                        {t('roomsList.capacity')}
                       </h3>
                     </div>
                     <div className="grid grid-cols-5 gap-1.5">
                       {[
-                        { label: 'គ្រប់', value: '' },
+                        { label: t('roomsList.anyCapacity'), value: '' },
                         { label: '1', value: '1' },
                         { label: '2', value: '2' },
                         { label: '3', value: '3' },
@@ -618,7 +615,7 @@ const RoomList = () => {
                     className="khmer flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white py-2.5 text-[12.5px] font-medium text-slate-600 transition-colors hover:border-[#0f2942] hover:text-[#0f2942]"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
-                    សម្អាតតម្រងទាំងអស់ ({activeCount})
+                    {t('roomsList.clearAll', { count: activeCount })}
                   </button>
                 )}
               </div>
@@ -628,15 +625,15 @@ const RoomList = () => {
             <div className="min-w-0 flex-1">
               <div className="mb-5 flex items-center justify-between gap-3">
                 <div className="hidden items-center gap-2 text-[13px] text-slate-500 sm:flex">
-                  <span className="khmer">បង្ហាញ:</span>
+                  <span className="khmer">{t('roomsList.showing')}</span>
                   <span className="khmer font-semibold text-[#0f2942]">
-                    {totalElements} លទ្ធផល
+                    {t('roomsList.foundResults', { count: totalElements })}
                   </span>
                 </div>
 
                 <div className="ml-auto flex items-center gap-2">
                   <button className="khmer hidden items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[12.5px] font-medium text-slate-700 transition-colors hover:border-[#0f2942] sm:flex">
-                    តម្រៀប: ពេញនិយម
+                    {t('roomsList.sortBy')}
                     <ChevronDown className="h-3.5 w-3.5" />
                   </button>
 
@@ -688,23 +685,23 @@ const RoomList = () => {
                     className="khmer mt-4 flex items-center gap-2 rounded-md bg-[#0f2942] px-4 py-2 text-[12.5px] font-medium text-white transition-colors hover:bg-[#1a3d5f]"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
-                    ព្យាយាមម្តងទៀត
+                    {t('common.tryAgain')}
                   </button>
                 </div>
               ) : rooms.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-lg border border-slate-200 bg-white py-16 text-center">
                   <SearchX className="h-10 w-10 text-slate-300" />
                   <p className="khmer mt-3 text-[14px] font-medium text-[#0f2942]">
-                    មិនបានរកឃើញបន្ទប់ទេ
+                    {t('roomsList.noRoomsFound')}
                   </p>
                   <p className="khmer mt-1 text-[12.5px] text-slate-500">
-                    សាកល្បងប្តូរតម្រង ឬស្វែងរកម្តងទៀត
+                    {t('roomsList.noRoomsSub')}
                   </p>
                   <button
                     onClick={clearFilters}
                     className="khmer mt-4 rounded-md border border-slate-300 bg-white px-4 py-2 text-[12.5px] font-medium text-slate-700 transition-colors hover:border-[#0f2942] hover:text-[#0f2942]"
                   >
-                    សម្អាតតម្រង
+                    {t('roomsList.clearFilters')}
                   </button>
                 </div>
               ) : (
@@ -718,7 +715,7 @@ const RoomList = () => {
                   {rooms.map((room) => (
                     <Link
                       key={room.id}
-                      to={`/public/rooms/${room.id}`}
+                      to={`/rooms/${room.id}`}
                       className="block"
                     >
                       <RoomCard
@@ -794,22 +791,24 @@ const RoomList = () => {
                   </svg>
                   <div className="leading-tight">
                     <p className="khmer text-[13px] font-bold text-[#0f2942]">
-                      ស្វែងរកផ្ទះ
+                      {t('footer.brandName')}
                     </p>
-                    <p className="text-[10px] font-medium text-slate-500">Rooms</p>
+                    <p className="text-[10px] font-medium text-slate-500">
+                      {t('footer.brandSub')}
+                    </p>
                   </div>
                 </div>
                 <p className="khmer mt-4 text-[12.5px] leading-relaxed text-slate-500">
-                  ការប្រើប្រាស់ដ៏ងាយស្រួល និងរហ័សសម្រាប់ស្វែងរកការជួលផ្ទះនៅកម្ពុជា។
+                  {t('footer.tagline')}
                 </p>
               </div>
 
               <div>
                 <h4 className="khmer text-[13px] font-semibold text-[#0f2942]">
-                  ទំព័រ
+                  {t('footer.pages')}
                 </h4>
                 <ul className="mt-4 space-y-2.5">
-                  {['អំពីយើង', 'ជួលផ្ទះ', 'ជួលបន្ទប់', 'ទំនាក់ទំនង'].map((l) => (
+                  {[t('footer.about'), t('footer.allRooms'), t('footer.whyTeasJul'), t('footer.contact')].map((l) => (
                     <li key={l}>
                       <a
                         href="#"
@@ -824,10 +823,10 @@ const RoomList = () => {
 
               <div>
                 <h4 className="khmer text-[13px] font-semibold text-[#0f2942]">
-                  ជន្ល
+                  {t('footer.support')}
                 </h4>
                 <ul className="mt-4 space-y-2.5">
-                  {['សេវាកម្មរបស់យើង', 'គោលការណ៍', 'រក្សាក្រុមហ៊ុន'].map((l) => (
+                  {[t('footer.faq'), t('footer.privacy'), t('footer.terms')].map((l) => (
                     <li key={l}>
                       <a
                         href="#"
@@ -842,19 +841,19 @@ const RoomList = () => {
 
               <div>
                 <h4 className="khmer text-[13px] font-semibold text-[#0f2942]">
-                  ទំនាក់ទំនង
+                  {t('footer.contactTitle')}
                 </h4>
                 <ul className="mt-4 space-y-2.5 text-[12.5px] text-slate-500">
                   <li className="khmer">+855 12 345 678</li>
                   <li className="khmer">hello@rooms.kh</li>
-                  <li className="khmer">ភ្នំពេញ, កម្ពុជា</li>
+                  <li className="khmer">{t('footer.location')}</li>
                 </ul>
               </div>
             </div>
 
             <div className="mt-10 border-t border-slate-100 pt-6">
               <p className="khmer text-center text-[12px] text-slate-400">
-                © 2025 ស្វែងរកផ្ទះ. រក្សាសិទ្ធិទាំងអស់។
+                {t('footer.copyright', { year: new Date().getFullYear() })}
               </p>
             </div>
           </div>
@@ -871,7 +870,7 @@ const RoomList = () => {
           <div className="absolute left-0 top-0 h-full w-[85%] max-w-sm overflow-y-auto bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
               <h3 className="khmer text-[16px] font-semibold text-[#0f2942]">
-                តម្រង
+                {t('roomsList.filters')}
               </h3>
               <button
                 onClick={() => setFilterOpen(false)}
@@ -884,7 +883,7 @@ const RoomList = () => {
             <div className="space-y-6 p-5">
               <div>
                 <h4 className="khmer mb-3 text-[13px] font-medium text-[#0f2942]">
-                  តម្លៃ / ខែ
+                  {t('roomsList.pricePerMonth')}
                 </h4>
                 <div className="flex items-center gap-2">
                   <input
@@ -907,17 +906,17 @@ const RoomList = () => {
 
               <div>
                 <h4 className="khmer mb-3 text-[13px] font-medium text-[#0f2942]">
-                  ប្រភេទ
+                  {t('roomsList.type')}
                 </h4>
                 <div className="space-y-2.5">
-                  {typeOptions.map((t) => (
+                  {typeOptions.map((opt) => (
                     <label
-                      key={t.id}
+                      key={opt.id}
                       className="flex cursor-pointer items-center gap-2.5"
                     >
                       <span className="flex h-4 w-4 items-center justify-center rounded border border-slate-300" />
                       <span className="khmer text-[13px] text-slate-700">
-                        {t.id}
+                        {t(`propertyType.${opt.id}`)}
                       </span>
                     </label>
                   ))}
@@ -926,7 +925,7 @@ const RoomList = () => {
 
               <div>
                 <h4 className="khmer mb-3 text-[13px] font-medium text-[#0f2942]">
-                  ចំនួនបន្ទប់គេង
+                  {t('roomsList.bedrooms')}
                 </h4>
                 <div className="grid grid-cols-4 gap-1.5">
                   {['1', '2', '3', '4+'].map((n) => (
@@ -946,13 +945,13 @@ const RoomList = () => {
                 onClick={clearFilters}
                 className="khmer flex-1 rounded-md border border-slate-300 py-2.5 text-[13.5px] font-medium text-slate-700"
               >
-                សម្អាត
+                {t('roomsList.clear')}
               </button>
               <button
                 onClick={() => setFilterOpen(false)}
                 className="khmer flex-1 rounded-md bg-[#0f2942] py-2.5 text-[13.5px] font-medium text-white"
               >
-                បង្ហាញលទ្ធផល
+                {t('roomsList.showResults')}
               </button>
             </div>
           </div>

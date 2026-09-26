@@ -62,7 +62,6 @@ const formatDateTime = (dateStr) => {
 };
 
 const EMPTY_FORM = {
-  contractNo: '',
   roomId: '',
   startDate: '',
   endDate: '',
@@ -147,7 +146,6 @@ export default function ContractEditorPage() {
       const data = await getContract(Number(id));
       setContract(data);
       setForm({
-        contractNo: data.contractNo || '',
         roomId: data.roomId ?? '',
         startDate: data.startDate || '',
         endDate: data.endDate || '',
@@ -170,6 +168,21 @@ export default function ContractEditorPage() {
     }
   }, [isEdit, loadContract]);
 
+  const refreshAfterRenewal = useCallback(async () => {
+    if (!isEdit || !id) return;
+    try {
+      const data = await getContract(Number(id));
+      setContract(data);
+      setForm((prev) => ({
+        ...prev,
+        endDate: data.endDate || prev.endDate,
+        status: data.status || prev.status,
+      }));
+    } catch {
+      // keep the current view if the refresh fails; the saved renewal is unaffected
+    }
+  }, [isEdit, id, getContract]);
+
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -188,7 +201,6 @@ export default function ContractEditorPage() {
 
   const validate = () => {
     const errs = {};
-    if (!form.contractNo.trim()) errs.contractNo = 'តម្រូវឱ្យបញ្ចូលលេខកិច្ចសន្យា';
     if (!form.roomId) errs.roomId = 'តម្រូវឱ្យជ្រើសរើសបន្ទប់';
     if (!form.startDate) errs.startDate = 'តម្រូវឱ្យបញ្ចូលថ្ងៃចាប់ផ្តើម';
     if (!form.monthlyRent || Number(form.monthlyRent) <= 0) errs.monthlyRent = 'ថ្លៃជួលប្រចាំខែត្រូវតែធំជាង 0';
@@ -197,7 +209,6 @@ export default function ContractEditorPage() {
   };
 
   const buildPayload = () => ({
-    contractNo: form.contractNo.trim(),
     roomId: Number(form.roomId),
     startDate: form.startDate,
     endDate: form.endDate || null,
@@ -217,10 +228,10 @@ export default function ContractEditorPage() {
       if (isEdit) {
         const updated = await updateContract(Number(id), buildPayload());
         setContract(updated);
-        toast.success('បានកែប្រែកិច្ចសន្យា', `កិច្ចសន្យា "${form.contractNo}" ត្រូវបានកែប្រែ។`);
+        toast.success('បានកែប្រែកិច្ចសន្យា', `កិច្ចសន្យា "${updated?.contractNo || updated?.id}" ត្រូវបានកែប្រែ។`);
       } else {
         const created = await createContract(buildPayload());
-        toast.success('បានបង្កើតកិច្ចសន្យា', `កិច្ចសន្យា "${form.contractNo}" ត្រូវបានបង្កើត។`);
+        toast.success('បានបង្កើតកិច្ចសន្យា', `កិច្ចសន្យា "${created?.contractNo || created?.id}" ត្រូវបានបង្កើត។`);
         navigate(`${basePath}/contracts/${created.id}`, { replace: true });
       }
     } catch (err) {
@@ -276,7 +287,7 @@ export default function ContractEditorPage() {
             <ArrowLeft className="h-4 w-4" /> ត្រឡប់ទៅកិច្ចសន្យា
           </Link>
           <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">
-            {isEdit ? `កែប្រែកិច្ចសន្យា ${form.contractNo ? `#${contract?.id} · ${form.contractNo}` : ''}` : 'បង្កើតកិច្ចសន្យា'}
+            {isEdit ? `កែប្រែកិច្ចសន្យា ${contract?.contractNo ? `#${contract?.id} · ${contract?.contractNo}` : ''}` : 'បង្កើតកិច្ចសន្យា'}
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             {isEdit ? 'គ្រប់គ្រងព័ត៌មានលម្អិតកិច្ចសន្យា អ្នកជួល ប្រាក់កក់ និងការបន្តកិច្ចសន្យា។' : 'ជ្រើសរើសបន្ទប់ខាងក្រោមដោយផ្ទាល់ និងបំពេញលក្ខខណ្ឌកិច្ចសន្យាក្នុងទំព័រនេះ។'}
@@ -467,7 +478,14 @@ export default function ContractEditorPage() {
       >
         <form id="editorForm" onSubmit={handleSave} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="លេខកិច្ចសន្យា" required name="contractNo" value={form.contractNo} onChange={handleFormChange} placeholder="ឧ. CT-2026-001" error={formErrors.contractNo} />
+            {isEdit ? (
+              <Input label="លេខកិច្ចសន្យា" name="contractNo" value={contract?.contractNo || ''} disabled />
+            ) : (
+              <div>
+                <Input label="លេខកិច្ចសន្យា" name="contractNo" value="" disabled placeholder="បង្កើតដោយស្វ័យប្រវត្តិ" />
+                <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">លេខកិច្ចសន្យានឹងត្រូវបានបង្កើតដោយស្វ័យប្រវត្តិពីប្រព័ន្ធ។</p>
+              </div>
+            )}
             <Select label="ស្ថានភាព" name="status" options={STATUS_OPTIONS} value={form.status} onChange={handleFormChange} />
           </div>
 
@@ -493,7 +511,7 @@ export default function ContractEditorPage() {
         <>
           <TenantSection contractId={contract.id} />
           <DepositSection contractId={contract.id} />
-          <RenewalSection contractId={contract.id} />
+          <RenewalSection contractId={contract.id} onRenewed={refreshAfterRenewal} />
         </>
       )}
     </div>
@@ -825,7 +843,7 @@ const DepositSection = ({ contractId }) => {
   );
 };
 
-const RenewalSection = ({ contractId }) => {
+const RenewalSection = ({ contractId, onRenewed }) => {
   const { renewals, createRenewal } = useContractRenewals(contractId);
   const toast = useToast();
   const [addOpen, setAddOpen] = useState(false);
@@ -847,6 +865,7 @@ const RenewalSection = ({ contractId }) => {
       toast.success('បានកត់ត្រាការបន្ត');
       setAddOpen(false);
       setForm({ previousEndDate: '', newEndDate: '', previousRent: '', newRent: '', notes: '' });
+      await onRenewed?.();
     } catch {
       toast.error('មិនអាចបន្ថែមការបន្តបានទេ');
     } finally {

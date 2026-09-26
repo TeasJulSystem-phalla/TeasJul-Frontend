@@ -10,7 +10,7 @@ import {
   RefreshCw,
   Search,
   Mail,
-  LocateFixed,
+  DoorOpen,
   Calendar,
   Hand,
   FileSpreadsheet,
@@ -328,7 +328,7 @@ export default function HouseDetailPage() {
             <FileText className="h-4 w-4" />
           </span>
           <Link
-            to={`/contracts/${row.id}`}
+            to={`${basePath}/contracts/${row.id}`}
             className="font-medium text-slate-800 hover:text-violet-600 dark:text-white dark:hover:text-violet-400"
           >
             {row.contractNo || `#${row.id}`}
@@ -478,8 +478,16 @@ export default function HouseDetailPage() {
           <InfoRow icon={MapPin} label="អាសយដ្ឋាន" value={house?.address} />
           <InfoRow icon={MapPin} label="ក្រុង/ខេត្ត" value={house?.cityProvince} />
           <InfoRow icon={Mail} label="លេខកូដប្រៃសណីយ៍" value={house?.postalCode} />
-          {house?.latitude != null && <InfoRow icon={LocateFixed} label="រយៈទទឹង" value={house.latitude} />}
-          {house?.longitude != null && <InfoRow icon={LocateFixed} label="រយៈបណ្តោយ" value={house.longitude} />}
+          <InfoRow
+            icon={BedDouble}
+            label="បន្ទប់សរុប"
+            value={summary?.totalRooms ?? house?.totalRooms}
+          />
+          <InfoRow
+            icon={DoorOpen}
+            label="បន្ទប់ទំនេរ"
+            value={summary?.availableRooms ?? house?.availableRooms}
+          />
         </div>
         {(house?.googleMapsUrl || (house?.latitude != null && house?.longitude != null)) && (
           <a

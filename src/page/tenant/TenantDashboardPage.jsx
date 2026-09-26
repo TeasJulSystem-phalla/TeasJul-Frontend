@@ -104,11 +104,6 @@ const SummaryCard = ({ icon, label, value, sub, highlight, countUpValue, formatt
   </Card>
 );
 
-const lastUsage = (list) => {
-  if (!list || list.length === 0) return null;
-  return list[list.length - 1];
-};
-
 export default function TenantDashboardPage() {
   const navigate = useNavigate();
 
@@ -208,8 +203,8 @@ export default function TenantDashboardPage() {
 
   const { tenant, room, contract, financial, utilities } = dashboard;
 
-  const waterLast = lastUsage(utilities?.water);
-  const electricityLast = lastUsage(utilities?.electricity);
+  const waterLast = utilities?.water;
+  const electricityLast = utilities?.electricity;
 
   const usageChartData = (usage?.water || []).map((w) => {
     const el = (usage?.electricity || []).find((e) => e.month === w.month);

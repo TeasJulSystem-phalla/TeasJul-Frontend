@@ -69,7 +69,7 @@ const RoomPublicPreview = ({
   const detailsOpen = expanded || showDetails;
 
   const detailsRow = [
-    { icon: Banknote, label: "ប្រាក់ដាក់ប្រាកដ", value: formatCurrency(room?.securityDeposit) },
+    { icon: Banknote, label: "ប្រាក់កក់", value: formatCurrency(room?.securityDeposit) },
     { icon: Building2, label: "ផ្ទះ", value: houseName || "—" },
     { icon: Layers, label: "ប្រភេទបន្ទប់", value: roomTypeName || "—" },
     { icon: Star, label: "ស្ថានភាព", value: statusLabel(room?.status) },

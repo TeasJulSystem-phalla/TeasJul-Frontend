@@ -850,7 +850,7 @@ export default function RoomListingEditor({
     if (monthlyRent === null || monthlyRent < 0) next.monthlyRent = "ថ្លៃជួលត្រូវជាលេខមិនអវិជ្ជមាន";
     const securityDeposit = toNum(listing.securityDeposit);
     if (securityDeposit === null || securityDeposit < 0)
-      next.securityDeposit = "ប្រាក់ដាក់ប្រាកដត្រូវជាលេខមិនអវិជ្ជមាន";
+      next.securityDeposit = "ប្រាក់កក់ត្រូវជាលេខមិនអវិជ្ជមាន";
     const needRoomNumbers = pt !== "HOUSE" && pt !== "VILLA" && pt !== "OTHER";
     if (needRoomNumbers) {
       const seen = new Set();
@@ -984,7 +984,7 @@ export default function RoomListingEditor({
     if (monthlyRent === null || monthlyRent < 0) next.monthlyRent = "ថ្លៃជួលត្រូវជាលេខមិនអវិជ្ជមាន";
     const securityDeposit = toNum(listing.securityDeposit);
     if (securityDeposit === null || securityDeposit < 0)
-      next.securityDeposit = "ប្រាក់ដាក់ប្រាកដត្រូវជាលេខមិនអវិជ្ជមាន";
+      next.securityDeposit = "ប្រាក់កក់ត្រូវជាលេខមិនអវិជ្ជមាន";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -1488,7 +1488,7 @@ export default function RoomListingEditor({
                       <Input label="ថ្លៃជួលលំនាំដើម ($)" type="number" step="0.01" min="0"
                         name="defaultRent" value={roomTypeForm.defaultRent}
                         onChange={(e) => handleRoomTypeFormChange("defaultRent", e.target.value)} />
-                      <Input label="ប្រាក់ដាក់ប្រាកដលំនាំដើម ($)" type="number" step="0.01" min="0"
+                      <Input label="ប្រាក់កក់លំនាំដើម ($)" type="number" step="0.01" min="0"
                         name="defaultDeposit" value={roomTypeForm.defaultDeposit}
                         onChange={(e) => handleRoomTypeFormChange("defaultDeposit", e.target.value)} />
                     </div>
@@ -1650,7 +1650,7 @@ export default function RoomListingEditor({
                   onChange={(e) => setListingField("monthlyRent", e.target.value)}
                   error={errors.monthlyRent} placeholder="ឧ. 250"
                   leftIcon={<DollarSign className="h-4 w-4 text-slate-400" />} />
-                <Input label="ប្រាក់ដាក់ប្រាកដ ($)" type="number" step="0.01" min="0"
+                <Input label="ប្រាក់កក់ ($)" type="number" step="0.01" min="0"
                   name="securityDeposit" value={listing.securityDeposit}
                   onChange={(e) => setListingField("securityDeposit", e.target.value)}
                   error={errors.securityDeposit} placeholder="ឧ. 500"

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { publicFeedbackApi } from "../api/feedback.api";
+import i18n from "../i18n";
 
 const toErrorMessage = (err, fallback) =>
   err.response?.data?.message || err.response?.data?.error || fallback;
@@ -21,7 +22,9 @@ export function usePublicTestimonials() {
       const data = await publicFeedbackApi.listTestimonials();
       setTestimonials(data || []);
     } catch (err) {
-      setError(toErrorMessage(err, "មិនអាចផ្ទុកមតិអ្នកប្រើបានទេ។"));
+      setError(
+        toErrorMessage(err, i18n.t("common.testimonialsError"))
+      );
     } finally {
       setLoading(false);
     }

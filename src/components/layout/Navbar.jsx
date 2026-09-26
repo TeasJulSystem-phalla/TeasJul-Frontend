@@ -111,7 +111,7 @@ const Navbar = ({ toggleSidebar, isCollapsed }) => {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white">
               <Home className="h-4 w-4" />
             </div>
-            <span className="text-[15px] font-semibold text-slate-800 dark:text-white">RentalHub</span>
+            <span className="text-[15px] font-semibold text-slate-800 dark:text-white">TeasJul</span>
           </div>
         </div>
 

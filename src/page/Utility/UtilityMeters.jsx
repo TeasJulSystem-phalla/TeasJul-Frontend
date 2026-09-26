@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Plus,
   Search,
@@ -12,12 +13,14 @@ import {
   Calendar,
   Filter,
   Plug,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { useUtilityMeters } from '../../hooks/useUtilityMeters.js';
 import { useHouses } from '../../hooks/useHouses.js';
 import { useUtilityTypes } from '../../hooks/useUtilityTypes.js';
 import { useRooms } from '../../hooks/useRooms.js';
 import { useToast } from '../../components/ui/Toast.jsx';
+import { useBasePath } from '../../hooks/useBasePath.js';
 import {
   Card,
   Button,
@@ -62,6 +65,8 @@ const formatDate = (dateStr) => {
 };
 
 export default function UtilityMeters() {
+  const navigate = useNavigate();
+  const basePath = useBasePath();
   const {
     meters,
     loading,
@@ -350,6 +355,14 @@ export default function UtilityMeters() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>ធ្វើឱ្យស្រស់</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<FileSpreadsheet className="h-4 w-4" />}
+            onClick={() => navigate(`${basePath}/utilities/meters/import${houseFilter ? `?houseId=${houseFilter}` : ''}`)}
+          >
+            នាំចូល CSV/Excel
+          </Button>
           <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បន្ថែមម៉ែត្រ</Button>
         </div>
       </div>

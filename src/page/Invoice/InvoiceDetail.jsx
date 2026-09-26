@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import InvoicePreviewModal from './InvoicePreviewModal';
 import RealInvoiceDocument from './RealInvoiceDocument';
+import { invoiceItemName } from '../../utils/invoiceItemName';
 import { invoiceApi } from '../../api/invoice.api';
 import { paymentApi } from '../../api/payment.api';
 import { useToast } from '../../components/ui/Toast.jsx';
@@ -29,6 +30,7 @@ import {
   Skeleton,
   Modal,
   Input,
+  Select,
   ConfirmDialog,
 } from '../../components/ui/index.js';
 
@@ -82,8 +84,21 @@ export default function InvoiceDetail() {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentMethodId, setPaymentMethodId] = useState('');
+  const [paymentMethods, setPaymentMethods] = useState([]);
   const [paying, setPaying] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  const openPaymentModal = useCallback(async () => {
+    setPaymentMethodId('');
+    setPaymentAmount(invoice?.totalAmount != null ? String(invoice.totalAmount) : '');
+    setPaymentOpen(true);
+    try {
+      const data = await paymentApi.listPaymentMethods();
+      setPaymentMethods((data || []).filter((m) => m.status === 'ACTIVE'));
+    } catch {
+      setPaymentMethods([]);
+    }
+  }, [invoice]);
 
   const fetchInvoice = useCallback(async () => {
     setLoading(true);
@@ -222,7 +237,7 @@ export default function InvoiceDetail() {
           </Button>
 
           {invoice.status === 'PENDING' && (
-            <Button variant="outline" size="sm" leftIcon={<DollarSign className="h-4 w-4" />} onClick={() => setPaymentOpen(true)}>
+            <Button variant="outline" size="sm" leftIcon={<DollarSign className="h-4 w-4" />} onClick={openPaymentModal}>
               កត់ត្រាការទូទាត់
             </Button>
           )}
@@ -333,9 +348,9 @@ export default function InvoiceDetail() {
                       )}
                       <div>
                         <p className="font-medium text-slate-700 dark:text-slate-200">
-                          {ITEM_LABELS[item.itemType] || item.description || item.itemType}
+                          {invoiceItemName(item, ITEM_LABELS)}
                         </p>
-                        {item.description && item.description !== (ITEM_LABELS[item.itemType] || '') && (
+                        {item.description && item.description !== invoiceItemName(item, ITEM_LABELS) && (
                           <p className="text-xs text-slate-400">{item.description}</p>
                         )}
                       </div>
@@ -389,6 +404,18 @@ export default function InvoiceDetail() {
             placeholder="0.00"
             autoFocus
           />
+          <Select
+            label="វិធីសាស្ត្រទូទាត់ *"
+            placeholder="ជ្រើសរើសវិធីសាស្ត្រទូទាត់"
+            options={paymentMethods.map((m) => ({ value: String(m.id), label: m.name }))}
+            value={paymentMethodId}
+            onChange={(e) => setPaymentMethodId(e.target.value)}
+          />
+          {paymentMethods.length === 0 && (
+            <p className="text-sm text-amber-600 dark:text-amber-400">
+              មិនមានវិធីសាស្ត្រទូទាត់ទេ។ សូមបង្កើតវិធីសាស្ត្រទូទាត់ជាមុនសិន។
+            </p>
+          )}
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" size="sm" onClick={() => setPaymentOpen(false)}>
               បោះបង់
@@ -396,7 +423,7 @@ export default function InvoiceDetail() {
             <Button
               variant="primary"
               size="sm"
-              disabled={!paymentAmount || Number(paymentAmount) <= 0}
+              disabled={!paymentMethodId || !paymentAmount || Number(paymentAmount) <= 0}
               loading={paying}
               onClick={handleRecordPayment}
             >

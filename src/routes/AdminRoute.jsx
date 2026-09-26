@@ -14,7 +14,7 @@ const AdminRoute = () => {
   }
 
   if (!error && isTenant && !isOwner) {
-    return <Navigate to="/tenant" replace />;
+    return <Navigate to="/tenant/dashboard" replace />;
   }
 
   if (!error && isManager && !isOwner) {

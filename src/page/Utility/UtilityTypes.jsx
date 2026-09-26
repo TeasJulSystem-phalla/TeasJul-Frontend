@@ -12,8 +12,13 @@ import {
   Filter,
   CheckCircle2,
   Scale,
+  Layers,
+  Power,
+  XCircle,
 } from 'lucide-react';
 import { useUtilityTypes } from '../../hooks/useUtilityTypes.js';
+import { useSystemDefaults } from '../../hooks/useSystemDefaults.js';
+import { useMyRoles } from '../../hooks/useMyRoles.js';
 import { useToast } from '../../components/ui/Toast.jsx';
 import {
   Card,
@@ -29,6 +34,7 @@ import {
   EmptyState,
   Skeleton,
   Pagination,
+  Tabs,
 } from '../../components/ui/index.js';
 
 const STATUS_VARIANT = {
@@ -72,8 +78,18 @@ export default function UtilityTypes() {
     updateType,
     deactivateType,
   } = useUtilityTypes();
+  const { isOwner } = useMyRoles();
+  const {
+    defaults: systemDefaults,
+    loading: systemLoading,
+    error: systemError,
+    fetchDefaults,
+    enable: enableDefault,
+    disable: disableDefault,
+  } = useSystemDefaults('UTILITY', isOwner);
   const toast = useToast();
 
+  const [activeTab, setActiveTab] = useState('system');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
@@ -82,6 +98,7 @@ export default function UtilityTypes() {
   const [viewTarget, setViewTarget] = useState(null);
   const [deactivateTarget, setDeactivateTarget] = useState(null);
   const [deactivating, setDeactivating] = useState(false);
+  const [busyId, setBusyId] = useState(null);
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [formErrors, setFormErrors] = useState({});
@@ -94,8 +111,32 @@ export default function UtilityTypes() {
     fetchTypes({ search: '', status: '' });
   }, [fetchTypes, page, setPage]);
 
+  const linkedIds = useMemo(
+    () =>
+      new Set(
+        systemDefaults
+          .filter((d) => d.enabled && d.linkedId)
+          .map((d) => d.linkedId)
+      ),
+    [systemDefaults]
+  );
+
+  const customTypes = useMemo(
+    () => (isOwner ? types.filter((t) => !linkedIds.has(t.id)) : types),
+    [isOwner, types, linkedIds]
+  );
+
+  const enabledDefaults = useMemo(
+    () => systemDefaults.filter((d) => d.enabled),
+    [systemDefaults]
+  );
+  const availableDefaults = useMemo(
+    () => systemDefaults.filter((d) => !d.enabled),
+    [systemDefaults]
+  );
+
   const filtered = useMemo(() => {
-    let result = types;
+    let result = customTypes;
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       result = result.filter(
@@ -107,11 +148,36 @@ export default function UtilityTypes() {
     }
     if (statusFilter) result = result.filter((t) => t.status === statusFilter);
     return result;
-  }, [types, searchTerm, statusFilter]);
+  }, [customTypes, searchTerm, statusFilter]);
 
   const getStatusBadge = (status) => (
     <Badge variant={STATUS_VARIANT[status] || 'default'}>{status || '—'}</Badge>
   );
+
+  const getBillingBadge = (method) => (
+    <Badge variant={method === 'FIXED' ? 'info' : 'default'}>
+      {method === 'METERED' ? 'Metered' : method === 'FIXED' ? 'Fixed' : method || '—'}
+    </Badge>
+  );
+
+  const handleToggleDefault = async (d, action) => {
+    setBusyId(d.definition.id);
+    try {
+      if (action === 'enable') {
+        await enableDefault(d.definition.id);
+        toast.success('បានបើកដំណើរការ', `"${d.definition.name}" ត្រូវបានបើកដំណើរការ។`);
+      } else {
+        await disableDefault(d.definition.id);
+        toast.success('បានបិទដំណើរការ', `"${d.definition.name}" ត្រូវបានបិទដំណើរការ។`);
+      }
+      fetchDefaults();
+      fetchTypes({});
+    } catch (err) {
+      toast.error('កំហុស', err.response?.data?.message || err.response?.data?.error || 'ប្រតិបត្តិការបរាជ័យ។');
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   const columns = [
     {
@@ -138,12 +204,8 @@ export default function UtilityTypes() {
       ),
     },
     {
-      header: 'វិធីសាស្រ្តប្រាក់កម្រ',
-      render: (row) => (
-        <Badge variant={row.billingMethod === 'FIXED' ? 'info' : 'default'}>
-          {row.billingMethod === 'METERED' ? 'Metered' : row.billingMethod === 'FIXED' ? 'Fixed' : row.billingMethod || '—'}
-        </Badge>
-      ),
+      header: 'វិធីសាស្រ្តគិតការទូទាត់',
+      render: (row) => getBillingBadge(row.billingMethod),
     },
     {
       header: 'ស្ថានភាព',
@@ -176,6 +238,12 @@ export default function UtilityTypes() {
         </div>
       ),
     },
+  ];
+
+  const SYSTEM_TABS = [
+    { value: 'system', label: 'ប្រព័ន្ធ' },
+    { value: 'enabled', label: 'បានបើកដំណើរការ' },
+    { value: 'custom', label: 'ផ្ទាល់ខ្លួន' },
   ];
 
   const resetForm = () => {
@@ -287,6 +355,116 @@ export default function UtilityTypes() {
     );
   }
 
+  const renderSystemDefaultRow = (d, action) => {
+    const def = d.definition;
+    return (
+      <div
+        key={def.id}
+        className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+      >
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400">
+            <Layers className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="truncate text-[15px] font-semibold text-slate-800 dark:text-white">{def.name}</p>
+              {action === 'disable' && (
+                <Badge variant="success">បានបើកដំណើរការ</Badge>
+              )}
+            </div>
+            <p className="font-mono text-xs text-slate-400">{def.code}</p>
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <span className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+            <Scale className="h-4 w-4 text-slate-400" />
+            {def.unit || '—'}
+          </span>
+          {getBillingBadge(def.billingMethod)}
+          {action === 'disable' && d.linkedId && (
+            <span className="font-mono text-xs text-slate-400">#{d.linkedId}</span>
+          )}
+          <Button
+            size="sm"
+            variant={action === 'enable' ? 'primary' : 'outline'}
+            leftIcon={action === 'enable' ? <Power className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+            loading={busyId === def.id}
+            onClick={() => handleToggleDefault(d, action)}
+          >
+            {action === 'enable' ? 'បើកដំណើរការ' : 'បិទដំណើរការ'}
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSystemSection = () => {
+    if (systemLoading) {
+      return (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-xl" />
+          ))}
+        </div>
+      );
+    }
+    if (systemError) {
+      return (
+        <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកប្រព័ន្ធ" description={systemError} dismissible>
+          <div className="mt-3">
+            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => fetchDefaults()}>ព្យាយាមម្តងទៀត</Button>
+          </div>
+        </Alert>
+      );
+    }
+    return (
+      <div className="space-y-3">
+        {availableDefaults.map((d) => renderSystemDefaultRow(d, 'enable'))}
+        {availableDefaults.length === 0 && (
+          <EmptyState
+            icon={CheckCircle2}
+            title="មិនមានប្រព័ន្ធដែលអាចបើកបានទេ"
+            description="អ្នកបានបើកដំណើរការប្រព័ន្ធលំនាំដើមទាំងអស់រួចហើយ។"
+          />
+        )}
+      </div>
+    );
+  };
+
+  const renderEnabledSection = () => {
+    if (systemLoading) {
+      return (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-xl" />
+          ))}
+        </div>
+      );
+    }
+    if (systemError) {
+      return (
+        <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកប្រព័ន្ធ" description={systemError} dismissible>
+          <div className="mt-3">
+            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => fetchDefaults()}>ព្យាយាមម្តងទៀត</Button>
+          </div>
+        </Alert>
+      );
+    }
+    return (
+      <div className="space-y-3">
+        {enabledDefaults.map((d) => renderSystemDefaultRow(d, 'disable'))}
+        {enabledDefaults.length === 0 && (
+          <EmptyState
+            icon={Power}
+            title="មិនទាន់បានបើកដំណើរការ"
+            description="បើកដំណើរការប្រព័ន្ធលំនាំដើមពីផ្ទាំង «ប្រព័ន្ធ» ដើម្បីប្រើប្រាស់ភ្លាមៗ។"
+          />
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -298,9 +476,15 @@ export default function UtilityTypes() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>ធ្វើឱ្យស្រស់</Button>
-          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតប្រភេទ</Button>
+          {(!isOwner || activeTab === 'custom') && (
+            <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតប្រភេទ</Button>
+          )}
         </div>
       </div>
+
+      {isOwner && (
+        <Tabs tabs={SYSTEM_TABS} activeTab={activeTab} onChange={setActiveTab} className="overflow-x-auto" />
+      )}
 
       {error && (
         <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកប្រភេទប្រើប្រាស់" description={error} dismissible>
@@ -310,78 +494,160 @@ export default function UtilityTypes() {
         </Alert>
       )}
 
-      {types.length > 0 && (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="flex-1">
-            <Input
-              placeholder="ស្វែងរកតាមឈ្មោះ កូដ ឬឯកតា..."
-              leftIcon={<Search className="h-4 w-4" />}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-            />
-          </div>
-          <div className="w-full sm:w-48">
-            <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); }} placeholder="ស្ថានភាពទាំងអស់" />
-          </div>
-          <Button variant="outline" size="sm" onClick={applyFilters}>អនុវត្ត</Button>
-          <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter(''); fetchTypes({}); }}>សម្អាត</Button>
-        </div>
-      )}
+      {isOwner && activeTab === 'system' && renderSystemSection()}
 
-      {!loading && types.length === 0 ? (
-        <EmptyState
-          icon={Zap}
-          title="មិនទាន់មានប្រភេទប្រើប្រាស់"
-          description="បង្កើតប្រភេទប្រើប្រាស់ដំបូងរបស់អ្នក ដើម្បីចាប់ផ្តើមតាមដានម៉ែត្រ និងការអានម៉ែត្រ។"
-          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតប្រភេទ</Button>}
-        />
-      ) : filtered.length === 0 ? (
-        <EmptyState icon={Filter} title="រកមិនឃើញទិន្នន័យ" description="សូមព្យាយាមកែតម្រូវការស្វែងរក ឬលក្ខខណ្ឌតម្រងរបស់អ្នក។" />
-      ) : (
+      {isOwner && activeTab === 'enabled' && renderEnabledSection()}
+
+      {isOwner && activeTab === 'custom' && (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:hidden">
-            {filtered.map((t) => (
-              <div key={t.id} onClick={() => setViewTarget(t)} className="group cursor-pointer rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-slate-300 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
-                      <Zap className="h-5 w-5" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="truncate text-[15px] font-semibold text-slate-800 dark:text-white">{t.name}</p>
-                      <p className="font-mono text-xs text-slate-400">{t.code}</p>
+          {customTypes.length > 0 && (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="flex-1">
+                <Input
+                  placeholder="ស្វែងរកតាមឈ្មោះ កូដ ឬឯកតា..."
+                  leftIcon={<Search className="h-4 w-4" />}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
+                />
+              </div>
+              <div className="w-full sm:w-48">
+                <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); }} placeholder="ស្ថានភាពទាំងអស់" />
+              </div>
+              <Button variant="outline" size="sm" onClick={applyFilters}>អនុវត្ត</Button>
+              <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter(''); fetchTypes({}); }}>សម្អាត</Button>
+            </div>
+          )}
+
+          {!loading && customTypes.length === 0 ? (
+            <EmptyState
+              icon={Zap}
+              title="មិនទាន់មានប្រភេទប្រើប្រាស់ផ្ទាល់ខ្លួន"
+              description="បង្កើតប្រភេទប្រើប្រាស់ផ្ទាល់ខ្លួន ឬបើកដំណើរការប្រព័ន្ធលំនាំដើមពីផ្ទាំង «ប្រព័ន្ធ»។"
+              action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតប្រភេទ</Button>}
+            />
+          ) : filtered.length === 0 ? (
+            <EmptyState icon={Filter} title="រកមិនឃើញទិន្នន័យ" description="សូមព្យាយាមកែតម្រូវការស្វែងរក ឬលក្ខខណ្ឌតម្រងរបស់អ្នក។" />
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:hidden">
+                {filtered.map((t) => (
+                  <div key={t.id} onClick={() => setViewTarget(t)} className="group cursor-pointer rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-slate-300 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
+                          <Zap className="h-5 w-5" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate text-[15px] font-semibold text-slate-800 dark:text-white">{t.name}</p>
+                          <p className="font-mono text-xs text-slate-400">{t.code}</p>
+                        </div>
+                      </div>
+                      {getStatusBadge(t.status)}
+                    </div>
+                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-gray-800">
+                      <span className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+                        <Scale className="h-4 w-4 text-slate-400" />
+                        {t.unit || '—'}
+                      </span>
+                      {getBillingBadge(t.billingMethod)}
+                      <div className="flex items-center gap-1">
+                        <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(t); }} />
+                        <IconButton variant="ghost" size="sm" tooltip="បិទដំណើរការ" icon={<Trash2 className="h-4 w-4" />} disabled={t.status === 'INACTIVE'} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeactivateTarget(t); }} />
+                      </div>
                     </div>
                   </div>
-                  {getStatusBadge(t.status)}
-                </div>
-                <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-gray-800">
-                  <span className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
-                    <Scale className="h-4 w-4 text-slate-400" />
-                    {t.unit || '—'}
-                  </span>
-                  <Badge variant={t.billingMethod === 'FIXED' ? 'info' : 'default'}>
-                    {t.billingMethod === 'METERED' ? 'Metered' : t.billingMethod === 'FIXED' ? 'Fixed' : t.billingMethod || '—'}
-                  </Badge>
-                  <div className="flex items-center gap-1">
-                    <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(t); }} />
-                    <IconButton variant="ghost" size="sm" tooltip="បិទដំណើរការ" icon={<Trash2 className="h-4 w-4" />} disabled={t.status === 'INACTIVE'} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeactivateTarget(t); }} />
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <Card className="hidden lg:block">
-            <Table columns={columns} data={filtered} keyExtractor={(row) => row.id} onRowClick={setViewTarget} className="w-full" />
-          </Card>
+              <Card className="hidden lg:block">
+                <Table columns={columns} data={filtered} keyExtractor={(row) => row.id} onRowClick={setViewTarget} className="w-full" />
+              </Card>
+            </>
+          )}
+
+          {totalPages > 1 && filtered.length > 0 && (
+            <div className="flex justify-end">
+              <Pagination currentPage={page + 1} totalPages={totalPages} onPageChange={(p) => setPage(p - 1)} />
+            </div>
+          )}
         </>
       )}
 
-      {totalPages > 1 && filtered.length > 0 && (
-        <div className="flex justify-end">
-          <Pagination currentPage={page + 1} totalPages={totalPages} onPageChange={(p) => setPage(p - 1)} />
-        </div>
+      {!isOwner && (
+        <>
+          {customTypes.length > 0 && (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="flex-1">
+                <Input
+                  placeholder="ស្វែងរកតាមឈ្មោះ កូដ ឬឯកតា..."
+                  leftIcon={<Search className="h-4 w-4" />}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
+                />
+              </div>
+              <div className="w-full sm:w-48">
+                <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); }} placeholder="ស្ថានភាពទាំងអស់" />
+              </div>
+              <Button variant="outline" size="sm" onClick={applyFilters}>អនុវត្ត</Button>
+              <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setStatusFilter(''); fetchTypes({}); }}>សម្អាត</Button>
+            </div>
+          )}
+
+          {!loading && customTypes.length === 0 ? (
+            <EmptyState
+              icon={Zap}
+              title="មិនទាន់មានប្រភេទប្រើប្រាស់"
+              description="បង្កើតប្រភេទប្រើប្រាស់ដំបូងរបស់អ្នក ដើម្បីចាប់ផ្តើមតាមដានម៉ែត្រ និងការអានម៉ែត្រ។"
+              action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតប្រភេទ</Button>}
+            />
+          ) : filtered.length === 0 ? (
+            <EmptyState icon={Filter} title="រកមិនឃើញទិន្នន័យ" description="សូមព្យាយាមកែតម្រូវការស្វែងរក ឬលក្ខខណ្ឌតម្រងរបស់អ្នក។" />
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:hidden">
+                {filtered.map((t) => (
+                  <div key={t.id} onClick={() => setViewTarget(t)} className="group cursor-pointer rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-slate-300 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
+                          <Zap className="h-5 w-5" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate text-[15px] font-semibold text-slate-800 dark:text-white">{t.name}</p>
+                          <p className="font-mono text-xs text-slate-400">{t.code}</p>
+                        </div>
+                      </div>
+                      {getStatusBadge(t.status)}
+                    </div>
+                    <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-gray-800">
+                      <span className="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+                        <Scale className="h-4 w-4 text-slate-400" />
+                        {t.unit || '—'}
+                      </span>
+                      {getBillingBadge(t.billingMethod)}
+                      <div className="flex items-center gap-1">
+                        <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={(e) => { e.stopPropagation(); openEdit(t); }} />
+                        <IconButton variant="ghost" size="sm" tooltip="បិទដំណើរការ" icon={<Trash2 className="h-4 w-4" />} disabled={t.status === 'INACTIVE'} className="text-red-600 dark:text-red-400" onClick={(e) => { e.stopPropagation(); setDeactivateTarget(t); }} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <Card className="hidden lg:block">
+                <Table columns={columns} data={filtered} keyExtractor={(row) => row.id} onRowClick={setViewTarget} className="w-full" />
+              </Card>
+            </>
+          )}
+
+          {totalPages > 1 && filtered.length > 0 && (
+            <div className="flex justify-end">
+              <Pagination currentPage={page + 1} totalPages={totalPages} onPageChange={(p) => setPage(p - 1)} />
+            </div>
+          )}
+        </>
       )}
 
       <Modal
@@ -407,7 +673,7 @@ export default function UtilityTypes() {
           <Input label="ឯកតា" required name="unit" value={form.unit} onChange={handleFormChange} placeholder="ឧ. kWh, m³" error={formErrors.unit} />
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
-              វិធីសាស្រ្តប្រាក់កម្រ <span className="text-red-500">*</span>
+              វិធីសាស្រ្តគិតការទូទាត់ <span className="text-red-500">*</span>
             </label>
             <Select
               name="billingMethod"
@@ -438,7 +704,7 @@ export default function UtilityTypes() {
             <div className="grid grid-cols-2 gap-3">
               <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="លេខសម្គាល់ប្រភេទ" value={viewTarget.id} />
               <DetailItem icon={<Scale className="h-4 w-4 text-slate-400" />} label="ឯកតា" value={viewTarget.unit || '—'} />
-              <DetailItem icon={<CheckCircle2 className="h-4 w-4 text-slate-400" />} label="វិធីសាស្រ្តប្រាក់កម្រ" value={viewTarget.billingMethod === 'METERED' ? 'Metered (METERED)' : viewTarget.billingMethod === 'FIXED' ? 'Fixed (FIXED)' : viewTarget.billingMethod || '—'} />
+              <DetailItem icon={<CheckCircle2 className="h-4 w-4 text-slate-400" />} label="វិធីសាស្រ្តគិតការទូទាត់" value={viewTarget.billingMethod === 'METERED' ? 'Metered (METERED)' : viewTarget.billingMethod === 'FIXED' ? 'Fixed (FIXED)' : viewTarget.billingMethod || '—'} />
               <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="កាលបរិច្ឆេទបង្កើត" value={formatDate(viewTarget.createdAt)} />
               <DetailItem icon={<CheckCircle2 className="h-4 w-4 text-slate-400" />} label="ស្ថានភាព" value={viewTarget.status} />
             </div>

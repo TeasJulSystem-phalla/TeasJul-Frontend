@@ -1,11 +1,8 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { Spinner } from "../components/ui/index.js";
 import { useMyRoles } from "../hooks/useMyRoles.js";
-
-// Gate for SUPER_ADMIN-only admin areas. The backend enforces the same
-// authorization on every /api/admin endpoint.
 const SuperAdminRoute = () => {
-  const { isSuperAdmin, loading, error } = useMyRoles();
+  const { isSuperAdmin, isOwner, isManager, isTenant, loading, error } = useMyRoles();
 
   if (loading) {
     return (
@@ -16,6 +13,9 @@ const SuperAdminRoute = () => {
   }
 
   if (!error && !isSuperAdmin) {
+    if (isOwner) return <Navigate to="/owner/dashboard" replace />;
+    if (isManager) return <Navigate to="/manager" replace />;
+    if (isTenant) return <Navigate to="/tenant/dashboard" replace />;
     return <Navigate to="/" replace />;
   }
 

@@ -40,11 +40,11 @@ export function useUtilityReadings() {
     return created;
   }, []);
 
-  const getMonthlySheet = useCallback(async (houseId, year, month) => {
+  const getMonthlySheet = useCallback(async (params = {}) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await utilityReadingApi.getMonthlySheet(houseId, year, month);
+      const data = await utilityReadingApi.getMonthlySheet(params);
       setReadings(data);
       return data;
     } catch (err) {
@@ -57,6 +57,11 @@ export function useUtilityReadings() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const getMonthlySheetFloors = useCallback(async (params = {}) => {
+    const data = await utilityReadingApi.getMonthlySheetFloors(params);
+    return data || [];
   }, []);
 
   const saveMonthlySheet = useCallback((data) => utilityReadingApi.saveMonthlySheet(data), []);
@@ -77,6 +82,7 @@ export function useUtilityReadings() {
     fetchReadings,
     createReading,
     getMonthlySheet,
+    getMonthlySheetFloors,
     saveMonthlySheet,
   };
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ChevronLeft,
   MapPin,
@@ -23,77 +24,41 @@ import {
   Phone,
   Send,
 } from "lucide-react";
-import { RoomCard } from "./RoomCard";
+import i18n from "../../i18n";
+import HomePropertyCard from "../public/HomePropertyCard";
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
     Number(value) || 0,
   );
 
+const STATUS_TONE = {
+  AVAILABLE: "bg-emerald-100 text-emerald-700",
+  RESERVED: "bg-sky-100 text-sky-700",
+  OCCUPIED: "bg-slate-200 text-slate-600",
+  MAINTENANCE: "bg-amber-100 text-amber-700",
+};
+
 const statusLabel = (status) => {
-  switch (status) {
-    case "AVAILABLE":
-      return {
-        kh: "ទំនេរ",
-        en: "Available",
-        tone: "bg-emerald-100 text-emerald-700",
-      };
-    case "RESERVED":
-      return { kh: "បានកក់", en: "Reserved", tone: "bg-sky-100 text-sky-700" };
-    case "OCCUPIED":
-      return {
-        kh: "មានអ្នកស្នាក់នៅ",
-        en: "Occupied",
-        tone: "bg-slate-200 text-slate-600",
-      };
-    case "MAINTENANCE":
-      return {
-        kh: "កំពុងជួសជុល",
-        en: "Maintenance",
-        tone: "bg-amber-100 text-amber-700",
-      };
-    default:
-      return status
-        ? { kh: status, en: "", tone: "bg-slate-200 text-slate-600" }
-        : null;
-  }
+  if (!status) return null;
+  const tone = STATUS_TONE[status] || "bg-slate-200 text-slate-600";
+  return {
+    label: i18n.t(`status.${status}`, { defaultValue: status }),
+    tone,
+  };
 };
 
-const categoryLabel = (category) => {
-  switch (category) {
-    case "SCHOOL":
-      return "សាលារៀន (School)";
-    case "UNIVERSITY":
-      return "សាកលវិទ្យាល័យ (University)";
-    case "HOSPITAL":
-      return "មន្ទីរពេទ្យ (Hospital)";
-    case "MALL":
-      return "ផ្សារទំនើប (Mall)";
-    case "MARKET":
-      return "ផ្សារ (Market)";
-    case "RESTAURANT":
-      return "ភោជនីយដ្ឋាន (Restaurant)";
-    case "BANK":
-      return "ធនាគារ (Bank)";
-    case "TOURIST_SPOT":
-      return "កន្លែងទេសចរណ៍ (Tourist Spot)";
-    case "BUS_STOP":
-      return "ចំណតឡាន (Bus Stop)";
-    default:
-      return category || "";
-  }
-};
+const categoryLabel = (category) =>
+  category
+    ? i18n.t(`nearbyCategory.${category}`, { defaultValue: category })
+    : "";
 
-const billingLabel = (method) => {
-  switch (method) {
-    case "METERED":
-      return "Metered";
-    case "FIXED":
-      return "Fixed";
-    default:
-      return method ? String(method) : "";
-  }
-};
+const billingLabel = (method) =>
+  method
+    ? i18n.t(`billing.${String(method).toLowerCase()}`, {
+        defaultValue: String(method),
+      })
+    : "";
 
 /* -----------------------------------------------------------
    Telegram phone URL
@@ -127,6 +92,7 @@ const RoomDetailView = ({
   showAvailableRooms = false,
   similarRooms = [],
 }) => {
+  const { t } = useTranslation();
   const [activeIdx, setActiveIdx] = useState(0);
 
   const images = (room.images || []).filter(Boolean);
@@ -165,19 +131,19 @@ const RoomDetailView = ({
     : null;
 
   const title = room.roomTypeName
-    ? `${room.houseName || "ផ្ទះ"} — ${room.roomTypeName} (${displayedRoomNumbers || ""})`
-    : room.name || `បន្ទប់ ${displayedRoomNumbers || ""}`;
+    ? `${room.houseName || t("propertyType.HOUSE")} — ${room.roomTypeName} (${displayedRoomNumbers || ""})`
+    : room.name || `${t("propertyType.ROOM")} ${displayedRoomNumbers || ""}`;
 
   return (
     <main className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
       {showBreadcrumb && (
         <nav className="flex items-center gap-1.5 text-[12px] text-slate-500">
-          <Link to="/public" className="hover:text-[#0f2942]">
-            ទំព័រដើម
+          <Link to="/" className="hover:text-[#0f2942]">
+            {t("roomDetail.breadcrumbHome")}
           </Link>
           <ChevronRight className="h-3.5 w-3.5" />
-          <Link to="/public/rooms" className="hover:text-[#0f2942]">
-            បន្ទប់ជួល
+          <Link to="/rooms" className="hover:text-[#0f2942]">
+            {t("roomDetail.breadcrumbRooms")}
           </Link>
           <ChevronRight className="h-3.5 w-3.5" />
           <span className="truncate font-medium text-[#0f2942]">{title}</span>
@@ -204,8 +170,7 @@ const RoomDetailView = ({
           <span
             className={`rounded-full px-3 py-1 text-[12px] font-medium ${status.tone}`}
           >
-            {status.kh}
-            {status.en ? ` (${status.en})` : ""}
+            {status.label}
           </span>
         )}
       </div>
@@ -260,7 +225,7 @@ const RoomDetailView = ({
           <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="flex items-center gap-2 text-[15px] font-semibold text-[#0f2942]">
               <Info className="h-4 w-4" />
-              ព័ត៌មានបន្ទប់ និងប្រភេទបន្ទប់ (Room & Room Type Info)
+              {t("roomDetail.roomInfo")}
             </h2>
             {room.description && (
               <p className="mt-3 text-[13.5px] leading-relaxed text-slate-600">
@@ -271,46 +236,46 @@ const RoomDetailView = ({
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               <InfoTile
                 icon={BedDouble}
-                label="លេខបន្ទប់"
+                label={t("roomDetail.roomNumber")}
                 value={room.roomNumber}
               />
               <InfoTile
                 icon={Layers}
-                label="ជាន់ (Floor)"
+                label={t("roomDetail.floor")}
                 value={
-                  room.floorNumber != null ? `ជាន់ទី ${room.floorNumber}` : "—"
+                  room.floorNumber != null
+                    ? t("roomDetail.floorN", { n: room.floorNumber })
+                    : "—"
                 }
               />
               <InfoTile
                 icon={UsersRound}
-                label="សមត្ថភាព"
-                value={room.capacity ? `${room.capacity} នាក់` : "—"}
+                label={t("roomDetail.capacity")}
+                value={room.capacity ? t("roomDetail.persons", { count: room.capacity }) : "—"}
               />
               <InfoTile
                 icon={BedDouble}
-                label="បន្ទប់គេង"
-                value={room.bedrooms != null ? `${room.bedrooms} បន្ទប់` : "—"}
+                label={t("roomDetail.bedrooms")}
+                value={room.bedrooms != null ? t("roomDetail.bedroomCount", { count: room.bedrooms }) : "—"}
               />
               <InfoTile
                 icon={Bath}
-                label="បន្ទប់ទឹក"
-                value={
-                  room.bathrooms != null ? `${room.bathrooms} បន្ទប់` : "—"
-                }
+                label={t("roomDetail.bathrooms")}
+                value={room.bathrooms != null ? t("roomDetail.bathroomCount", { count: room.bathrooms }) : "—"}
               />
               <InfoTile
                 icon={Maximize}
-                label="ទំហំបន្ទប់"
+                label={t("roomDetail.roomSize")}
                 value={room.areaSqm ? `${room.areaSqm} m²` : "—"}
               />
               <InfoTile
                 icon={Sparkles}
-                label="គ្រឿងសង្ហារិម"
+                label={t("roomDetail.furnishing")}
                 value={room.furnishing}
               />
               <InfoTile
                 icon={Building2}
-                label="ប្រភេទអចលនទ្រព្យ"
+                label={t("roomDetail.propertyType")}
                 value={room.propertyType}
               />
             </div>
@@ -320,8 +285,9 @@ const RoomDetailView = ({
             <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
               <h2 className="flex items-center gap-2 text-[15px] font-semibold text-[#0f2942]">
                 <Building2 className="h-4 w-4" />
-                {availableRooms.length} Room
-                {availableRooms.length === 1 ? "" : "s"} Available
+                {t("roomDetail.nRoomsAvailable", {
+                  count: availableRooms.length,
+                })}
               </h2>
               {availableRooms.length > 0 ? (
                 <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
@@ -338,25 +304,30 @@ const RoomDetailView = ({
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="text-[13px] font-semibold text-slate-800">
-                              Room {availableRoom.roomNumber || "—"}
+                              {t("roomDetail.roomLabel", {
+                                n: availableRoom.roomNumber || "—",
+                              })}
                             </p>
                             <p className="mt-0.5 text-[11.5px] text-slate-500">
-                              Floor {availableRoom.floorNumber ?? "—"}
+                              {t("roomDetail.floorLabel", {
+                                n: availableRoom.floorNumber ?? "—",
+                              })}
                             </p>
                           </div>
                           {availableStatus && (
                             <span
                               className={`rounded-full px-2 py-0.5 text-[10.5px] font-medium ${availableStatus.tone}`}
                             >
-                              {availableStatus.en || availableRoom.status}
+                              {availableStatus.label}
                             </span>
                           )}
                         </div>
                         <p className="mt-2 text-[13px] font-semibold text-[#0f2942]">
-                          {formatCurrency(availableRoom.monthlyRent)} / month
+                          {formatCurrency(availableRoom.monthlyRent)}{" "}
+                          {t("roomDetail.perMonth")}
                         </p>
                         <p className="mt-0.5 text-[11.5px] text-slate-500">
-                          Deposit:{" "}
+                          {t("roomDetail.deposit")}{" "}
                           {formatCurrency(availableRoom.securityDeposit)}
                         </p>
                       </div>
@@ -365,7 +336,7 @@ const RoomDetailView = ({
                 </div>
               ) : (
                 <p className="mt-3 text-[13px] text-slate-500">
-                  No rooms are currently available.
+                  {t("roomDetail.noRoomsAvailable")}
                 </p>
               )}
             </div>
@@ -376,7 +347,7 @@ const RoomDetailView = ({
             <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
               <h2 className="flex items-center gap-2 text-[15px] font-semibold text-[#0f2942]">
                 <Sparkles className="h-4 w-4" />
-                សម្ភារៈ និងសេវាកម្ម (Amenities)
+                {t("roomDetail.amenities")}
               </h2>
               <div className="mt-3 flex flex-wrap gap-2">
                 {amenities.map((a, idx) => (
@@ -397,7 +368,7 @@ const RoomDetailView = ({
             <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
               <h2 className="flex items-center gap-2 text-[15px] font-semibold text-[#0f2942]">
                 <Zap className="h-4 w-4 text-[#0f2942]" />
-                ថ្លៃសេវា និងអគ្គិសនី-ទឹក (Utilities)
+                {t("roomDetail.utilities")}
               </h2>
               <div className="mt-3 space-y-2.5">
                 {utilities.map((u, idx) => {
@@ -434,7 +405,7 @@ const RoomDetailView = ({
                       <div className="text-right">
                         {isIncluded ? (
                           <span className="rounded bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
-                            រាប់បញ្ចូលក្នុងថ្លៃឈ្នួល (Included)
+                            {t("roomDetail.included")}
                           </span>
                         ) : rate != null ? (
                           <p className="text-[13px] font-semibold text-[#0f2942]">
@@ -458,7 +429,7 @@ const RoomDetailView = ({
             <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5">
               <h2 className="flex items-center gap-2 text-[15px] font-semibold text-[#0f2942]">
                 <Compass className="h-4 w-4 text-[#0f2942]" />
-                ទីតាំងនៅជិតៗ (Nearby Locations)
+                {t("roomDetail.nearby")}
               </h2>
               <div className="mt-3 space-y-2.5">
                 {nearbyLocations.map((loc, idx) => (
@@ -487,7 +458,11 @@ const RoomDetailView = ({
                         <span> · </span>
                       )}
                       {loc.travelMinutes != null && (
-                        <span>~{loc.travelMinutes} នាទី (mins)</span>
+                        <span>
+                          {t("roomDetail.nearbyMeta", {
+                            count: loc.travelMinutes,
+                          })}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -504,7 +479,7 @@ const RoomDetailView = ({
             {showAvailableRooms && availableRooms.length > 0 ? (
               <>
                 <h3 className="text-[13.5px] font-semibold text-[#0f2942]">
-                  Available Room Pricing
+                  {t("roomDetail.availablePricing")}
                 </h3>
                 <div className="mt-3 space-y-2.5">
                   {availableRooms.map((availableRoom) => (
@@ -517,16 +492,19 @@ const RoomDetailView = ({
                     >
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-[12.5px] font-semibold text-slate-800">
-                          Room {availableRoom.roomNumber || "—"}
+                          {t("roomDetail.roomLabel", {
+                            n: availableRoom.roomNumber || "—",
+                          })}
                         </span>
                         <span className="text-[14px] font-bold text-[#0f2942]">
-                          {formatCurrency(availableRoom.monthlyRent)} /ខែ
+                          {formatCurrency(availableRoom.monthlyRent)}{" "}
+                          {t("roomDetail.perMonth")}
                         </span>
                       </div>
                       <div className="mt-2 flex items-center justify-between text-[11.5px]">
                         <span className="flex items-center gap-1.5 text-slate-500">
                           <ShieldCheck className="h-3.5 w-3.5 text-[#0f2942]" />
-                          ប្រាក់កក់ (Deposit)
+                          {t("roomDetail.depositLabel")}
                         </span>
                         <span className="font-medium text-slate-700">
                           {formatCurrency(availableRoom.securityDeposit)}
@@ -542,14 +520,14 @@ const RoomDetailView = ({
                   <p className="text-2xl font-bold text-[#0f2942]">
                     {formatCurrency(room.monthlyRent)}
                   </p>
-                  <span className="text-[13px] text-slate-500">/ខែ</span>
+                  <span className="text-[13px] text-slate-500">{t("roomDetail.perMonth")}</span>
                 </div>
 
                 <div className="mt-4 space-y-2.5 border-t border-slate-100 pt-4">
                   <div className="flex items-center justify-between text-[12.5px]">
                     <span className="flex items-center gap-1.5 text-slate-500">
                       <ShieldCheck className="h-3.5 w-3.5 text-[#0f2942]" />
-                      ប្រាក់កក់ (Deposit)
+                      {t("roomDetail.depositLabel")}
                     </span>
                     <span className="font-medium text-slate-800">
                       {formatCurrency(room.securityDeposit)}
@@ -558,10 +536,12 @@ const RoomDetailView = ({
                   {room.advancePayment != null && (
                     <div className="flex items-center justify-between text-[12.5px]">
                       <span className="text-slate-500">
-                        ប្រាក់មុន (Advance)
+                        {t("roomDetail.advance")}
                       </span>
                       <span className="font-medium text-slate-800">
-                        {room.advancePayment} ខែ (months)
+                        {t("roomDetail.advanceMonths", {
+                          count: room.advancePayment,
+                        })}
                       </span>
                     </div>
                   )}
@@ -569,7 +549,7 @@ const RoomDetailView = ({
                     <div className="flex items-center justify-between text-[12.5px]">
                       <span className="flex items-center gap-1.5 text-slate-500">
                         <Calendar className="h-3.5 w-3.5 text-[#0f2942]" />
-                        ចូលរស់នៅបានចាប់ពី
+                        {t("roomDetail.availableFrom")}
                       </span>
                       <span className="font-medium text-slate-800">
                         {room.availableFrom}
@@ -584,7 +564,7 @@ const RoomDetailView = ({
               <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4 text-[12.5px]">
                 <span className="flex items-center gap-1.5 text-slate-500">
                   <Calendar className="h-3.5 w-3.5 text-[#0f2942]" />
-                  ចូលរស់នៅបានចាប់ពី
+                  {t("roomDetail.availableFrom")}
                 </span>
                 <span className="font-medium text-slate-800">
                   {room.availableFrom}
@@ -597,7 +577,7 @@ const RoomDetailView = ({
           <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3 className="flex items-center gap-2 text-[13.5px] font-semibold text-[#0f2942]">
               <Home className="h-4 w-4" />
-              អំពីផ្ទះ (House Information)
+              {t("roomDetail.houseInfo")}
             </h3>
             <p className="mt-2.5 text-[13px] font-semibold text-[#0f2942]">
               {room.houseName || "—"}
@@ -610,7 +590,7 @@ const RoomDetailView = ({
             )}
             {room.cityProvince && (
               <p className="mt-1 text-[12px] text-slate-500">
-                ខេត្ត/ក្រុង:{" "}
+                {t("roomDetail.cityProvince")}
                 <span className="font-medium text-slate-700">
                   {room.cityProvince}
                 </span>
@@ -618,20 +598,20 @@ const RoomDetailView = ({
             )}
             {room.housePostalCode && (
               <p className="mt-0.5 text-[12px] text-slate-400">
-                Postal code: {room.housePostalCode}
+                {t("roomDetail.postalCode")} {room.housePostalCode}
               </p>
             )}
             {room.numberOfFloors != null && (
               <p className="mt-1 text-[12px] text-slate-500">
-                ចំនួនជាន់ផ្ទះ:{" "}
+                {t("roomDetail.numberOfFloors")}
                 <span className="font-medium text-slate-700">
-                  {room.numberOfFloors} ជាន់
+                  {t("roomDetail.floors", { count: room.numberOfFloors })}
                 </span>
               </p>
             )}
             {room.landSizeSqm != null && (
               <p className="mt-0.5 text-[12px] text-slate-500">
-                ទំហំដី:{" "}
+                {t("roomDetail.landSize")}
                 <span className="font-medium text-slate-700">
                   {room.landSizeSqm} m²
                 </span>
@@ -646,7 +626,7 @@ const RoomDetailView = ({
                 className="mt-4 flex items-center justify-center gap-2 rounded-lg border border-[#0f2942] bg-[#0f2942]/5 py-2.5 text-[12.5px] font-semibold text-[#0f2942] transition-colors hover:bg-[#0f2942] hover:text-white"
               >
                 <MapPin className="h-4 w-4" />
-                មើលលើ Google Maps
+                {t("roomDetail.viewOnMaps")}
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
             )}
@@ -657,12 +637,14 @@ const RoomDetailView = ({
             <div className="mt-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <h3 className="flex items-center gap-2 text-[13.5px] font-semibold text-[#0f2942]">
                 <Phone className="h-4 w-4" />
-                ទំនាក់ទំនងម្ចាស់ (Owner Contact)
+                {t("roomDetail.ownerContact")}
               </h3>
 
               {ownerName && (
                 <div className="mt-3">
-                  <p className="text-[11px] text-slate-400">Name</p>
+                  <p className="text-[11px] text-slate-400">
+                    {t("roomDetail.name")}
+                  </p>
                   <p className="mt-0.5 text-[13px] font-semibold text-[#0f2942]">
                     {ownerName}
                   </p>
@@ -671,7 +653,9 @@ const RoomDetailView = ({
 
               {ownerPhone && (
                 <div className="mt-3">
-                  <p className="text-[11px] text-slate-400">Phone</p>
+                  <p className="text-[11px] text-slate-400">
+                    {t("roomDetail.phone")}
+                  </p>
                   <a
                     href={telHref}
                     className="mt-0.5 block text-[13.5px] font-semibold text-[#0f2942] hover:underline"
@@ -683,7 +667,9 @@ const RoomDetailView = ({
 
               {ownerEmail && (
                 <div className="mt-3">
-                  <p className="text-[11px] text-slate-400">Email</p>
+                  <p className="text-[11px] text-slate-400">
+                    {t("roomDetail.email")}
+                  </p>
                   <a
                     href={`mailto:${ownerEmail}`}
                     className="mt-0.5 block break-all text-[13px] font-medium text-[#0f2942] hover:underline"
@@ -700,7 +686,7 @@ const RoomDetailView = ({
                 className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-[#229ED9] py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-[#1b8cc1]"
               >
                 <Send className="h-4 w-4" />
-                Telegram
+                {t("roomDetail.telegram")}
               </a>
             </div>
           )}
@@ -710,15 +696,15 @@ const RoomDetailView = ({
               to="/login"
               className="font-khmer mt-4 flex items-center justify-center gap-2 rounded-lg bg-[#0f2942] py-3 text-[13px] font-semibold text-white transition-colors hover:bg-[#173a5c]"
             >
-              {contactLabel || "ចាប់អារម្មណ៍? ចូលដើម្បីទំនាក់ទំនង"}
+              {contactLabel || t("roomDetail.contactCta")}
             </Link>
           ) : (
             <Link
-              to="/public/rooms"
+              to="/rooms"
               className="font-khmer mt-4 flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-3 text-[13px] font-medium text-slate-600 transition-colors hover:border-slate-300"
             >
               <ChevronLeft className="h-4 w-4" />
-              ត្រឡប់ទៅបញ្ជីបន្ទប់
+              {t("roomDetail.backToRooms")}
             </Link>
           )}
         </aside>
@@ -727,17 +713,11 @@ const RoomDetailView = ({
       {similarRooms && similarRooms.length > 0 && (
         <div className="mt-8 border-t border-slate-200 pt-8">
           <h2 className="khmer text-[20px] font-bold text-[#0f2942]">
-            Rooms You May Like
+            {t("roomDetail.similar")}
           </h2>
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {similarRooms.map((similarRoom) => (
-              <Link
-                key={similarRoom.id}
-                to={`/public/rooms/${similarRoom.id}`}
-                className="block"
-              >
-                <RoomCard room={similarRoom} view="grid" showGroupSummary />
-              </Link>
+              <HomePropertyCard key={similarRoom.id} room={similarRoom} />
             ))}
           </div>
         </div>

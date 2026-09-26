@@ -21,6 +21,7 @@ import {
 import { useRoles } from '../../hooks/useRoles.js';
 import { usePermissions } from '../../hooks/usePermissions.js';
 import { useUsers } from '../../hooks/useUsers.js';
+import { useMyRoles } from '../../hooks/useMyRoles.js';
 import { roleApi } from '../../api/role.api.js';
 import { userApi } from '../../api/user.api.js';
 import { useToast } from '../../components/ui/Toast.jsx';
@@ -54,6 +55,8 @@ const getInitials = (name) => name?.split(/\s+/).map((p) => p[0]).join('').slice
 
 const isOwnerRole = (role) => !!role?.code && String(role.code).toUpperCase() === 'OWNER';
 
+const isSuperAdminRole = (role) => !!role?.code && String(role.code).toUpperCase() === 'SUPER_ADMIN';
+
 const formatDate = (dateStr) => {
   if (!dateStr) return '—';
   return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -75,6 +78,7 @@ export default function Roles() {
     error: permissionsError,
   } = usePermissions();
   const { users, loading: usersLoading } = useUsers();
+  const { isOwner, isSuperAdmin } = useMyRoles();
   const toast = useToast();
 
   const [activeTab, setActiveTab] = useState('roles'); // 'roles' | 'users'
@@ -103,14 +107,23 @@ export default function Roles() {
   const [deleting, setDeleting] = useState(false);
 
   // ---- Derived ----
+  // SUPER_ADMIN is hidden from an OWNER (who is not also a SUPER_ADMIN). The
+  // backend enforces the same restriction; this is a defensive UX filter only.
+  const visibleRoles = useMemo(() => {
+    if (isOwner && !isSuperAdmin) {
+      return roles.filter((r) => !isSuperAdminRole(r));
+    }
+    return roles;
+  }, [roles, isOwner, isSuperAdmin]);
+
   const stats = useMemo(() => {
-    const total = roles.length;
-    const system = roles.filter((r) => r.isSystemRole).length;
+    const total = visibleRoles.length;
+    const system = visibleRoles.filter((r) => r.isSystemRole).length;
     return { total, system, custom: total - system };
-  }, [roles]);
+  }, [visibleRoles]);
 
   const filtered = useMemo(() => {
-    let result = roles;
+    let result = visibleRoles;
     if (scope === 'system') result = result.filter((r) => r.isSystemRole);
     else if (scope === 'custom') result = result.filter((r) => !r.isSystemRole);
     if (searchTerm) {
@@ -123,7 +136,7 @@ export default function Roles() {
       );
     }
     return result;
-  }, [roles, scope, searchTerm]);
+  }, [visibleRoles, scope, searchTerm]);
 
   const handleToggleModule = (modulePerms, checked) => {
     setSelectedPerms((prev) => {
@@ -295,8 +308,8 @@ export default function Roles() {
 
   const availableRoles = useMemo(() => {
     const assignedIds = new Set(userRoles.map((r) => r.id));
-    return roles.filter((r) => !assignedIds.has(r.id));
-  }, [roles, userRoles]);
+    return visibleRoles.filter((r) => !assignedIds.has(r.id));
+  }, [visibleRoles, userRoles]);
 
   const handleAssignRole = async (roleId) => {
     if (!userRoleTarget) return;
@@ -471,7 +484,7 @@ export default function Roles() {
       {permissionsError && <Alert variant="warning" title="កំហុសក្នុងការផ្ទុកសិទ្ធិ" description={permissionsError} dismissible />}
 
       {/* Stats */}
-      {roles.length > 0 && (
+      {visibleRoles.length > 0 && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <StatCard
             label="ចំនួនតួនាទីសរុប"
@@ -502,7 +515,7 @@ export default function Roles() {
       {activeTab === 'roles' ? (
         <>
           {/* Filters */}
-          {roles.length > 0 && (
+          {visibleRoles.length > 0 && (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="flex-1">
                 <Input
@@ -527,7 +540,7 @@ export default function Roles() {
           )}
 
           {/* Content */}
-          {!loading && roles.length === 0 ? (
+          {!loading && visibleRoles.length === 0 ? (
             <EmptyState
               icon={Shield}
               title="មិនទាន់មានតួនាទី"

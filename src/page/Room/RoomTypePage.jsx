@@ -189,7 +189,7 @@ export default function RoomTypes() {
       ),
     },
     {
-      header: 'ប្រាក់ដាក់ប្រាកដលំនាំដើម',
+      header: 'ប្រាក់កក់លំនាំដើម',
       render: (row) => (
         <span className="inline-flex items-center gap-1.5 text-sm">
           <Wallet className="h-4 w-4 text-slate-400" />
@@ -285,7 +285,7 @@ export default function RoomTypes() {
     if (!form.code.trim()) errors.code = 'តម្រូវឱ្យបញ្ចូលលេខកូដ';
     if (!form.capacity || form.capacity < 1) errors.capacity = 'សមត្ថភាពត្រូវតែយ៉ាងតិច ១';
     if (Number(form.defaultRent) < 0) errors.defaultRent = 'ថ្លៃជួលមិនអាចជាលេខអវិជ្ជមានបានទេ';
-    if (Number(form.defaultDeposit) < 0) errors.defaultDeposit = 'ប្រាក់ដាក់ប្រាកដមិនអាចជាលេខអវិជ្ជមានបានទេ';
+    if (Number(form.defaultDeposit) < 0) errors.defaultDeposit = 'ប្រាក់កក់មិនអាចជាលេខអវិជ្ជមានបានទេ';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -746,7 +746,7 @@ export default function RoomTypes() {
                 />
                 <DetailItem
                   icon={<Wallet className="h-4 w-4 text-slate-400" />}
-                  label="ប្រាក់ដាក់ប្រាកដលំនាំដើម"
+                  label="ប្រាក់កក់លំនាំដើម"
                   value={formatCurrency(viewData.defaultDeposit)}
                 />
                 <DetailItem
@@ -907,7 +907,7 @@ const RoomTypeForm = ({ id, form, errors, onChange, onSubmit }) => (
         error={errors.defaultRent}
       />
       <Input
-        label="ប្រាក់ដាក់ប្រាកដលំនាំដើម ($)"
+        label="ប្រាក់កក់លំនាំដើម ($)"
         type="number"
         step="0.01"
         min="0"

@@ -4,6 +4,7 @@ import Navbar from "../layout/Navbar";
 import ManagerSidebar from "./ManagerSidebar";
 import { useSidebar } from "../../hooks/useSidebar";
 import RecoveryEmailGuard from "../ui/RecoveryEmailGuard";
+import FloatingAssistant from "../assistant/FloatingAssistant";
 
 const ManagerLayout = () => {
   const { isOpen, toggle, close, isCollapsed } = useSidebar();
@@ -29,6 +30,8 @@ const ManagerLayout = () => {
       </div>
 
       <RecoveryEmailGuard securityPagePath="/manager/security" />
+
+      <FloatingAssistant />
     </div>
   );
 };

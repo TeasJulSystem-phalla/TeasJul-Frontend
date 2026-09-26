@@ -13,7 +13,7 @@ const TwoFactorVerifyPage = () => {
   const setAuth = useAuthStore((s) => s.setAuth);
 
   const challengeToken = location.state?.challengeToken;
-  const redirectTo = location.state?.redirectTo || '/';
+  const redirectTo = location.state?.redirectTo || '/dashboard';
 
   const handleVerify = async (e) => {
     e.preventDefault();

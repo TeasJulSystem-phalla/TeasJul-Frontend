@@ -19,16 +19,18 @@ const ContractDocument = forwardRef(function ContractDocument(
     <div
       id="contract-document"
       ref={ref}
-      className="mx-auto w-full max-w-[794px] bg-white px-6 py-8 text-slate-900 shadow-lg print:shadow-none sm:px-10 font-khmer"
+      className="mx-auto h-[297mm] w-full max-w-[210mm] overflow-hidden bg-white p-[8mm] text-slate-900 shadow-lg print:shadow-none font-khmer"
     >
-      <KhmerContractHeader contract={contract} contractTitle={settings?.contractTitle} primaryTenant={primaryTenant} />
+      <div className="contract-body w-full [transform-origin:top_left]">
+        <KhmerContractHeader contract={contract} contractTitle={settings?.contractTitle} primaryTenant={primaryTenant} />
 
-      <div className="mt-6 space-y-6">
-        <KhmerPartySection landlord={landlord} primaryTenant={primaryTenant} />
-        <KhmerPropertySection contract={contract} room={room} house={house} roomType={roomType} />
-        <KhmerAgreementSection contract={contract} room={room} house={house} roomAmenities={roomAmenities} />
-        <KhmerDepositSection deposits={deposits} />
-        <KhmerSignatureSection landlord={landlord} primaryTenant={primaryTenant} contract={contract} />
+        <div className="mt-[2.5mm] space-y-[2.5mm]">
+          <KhmerPartySection landlord={landlord} primaryTenant={primaryTenant} />
+          <KhmerPropertySection contract={contract} room={room} house={house} roomType={roomType} />
+          <KhmerAgreementSection contract={contract} room={room} house={house} roomAmenities={roomAmenities} />
+          <KhmerDepositSection deposits={deposits} />
+          <KhmerSignatureSection landlord={landlord} primaryTenant={primaryTenant} contract={contract} />
+        </div>
       </div>
     </div>
   );

@@ -142,7 +142,8 @@ const Profile = () => {
     const { pathname } = window.location;
     if (pathname.startsWith("/manager")) return "/manager/security";
     if (pathname.startsWith("/tenant")) return "/tenant/security";
-    return "/settings/security";
+    if (pathname.startsWith("/owner")) return "/owner/settings/security";
+    return "/owner/settings/security";
   };
 
   const [user, setUser] = useState(null);

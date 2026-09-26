@@ -103,19 +103,40 @@ export default function ContractDetailPage() {
     }
   }, [contractId, getContract, getRoom]);
 
+  const fitContractToPage = useCallback(() => {
+    const page = documentRef.current;
+    const body = page?.querySelector('.contract-body');
+    if (!page || !body) return;
+    body.style.transform = 'none';
+    body.style.width = '100%';
+    const styles = window.getComputedStyle(page);
+    const padTop = parseFloat(styles.paddingTop) || 0;
+    const padBottom = parseFloat(styles.paddingBottom) || 0;
+    const buffer = 8;
+    const available = page.clientHeight - padTop - padBottom - buffer;
+    const natural = body.scrollHeight;
+    if (natural > available && natural > 0) {
+      const scale = Math.max(0.62, available / natural);
+      body.style.transform = `scale(${scale})`;
+      body.style.width = `${100 / scale}%`;
+    }
+  }, []);
+
   const handlePrint = useCallback(() => {
+    fitContractToPage();
     const prev = document.title;
     document.title = docTitle(contract);
     window.print();
     document.title = prev;
-  }, [contract]);
+  }, [contract, fitContractToPage]);
 
   const handleDownloadPdf = useCallback(() => {
+    fitContractToPage();
     const prev = document.title;
     document.title = docTitle(contract, '.pdf');
     window.print();
     document.title = prev;
-  }, [contract]);
+  }, [contract, fitContractToPage]);
 
   const handleRefresh = useCallback(() => {
     load();
@@ -127,6 +148,18 @@ export default function ContractDetailPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    let active = true;
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(() => {
+        if (active) fitContractToPage();
+      });
+    }
+    return () => {
+      active = false;
+    };
+  }, [fitContractToPage]);
 
   const landlord = useMemo(() => {
     const name = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
@@ -177,6 +210,23 @@ export default function ContractDetailPage() {
     const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
     return diff;
   }, [contract]);
+
+  useEffect(() => {
+    if (loading || loadError || !contract) return undefined;
+    const raf = requestAnimationFrame(fitContractToPage);
+    return () => cancelAnimationFrame(raf);
+  }, [
+    loading,
+    loadError,
+    contract,
+    deposits,
+    contractTenants,
+    roomAmenities,
+    house,
+    roomType,
+    primaryTenant,
+    fitContractToPage,
+  ]);
 
   if (loading) {
     return (

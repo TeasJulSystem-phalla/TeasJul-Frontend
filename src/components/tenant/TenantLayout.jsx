@@ -4,6 +4,7 @@ import Navbar from "../layout/Navbar";
 import TenantSidebar from "./TenantSidebar";
 import { useSidebar } from "../../hooks/useSidebar";
 import RecoveryEmailGuard from "../ui/RecoveryEmailGuard";
+import FloatingAssistant from "../assistant/FloatingAssistant";
 
 const TenantLayout = () => {
   const { isOpen, toggle, close, isCollapsed } = useSidebar();
@@ -29,6 +30,8 @@ const TenantLayout = () => {
       </div>
 
       <RecoveryEmailGuard securityPagePath="/tenant/security" />
+
+      <FloatingAssistant />
     </div>
   );
 };

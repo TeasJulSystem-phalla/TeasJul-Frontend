@@ -14,8 +14,12 @@ import {
   Archive,
   CheckCircle2,
   XCircle,
+  Layers,
+  Power,
 } from 'lucide-react';
 import { useAmenities } from '../../hooks/useAmenities.js';
+import { useSystemDefaults } from '../../hooks/useSystemDefaults.js';
+import { useMyRoles } from '../../hooks/useMyRoles.js';
 import { useToast } from '../../components/ui/Toast.jsx';
 import {
   Card,
@@ -32,6 +36,7 @@ import {
   ConfirmDialog,
   EmptyState,
   Skeleton,
+  Tabs,
 } from '../../components/ui/index.js';
 
 const STATUS_VARIANT = {
@@ -70,10 +75,21 @@ export default function Amenities() {
     updateAmenity,
     deleteAmenity,
   } = useAmenities();
+  const { isOwner } = useMyRoles();
+  const {
+    defaults: systemDefaults,
+    loading: systemLoading,
+    error: systemError,
+    fetchDefaults,
+    enable: enableDefault,
+    disable: disableDefault,
+  } = useSystemDefaults('AMENITY', isOwner);
   const toast = useToast();
 
+  const [activeTab, setActiveTab] = useState('system');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [busyId, setBusyId] = useState(null);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
@@ -87,14 +103,38 @@ export default function Amenities() {
 
   const refresh = useCallback(() => fetchAmenities(), [fetchAmenities]);
 
+  const linkedIds = useMemo(
+    () =>
+      new Set(
+        systemDefaults
+          .filter((d) => d.enabled && d.linkedId)
+          .map((d) => d.linkedId)
+      ),
+    [systemDefaults]
+  );
+
+  const customAmenities = useMemo(
+    () => (isOwner ? amenities.filter((a) => !linkedIds.has(a.id)) : amenities),
+    [isOwner, amenities, linkedIds]
+  );
+
+  const enabledDefaults = useMemo(
+    () => systemDefaults.filter((d) => d.enabled),
+    [systemDefaults]
+  );
+  const availableDefaults = useMemo(
+    () => systemDefaults.filter((d) => !d.enabled),
+    [systemDefaults]
+  );
+
   const stats = useMemo(() => {
-    const total = amenities.length;
-    const count = (s) => amenities.filter((a) => a.status === s).length;
+    const total = customAmenities.length;
+    const count = (s) => customAmenities.filter((a) => a.status === s).length;
     return { total, active: count('ACTIVE'), inactive: count('INACTIVE'), archived: count('ARCHIVED') };
-  }, [amenities]);
+  }, [customAmenities]);
 
   const filtered = useMemo(() => {
-    let result = amenities;
+    let result = customAmenities;
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       result = result.filter(
@@ -106,15 +146,40 @@ export default function Amenities() {
     }
     if (statusFilter) result = result.filter((a) => a.status === statusFilter);
     return result;
-  }, [amenities, searchTerm, statusFilter]);
+  }, [customAmenities, searchTerm, statusFilter]);
 
   const getStatusBadge = (status) => (
     <Badge variant={STATUS_VARIANT[status] || 'default'}>{STATUS_OPTIONS.find((o) => o.value === status)?.label || status || '—'}</Badge>
   );
 
+  const handleToggleDefault = async (d, action) => {
+    setBusyId(d.definition.id);
+    try {
+      if (action === 'enable') {
+        await enableDefault(d.definition.id);
+        toast.success('បានបើកដំណើរការ', `"${d.definition.name}" ត្រូវបានបើកដំណើរការ។`);
+      } else {
+        await disableDefault(d.definition.id);
+        toast.success('បានបិទដំណើរការ', `"${d.definition.name}" ត្រូវបានបិទដំណើរការ។`);
+      }
+      fetchDefaults();
+      fetchAmenities();
+    } catch (err) {
+      toast.error('កំហុស', err.response?.data?.message || err.response?.data?.error || 'ប្រតិបត្តិការបរាជ័យ។');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const SYSTEM_TABS = [
+    { value: 'system', label: 'ប្រព័ន្ធ' },
+    { value: 'enabled', label: 'បានបើកដំណើរការ' },
+    { value: 'custom', label: 'ផ្ទាល់ខ្លួន' },
+  ];
+
   const columns = [
     {
-      header: 'គ្រឿងបរិក្ខារ',
+      header: 'សម្ភារ:ប្រើប្រាស់',
       render: (row) => (
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-900/20 dark:text-violet-400">
@@ -219,11 +284,11 @@ export default function Amenities() {
     try {
       if (editTarget) {
         await updateAmenity(editTarget.id, payload);
-        toast.success('គ្រឿងបរិក្ខារត្រូវបានកែប្រែ', `"${payload.name}" ត្រូវបានកែប្រែ។`);
+        toast.success('សម្ភារ:ប្រើប្រាស់ត្រូវបានកែប្រែ', `"${payload.name}" ត្រូវបានកែប្រែ។`);
         setEditTarget(null);
       } else {
         await createAmenity(payload);
-        toast.success('គ្រឿងបរិក្ខារត្រូវបានបង្កើត', `"${payload.name}" ត្រូវបានបង្កើត។`);
+        toast.success('សម្ភារ:ប្រើប្រាស់ត្រូវបានបង្កើត', `"${payload.name}" ត្រូវបានបង្កើត។`);
         setCreateOpen(false);
       }
       resetForm();
@@ -244,10 +309,10 @@ export default function Amenities() {
     setDeleting(true);
     try {
       await deleteAmenity(deleteTarget.id);
-      toast.success('គ្រឿងបរិក្ខារត្រូវបានលុប', `"${deleteTarget.name}" ត្រូវបានលុប។`);
+      toast.success('សម្ភារ:ប្រើប្រាស់ត្រូវបានលុប', `"${deleteTarget.name}" ត្រូវបានលុប។`);
       setDeleteTarget(null);
     } catch (err) {
-      toast.error('ការលុបបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'ការលុបគ្រឿងបរិក្ខារបរាជ័យ។');
+      toast.error('ការលុបបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'ការលុបសម្ភារ:ប្រើប្រាស់បរាជ័យ។');
     } finally {
       setDeleting(false);
     }
@@ -286,42 +351,117 @@ export default function Amenities() {
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">គ្រឿងបរិក្ខារ</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            គ្រប់គ្រងគ្រឿងបរិក្ខារ និងកំណត់វាទៅបន្ទប់នីមួយៗ។
-          </p>
+  const renderSystemDefaultRow = (d, action) => {
+    const def = d.definition;
+    return (
+      <div
+        key={def.id}
+        className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+      >
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400">
+            {action === 'enable' ? <Layers className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="truncate text-[15px] font-semibold text-slate-800 dark:text-white">{def.name}</p>
+              {action === 'disable' && (
+                <Badge variant="success">បានបើកដំណើរការ</Badge>
+              )}
+            </div>
+            <p className="font-mono text-xs text-slate-400">{def.code}</p>
+            {def.description && (
+              <p className="mt-0.5 line-clamp-1 text-xs text-slate-500 dark:text-slate-400">{def.description}</p>
+            )}
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>ធ្វើឱ្យស្រស់</Button>
-          <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតគ្រឿងបរិក្ខារ</Button>
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          {action === 'disable' && d.linkedId && (
+            <span className="font-mono text-xs text-slate-400">#{d.linkedId}</span>
+          )}
+          <Button
+            size="sm"
+            variant={action === 'enable' ? 'primary' : 'outline'}
+            leftIcon={action === 'enable' ? <Power className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+            loading={busyId === def.id}
+            onClick={() => handleToggleDefault(d, action)}
+          >
+            {action === 'enable' ? 'បើកដំណើរការ' : 'បិទដំណើរការ'}
+          </Button>
         </div>
       </div>
+    );
+  };
 
-      {error && (
-        <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកគ្រឿងបរិក្ខារ" description={error} dismissible>
+  const renderSystemSection = () => {
+    if (systemLoading) {
+      return (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-xl" />
+          ))}
+        </div>
+      );
+    }
+    if (systemError) {
+      return (
+        <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកប្រព័ន្ធ" description={systemError} dismissible>
           <div className="mt-3">
-            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>ព្យាយាមម្តងទៀត</Button>
+            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => fetchDefaults()}>ព្យាយាមម្តងទៀត</Button>
           </div>
         </Alert>
-      )}
+      );
+    }
+    return (
+      <div className="space-y-3">
+        {availableDefaults.map((d) => renderSystemDefaultRow(d, 'enable'))}
+        {availableDefaults.length === 0 && (
+          <EmptyState
+            icon={CheckCircle2}
+            title="មិនមានប្រព័ន្ធដែលអាចបើកបានទេ"
+            description="អ្នកបានបើកដំណើរការប្រព័ន្ធលំនាំដើមទាំងអស់រួចហើយ។"
+          />
+        )}
+      </div>
+    );
+  };
 
-      {/* Stats */}
-      {amenities.length > 0 && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="សរុប" value={stats.total} icon={<Sparkles className="h-5 w-5 text-slate-600 dark:text-slate-400" />} />
-          <StatCard label="សកម្ម" value={stats.active} icon={<CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />} valueClass="text-green-700 dark:text-green-400" />
-          <StatCard label="អសកម្ម" value={stats.inactive} icon={<XCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />} valueClass="text-amber-700 dark:text-amber-400" />
-          <StatCard label="បានរក្សាទុក" value={stats.archived} icon={<Archive className="h-5 w-5 text-slate-600 dark:text-slate-400" />} />
+  const renderEnabledSection = () => {
+    if (systemLoading) {
+      return (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-xl" />
+          ))}
         </div>
-      )}
+      );
+    }
+    if (systemError) {
+      return (
+        <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកប្រព័ន្ធ" description={systemError} dismissible>
+          <div className="mt-3">
+            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => fetchDefaults()}>ព្យាយាមម្តងទៀត</Button>
+          </div>
+        </Alert>
+      );
+    }
+    return (
+      <div className="space-y-3">
+        {enabledDefaults.map((d) => renderSystemDefaultRow(d, 'disable'))}
+        {enabledDefaults.length === 0 && (
+          <EmptyState
+            icon={Power}
+            title="មិនទាន់បានបើកដំណើរការ"
+            description="បើកដំណើរការប្រព័ន្ធលំនាំដើមពីផ្ទាំង «ប្រព័ន្ធ» ដើម្បីប្រើប្រាស់ភ្លាមៗ។"
+          />
+        )}
+      </div>
+    );
+  };
 
-      {/* Filters */}
-      {amenities.length > 0 && (
+  const renderCustomList = () => (
+    <>
+      {customAmenities.length > 0 && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex-1">
             <Input placeholder="ស្វែងរកតាមឈ្មោះ លេខកូដ ឬការពិពណ៌នា..." leftIcon={<Search className="h-4 w-4" />} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
@@ -333,19 +473,26 @@ export default function Amenities() {
         </div>
       )}
 
-      {/* Content */}
-      {!loading && amenities.length === 0 ? (
+      {customAmenities.length > 0 && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="សរុប" value={stats.total} icon={<Sparkles className="h-5 w-5 text-slate-600 dark:text-slate-400" />} />
+          <StatCard label="សកម្ម" value={stats.active} icon={<CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />} valueClass="text-green-700 dark:text-green-400" />
+          <StatCard label="អសកម្ម" value={stats.inactive} icon={<XCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />} valueClass="text-amber-700 dark:text-amber-400" />
+          <StatCard label="បានរក្សាទុក" value={stats.archived} icon={<Archive className="h-5 w-5 text-slate-600 dark:text-slate-400" />} />
+        </div>
+      )}
+
+      {!loading && customAmenities.length === 0 ? (
         <EmptyState
           icon={Sparkles}
-          title="មិនទាន់មានគ្រឿងបរិក្ខារទេ"
-          description="បង្កើតគ្រឿងបរិក្ខារដំបូងរបស់អ្នកដើម្បីចាប់ផ្តើមកំណត់វាទៅបន្ទប់។"
-          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតគ្រឿងបរិក្ខារ</Button>}
+          title={isOwner ? 'មិនទាន់មានសម្ភារ:ប្រើប្រាស់ផ្ទាល់ខ្លួន' : 'មិនទាន់មានសម្ភារ:ប្រើប្រាស់ទេ'}
+          description={isOwner ? 'បង្កើតសម្ភារ:ប្រើប្រាស់ផ្ទាល់ខ្លួន ឬបើកដំណើរការប្រព័ន្ធលំនាំដើមពីផ្ទាំង «ប្រព័ន្ធ»។' : 'បង្កើតសម្ភារ:ប្រើប្រាស់ដំបូងរបស់អ្នកដើម្បីចាប់ផ្តើមកំណត់វាទៅបន្ទប់។'}
+          action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតសម្ភារ:ប្រើប្រាស់</Button>}
         />
       ) : filtered.length === 0 ? (
         <EmptyState icon={Filter} title="រកមិនឃើញលទ្ធផលត្រូវនឹងលក្ខខណ្ឌទេ" description="សូមព្យាយាមកែតម្រូវលក្ខខណ្ឌនៃការស្វែងរក ឬតម្រង។" />
       ) : (
         <>
-          {/* Mobile cards */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:hidden">
             {filtered.map((a) => (
               <div key={a.id} onClick={() => setViewTarget(a)} className="group cursor-pointer rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-slate-300 hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700">
@@ -370,25 +517,62 @@ export default function Amenities() {
             ))}
           </div>
 
-          {/* Desktop table */}
           <Card className="hidden lg:block">
             <Table columns={columns} data={filtered} keyExtractor={(row) => row.id} onRowClick={setViewTarget} className="w-full" />
           </Card>
         </>
       )}
+    </>
+  );
 
-      {/* Create/Edit modal */}
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">សម្ភារ:ប្រើប្រាស់</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            គ្រប់គ្រងសម្ភារ:ប្រើប្រាស់ និងកំណត់វាទៅបន្ទប់នីមួយៗ។
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>ធ្វើឱ្យស្រស់</Button>
+          {(!isOwner || activeTab === 'custom') && (
+            <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>បង្កើតសម្ភារ:ប្រើប្រាស់</Button>
+          )}
+        </div>
+      </div>
+
+      {isOwner && (
+        <Tabs tabs={SYSTEM_TABS} activeTab={activeTab} onChange={setActiveTab} className="overflow-x-auto" />
+      )}
+
+      {error && (
+        <Alert variant="danger" title="កំហុសក្នុងការផ្ទុកសម្ភារ:ប្រើប្រាស់" description={error} dismissible>
+          <div className="mt-3">
+            <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => refresh()}>ព្យាយាមម្តងទៀត</Button>
+          </div>
+        </Alert>
+      )}
+
+      {isOwner && activeTab === 'system' && renderSystemSection()}
+
+      {isOwner && activeTab === 'enabled' && renderEnabledSection()}
+
+      {isOwner && activeTab === 'custom' && renderCustomList()}
+
+      {!isOwner && renderCustomList()}
+
       <Modal
         open={createOpen || !!editTarget}
         onClose={() => { setCreateOpen(false); setEditTarget(null); }}
-        title={editTarget ? 'កែប្រែគ្រឿងបរិក្ខារ' : 'បង្កើតគ្រឿងបរិក្ខារ'}
-        description={editTarget ? `កំពុងកែប្រែ "${editTarget.name}"` : 'កំណត់គ្រឿងបរិក្ខារដែលអ្នកអាចកំណត់ទៅបន្ទប់បាន។'}
+        title={editTarget ? 'កែប្រែសម្ភារ:ប្រើប្រាស់' : 'បង្កើតសម្ភារ:ប្រើប្រាស់'}
+        description={editTarget ? `កំពុងកែប្រែ "${editTarget.name}"` : 'កំណត់សម្ភារ:ប្រើប្រាស់ដែលអ្នកអាចកំណត់ទៅបន្ទប់បាន។'}
         size="md"
         footer={
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={() => { setCreateOpen(false); setEditTarget(null); }} disabled={submitting}>បោះបង់</Button>
             <Button type="submit" form="amenityForm" onClick={() => document.getElementById('amenityForm')?.requestSubmit()} loading={submitting}>
-              {editTarget ? 'រក្សាទុកការផ្លាស់ប្តូរ' : 'បង្កើតគ្រឿងបរិក្ខារ'}
+              {editTarget ? 'រក្សាទុកការផ្លាស់ប្តូរ' : 'បង្កើតសម្ភារ:ប្រើប្រាស់'}
             </Button>
           </div>
         }
@@ -399,7 +583,7 @@ export default function Amenities() {
             <Input label="លេខកូដ" required name="code" value={form.code} onChange={handleFormChange} placeholder="ឧ. WIFI" error={formErrors.code} />
           </div>
           <Input label="រូបតំណាង" name="icon" value={form.icon} onChange={handleFormChange} placeholder="ឧ. wifi, pool, parking" />
-          <Textarea label="ការពិពណ៌នា" name="description" value={form.description} onChange={handleFormChange} rows={2} placeholder="ពិពណ៌នាអំពីគ្រឿងបរិក្ខារនេះ..." />
+          <Textarea label="ការពិពណ៌នា" name="description" value={form.description} onChange={handleFormChange} rows={2} placeholder="ពិណ៌នាអំពីសម្ភារ:ប្រើប្រាស់នេះ..." />
           <Select
             label="ស្ថានភាព"
             name="status"
@@ -414,8 +598,7 @@ export default function Amenities() {
         </form>
       </Modal>
 
-      {/* View modal */}
-      <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title="ព័ត៌មានលម្អិតនៃគ្រឿងបរិក្ខារ" size="md">
+      <Modal open={!!viewTarget} onClose={() => setViewTarget(null)} title="ព័ត៌មានលម្អិតនៃសម្ភារ:ប្រើប្រាស់" size="md">
         {viewTarget && (
           <div className="space-y-5">
             <div className="flex items-start justify-between">
@@ -439,7 +622,7 @@ export default function Amenities() {
             )}
 
             <div className="grid grid-cols-2 gap-3">
-              <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="លេខសម្គាល់គ្រឿងបរិក្ខារ" value={viewTarget.id} />
+              <DetailItem icon={<Hash className="h-4 w-4 text-slate-400" />} label="លេខសម្គាល់សម្ភារ:ប្រើប្រាស់" value={viewTarget.id} />
               <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="បានបង្កើត" value={formatDate(viewTarget.createdAt)} />
               <DetailItem icon={<ShieldCheck className="h-4 w-4 text-slate-400" />} label="រូបតំណាង" value={viewTarget.icon || '—'} />
             </div>
@@ -447,10 +630,9 @@ export default function Amenities() {
         )}
       </Modal>
 
-      {/* Delete */}
       <ConfirmDialog
         open={!!deleteTarget}
-        title="លុបគ្រឿងបរិក្ខារ"
+        title="លុបសម្ភារ:ប្រើប្រាស់"
         description={`តើអ្នកប្រាកដថាចង់លុប "${deleteTarget?.name}"? សកម្មភាពនេះមិនអាចបញ្ឈប់បានទេ។`}
         confirmText="លុប"
         cancelText="បោះបង់"

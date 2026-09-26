@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Building2, Loader2 } from "lucide-react";
 
 import PublicHeader from "../../components/public/PublicHeader";
@@ -8,6 +9,7 @@ import RoomDetailView from "../../components/room/RoomDetailView";
 import { publicRoomApi } from "../../api/public.api";
 
 const RoomDetailPage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const [room, setRoom] = useState(null);
   const [similarRooms, setSimilarRooms] = useState([]);
@@ -31,7 +33,7 @@ const RoomDetailPage = () => {
       })
       .catch((err) => {
         if (!cancelled)
-          setError(err?.response?.data?.message || err?.message || "មិនអាចផ្ទុកលម្អិតបន្ទប់បានទេ");
+          setError(err?.response?.data?.message || err?.message || t("roomDetail.loadError"));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -39,7 +41,7 @@ const RoomDetailPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, t]);
 
   if (loading) {
     return (
@@ -60,13 +62,13 @@ const RoomDetailPage = () => {
         <main className="mx-auto flex min-h-[50vh] max-w-[1100px] flex-col items-center justify-center gap-3 px-4 py-16 text-center">
           <Building2 className="h-10 w-10 text-slate-300" />
           <p className="font-khmer text-[14px] text-slate-600">
-            {error || "មិនបានរកឃើញបន្ទប់នេះទេ"}
+            {error || t("roomDetail.notFound")}
           </p>
           <Link
-            to="/public/rooms"
+            to="/rooms"
             className="font-khmer rounded-lg bg-[#0f2942] px-4 py-2 text-[12.5px] text-white hover:bg-[#173a5c]"
           >
-            ត្រឡប់ទៅបញ្ជីបន្ទប់
+            {t("roomDetail.backToRooms")}
           </Link>
         </main>
         <PublicFooter />

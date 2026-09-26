@@ -1,221 +1,227 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, Building2, ShieldCheck, KeyRound, ArrowRight, Loader2 } from 'lucide-react';
+import {
+  Eye, EyeOff, Loader2, AlertCircle, Check,
+  Building2, FileText, ReceiptText, Users,
+} from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import logo from '../../assets/logo.png';
 
-const LoginPage = () => {
+const REMEMBER_KEY = 'teasjul_login_email';
+
+const FEATURES = [
+  { icon: Building2, title: 'អចលនទ្រព្យ', desc: 'គ្រប់គ្រងផ្ទះ និងបន្ទប់' },
+  { icon: Users, title: 'អ្នកជួល', desc: 'តាមដានព័ត៌មានអ្នកជួល' },
+  { icon: FileText, title: 'កិច្ចសន្យា', desc: 'បង្កើត និងគ្រប់គ្រង' },
+  { icon: ReceiptText, title: 'វិក្កយបត្រ', desc: 'ចេញ និងតាមដានចំណូល' },
+];
+
+export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState('landlord');
-  const [formData, setFormData] = useState({ email: '', password: '', remember: false });
+  const [formData, setFormData] = useState(() => {
+    const saved = typeof window !== 'undefined' ? window.localStorage.getItem(REMEMBER_KEY) : '';
+    return { email: saved || '', password: '', remember: Boolean(saved) };
+  });
   const { login, loading, error } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.remember) window.localStorage.setItem(REMEMBER_KEY, formData.email);
+    else window.localStorage.removeItem(REMEMBER_KEY);
     try {
       const data = await login(formData.email, formData.password);
-      if (data && data.requiresTwoFactor) {
-        navigate('/auth/2fa', {
-          state: { challengeToken: data.challengeToken, redirectTo: '/' },
-        });
+      if (data?.requiresTwoFactor) {
+        navigate('/auth/2fa', { state: { challengeToken: data.challengeToken, redirectTo: '/dashboard' } });
         return;
       }
-      navigate('/');
-    } catch {
-      // error is handled by the hook
-    }
+      navigate('/dashboard');
+    } catch {}
   };
+  const setField = (k, v) => setFormData((p) => ({ ...p, [k]: v }));
 
   return (
-    <div className="min-h-screen w-full bg-slate-100 flex items-center justify-center p-4">
-      {/* Light card wrapper floating over slate-100 background */}
-      <div className="max-w-7xl w-full flex bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden text-slate-800">
-        
-        {/* Left Side: Dark Hero / Branding Column */}
-        <div className="hidden lg:flex lg:w-1/2 bg-slate-900 text-white flex-col justify-between p-12 relative overflow-hidden">
-          {/* Subtle Ambient Glows */}
-          <div className="absolute -top-24 -left-24 w-96 h-96 bg-zinc-700/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-slate-700/30 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-white font-khmer">
+      <div className="mx-auto grid min-h-screen w-full max-w-7xl grid-cols-1 items-center gap-8 px-6 py-10 lg:grid-cols-2 lg:gap-12 lg:px-10">
+        {/* ============ LEFT — BRAND PANEL ============ */}
+        <div className="relative hidden overflow-hidden rounded-2xl bg-[#0f2942] p-10 lg:flex lg:flex-col lg:justify-between lg:self-stretch xl:p-14">
+          {/* Subtle grid */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.06]"
+            style={{
+              backgroundImage:
+                'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)',
+              backgroundSize: '40px 40px',
+            }}
+          />
+          <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-sky-400/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -left-20 h-96 w-96 rounded-full bg-sky-500/10 blur-3xl" />
 
-          {/* Brand Header */}
-          <div className="flex items-center gap-3 z-10">
-            <div className="p-2.5 bg-slate-800 rounded-xl border border-slate-700 shadow-inner">
-              <Building2 className="w-8 h-8 text-white" />
+          {/* Logo */}
+          <Link to="/" className="relative z-10 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-white shadow-lg">
+              <img src={logo} alt="TeasJul" className="h-full w-full object-contain p-1" />
             </div>
-            <span className="text-2xl font-bold tracking-tight text-white">Teasjul</span>
-          </div>
-
-          {/* Highlight Hero Text */}
-          <div className="max-w-md z-10 space-y-6">
-            <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-300 bg-slate-800 rounded-full border border-slate-700">
-              ប្រព័ន្ធគ្រប់គ្រងការជួល
-            </span>
-            <h1 className="text-4xl font-extrabold leading-tight text-white">
-              ការគ្រប់គ្រងអចលនទ្រព្យ និងកិច្ចសន្យាជួលដ៏ងាយស្រួល
-            </h1>
-            <p className="text-slate-300 text-base leading-relaxed">
-              ធ្វើស្វ័យប្រវត្តិកម្មការប្រមូលប្រាក់ជួល ធ្វើឱ្យសាមញ្ញនូវការស្នើជួសជុល និងតាមដានអ្នកជួលទាំងអស់ នៅលើវេទិការួមតែមួយ។
-            </p>
-
-            {/* Feature Bullet Points */}
-            <div className="pt-4 space-y-3">
-              <div className="flex items-center gap-3 text-sm text-slate-300">
-                <ShieldCheck className="w-5 h-5 text-slate-400 shrink-0" />
-                <span>កិច្ចសន្យាជួលដោយស្វ័យប្រវត្តិ និងហត្ថលេខាឌីជីថល</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-slate-300">
-                <KeyRound className="w-5 h-5 text-slate-400 shrink-0" />
-                <span>តាមដានប្រាក់ជួលតាមពេលវេលាជាក់ស្តែង និងការរំលឹកដោយស្វ័យប្រវត្តិ</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer Info */}
-          <div className="z-10 text-xs text-slate-500">
-            &copy; {new Date().getFullYear()} Teasjul Inc. រក្សាសិទ្ធិគ្រប់យ៉ាង។
-          </div>
-        </div>
-
-        {/* Right Side: Clean White Login Form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white">
-          <div className="w-full max-w-md space-y-8">
-            
-            {/* Mobile Logo Header */}
-            <div className="flex lg:hidden items-center gap-2 mb-6">
-              <Building2 className="w-7 h-7 text-slate-900" />
-              <span className="text-xl font-bold text-slate-900">Teasjul</span>
-            </div>
-
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight text-slate-900">ស្វាគមន៍មកកាន់វិញ</h2>
-              <p className="mt-2 text-sm text-slate-600">
-                សូមបញ្ចូលព័ត៌មានរបស់អ្នក ដើម្បីចូលប្រព័ន្ធ។
+            <div className="leading-tight">
+              <p className="text-[15px] font-bold tracking-[0.1em] text-white">TEASJUL</p>
+              <p className="text-[9.5px] uppercase tracking-[0.2em] text-sky-200/60">
+                Property Management
               </p>
             </div>
+          </Link>
 
-            {/* Role Switcher Tab (Dark Active Accent) */}
-            <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl text-sm font-medium border border-slate-200">
-              <button
-                type="button"
-                onClick={() => setRole('landlord')}
-                className={`py-2 rounded-lg transition-all ${
-                  role === 'landlord'
-                    ? 'bg-slate-900 text-white shadow-sm font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                ម្ចាស់អចលនទ្រព្យ / អ្នកគ្រប់គ្រង
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole('tenant')}
-                className={`py-2 rounded-lg transition-all ${
-                  role === 'tenant'
-                    ? 'bg-slate-900 text-white shadow-sm font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                អ្នកជួល
-              </button>
-            </div>
+          {/* Headline + features */}
+          <div className="relative z-10 max-w-[420px]">
+            <h2 className="text-[28px] font-bold leading-[1.3] tracking-tight text-white">
+              គ្រប់គ្រងផ្ទះជួល<br />
+              <span className="text-sky-300">ក្នុងប្រព័ន្ធតែមួយ</span>
+            </h2>
+            <p className="mt-4 text-[13px] leading-[1.7] text-slate-300/80">
+              ចាប់ផ្តើមពីបន្ទប់ រហូតដល់កិច្ចសន្យា វិក្កយបត្រ និងរបាយការណ៍ចំណូល។
+            </p>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Email Field */}
+            <ul className="mt-7 space-y-3.5">
+              {FEATURES.map(({ icon: Icon, title, desc }) => (
+                <li key={title} className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.08] ring-1 ring-white/10">
+                    <Icon className="h-3.5 w-3.5 text-sky-300" strokeWidth={1.9} />
+                  </span>
+                  <div className="leading-snug">
+                    <p className="text-[12.5px] font-semibold text-white">{title}</p>
+                    <p className="text-[11px] text-slate-300/70">{desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Footer */}
+          <p className="relative z-10 text-[10.5px] text-white/40">
+            © {new Date().getFullYear()} TeasJul. រក្សាសិទ្ធិគ្រប់បែបយ៉ាង។
+          </p>
+        </div>
+
+        {/* ============ RIGHT — FORM ============ */}
+        <div className="flex w-full items-center justify-center">
+          <div className="w-full max-w-[400px]">
+            {/* Mobile logo */}
+            <Link to="/" className="mb-6 inline-flex items-center gap-2.5 lg:hidden">
+              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-slate-200">
+                <img src={logo} alt="TeasJul" className="h-full w-full object-contain p-1" />
+              </div>
+              <span className="text-[14px] font-bold tracking-[0.1em] text-[#0f2942]">TEASJUL</span>
+            </Link>
+
+            {/* Heading */}
+            <h1 className="text-[24px] font-bold leading-tight tracking-tight text-slate-900">
+              សូមស្វាគមន៍ត្រឡប់មកវិញ
+            </h1>
+            <p className="mt-1.5 text-[13px] text-slate-500">
+              ចូលប្រើគណនីរបស់អ្នកដើម្បីបន្ត។
+            </p>
+
+            {error && (
+              <div className="mt-5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-[12px] text-red-700">
+                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+              {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  អាសយដ្ឋានអ៊ីមែល
+                <label htmlFor="email" className="mb-1.5 block text-[12.5px] font-medium text-slate-700">
+                  អ៊ីមែល
                 </label>
                 <input
+                  id="email"
                   type="email"
                   required
-                  placeholder="name@example.com"
+                  autoComplete="email"
+                  placeholder="abc@teasjul.com"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 outline-none transition-all placeholder:text-slate-400 text-sm"
+                  onChange={(e) => setField('email', e.target.value)}
+                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3.5 text-[13.5px] text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-[#0f2942] focus:ring-4 focus:ring-[#0f2942]/10"
                 />
               </div>
 
-              {/* Password Field */}
+              {/* Password */}
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-sm font-medium text-slate-700">
-                    ពាក្យសម្ងាត់
-                  </label>
-                  <Link to="/forgot-password" className="text-xs font-semibold text-slate-900 hover:underline">
-                    ភ្លេចពាក្យសម្ងាត់?
-                  </Link>
-                </div>
+                <label htmlFor="password" className="mb-1.5 block text-[12.5px] font-medium text-slate-700">
+                  ពាក្យសម្ងាត់
+                </label>
                 <div className="relative">
                   <input
+                    id="password"
                     type={showPassword ? 'text' : 'password'}
                     required
-                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    placeholder="••••••••••••"
                     value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 outline-none transition-all placeholder:text-slate-400 text-sm pr-11"
+                    onChange={(e) => setField('password', e.target.value)}
+                    className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-3.5 pr-11 text-[13.5px] text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-[#0f2942] focus:ring-4 focus:ring-[#0f2942]/10"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600"
+                    aria-label={showPassword ? 'Hide' : 'Show'}
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
 
-              {/* Remember Me Checkbox */}
-              <div className="flex items-center">
-                <input
-                  id="remember"
-                  type="checkbox"
-                  checked={formData.remember}
-                  onChange={(e) => setFormData({ ...formData, remember: e.target.checked })}
-                  className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
-                />
-                <label htmlFor="remember" className="ml-2.5 text-sm text-slate-600 cursor-pointer select-none">
-                  ចងចាំខ្ញុំរយៈពេល 30 ថ្ងៃ
+              {/* Remember / Forgot */}
+              <div className="flex items-center justify-between">
+                <label className="inline-flex cursor-pointer select-none items-center gap-2">
+                  <span className="relative flex h-[16px] w-[16px] items-center justify-center">
+                    <input
+                      type="checkbox"
+                      className="peer sr-only"
+                      checked={formData.remember}
+                      onChange={(e) => setField('remember', e.target.checked)}
+                    />
+                    <span className="h-[16px] w-[16px] rounded-[5px] border border-slate-300 bg-white transition-colors peer-checked:border-[#0f2942] peer-checked:bg-[#0f2942]" />
+                    <Check className="pointer-events-none absolute h-[11px] w-[11px] text-white opacity-0 transition-opacity peer-checked:opacity-100" strokeWidth={3} />
+                  </span>
+                  <span className="text-[12.5px] text-slate-600">ចងចាំខ្ញុំ</span>
                 </label>
+                <Link
+                  to="/forgot-password"
+                  className="text-[12px] font-medium text-[#0f2942] hover:underline"
+                >
+                  ភ្លេចពាក្យសម្ងាត់?
+                </Link>
               </div>
 
-              {error && (
-                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
-                  {error}
-                </div>
-              )}
-
-              {/* Black Primary Action Button */}
+              {/* Submit */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 px-4 bg-slate-900 hover:bg-black text-white font-semibold rounded-xl shadow-md shadow-slate-900/10 transition-all flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#0f2942] text-[13.5px] font-semibold text-white transition-all hover:bg-[#1a3d5f] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>កំពុងចូលប្រព័ន្ធ...</span>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>កំពុងចូល...</span>
                   </>
                 ) : (
-                  <>
-                    <span>ចូលប្រព័ន្ធ Teasjul</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                  </>
+                  'ចូលប្រើប្រាស់'
                 )}
               </button>
             </form>
 
-            {/* Registration Prompt */}
-            <p className="text-center text-sm text-slate-600">
+            {/* Signup */}
+            <p className="mt-5 text-center text-[12.5px] text-slate-500">
               មិនទាន់មានគណនី?{' '}
-              <a href="#signup" className="font-semibold text-slate-900 hover:underline">
-                ស្នើសុំសិទ្ធិចូលប្រើ / ចុះឈ្មោះអចលនទ្រព្យ
-              </a>
+              <Link to="/register-business" className="font-semibold text-[#0f2942] hover:underline">
+                ចុះឈ្មោះអាជីវកម្ម
+              </Link>
             </p>
           </div>
         </div>
       </div>
     </div>
   );
-};
-
-export default LoginPage;
+}

@@ -23,11 +23,13 @@ import {
   LayoutGrid,
   List,
   X,
+  Check,
   FilePlus,
   FileSpreadsheet,
   FileText,
   Zap,
   ScanEye,
+  MoreVertical,
 } from 'lucide-react';
 import { useRooms, useRoomAmenities } from '../../hooks/useRooms.js';
 import { useHouses } from '../../hooks/useHouses.js';
@@ -59,6 +61,7 @@ import {
   EmptyState,
   Pagination,
   Skeleton,
+  Checkbox,
 } from '../../components/ui/index.js';
 
 const STATUS_META = {
@@ -96,7 +99,6 @@ const STATUS_OPTIONS = [
   { value: 'RESERVED', label: 'បានកក់' },
 ];
 
-// Only the physical room fields — listing/RoomType overrides are NOT entered here.
 const EMPTY_FORM = {
   houseId: '',
   roomTypeId: '',
@@ -168,6 +170,8 @@ export default function Rooms() {
 
   const [amenityTarget, setAmenityTarget] = useState(null);
   const [utilityTarget, setUtilityTarget] = useState(null);
+  const [bulkUtilityOpen, setBulkUtilityOpen] = useState(false);
+  const [bulkAmenityOpen, setBulkAmenityOpen] = useState(false);
   const viewAmenities = useRoomAmenities(viewData?.id);
   const viewUtilities = useRoomUtilities(viewData?.id);
   const [previewTarget, setPreviewTarget] = useState(null);
@@ -189,6 +193,18 @@ export default function Rooms() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewData?.id]);
+
+  // Auto-switch away from table view on small screens
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 639px)');
+    const handle = () => {
+      if (mq.matches && viewMode === 'table') setViewMode('grid');
+    };
+    handle();
+    mq.addEventListener('change', handle);
+    return () => mq.removeEventListener('change', handle);
+  }, [viewMode]);
 
   const houseName = useCallback(
     (id) => houses.find((h) => h.id === id)?.name || `ផ្ទះ #${id}`,
@@ -381,11 +397,11 @@ export default function Rooms() {
       ),
     },
     {
-      header: 'ថ្លៃជួល / ប្រាក់ដាក់ប្រាកដ',
+      header: 'ថ្លៃជួល / ប្រាក់កក់',
       render: (row) => (
         <div className="text-sm">
           <p className="font-semibold text-slate-800 dark:text-slate-200">{formatCurrency(row.monthlyRent)}</p>
-          <p className="text-xs text-slate-400">ប្រាក់ដាក់ប្រាកដ {formatCurrency(row.securityDeposit)}</p>
+          <p className="text-xs text-slate-400">ប្រាក់កក់ {formatCurrency(row.securityDeposit)}</p>
         </div>
       ),
     },
@@ -410,25 +426,32 @@ export default function Rooms() {
       header: 'សកម្មភាព',
       render: (row) => (
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          {row.status === 'AVAILABLE' && (
-            <IconButton
-              variant="ghost"
-              size="sm"
-              tooltip="បង្កើតកិច្ចសន្យា"
-              icon={<FilePlus className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />}
-              onClick={() => handleCreateContractForRoom(row.id)}
-            />
-          )}
           {canSubmitRoom(row) && (
             <SubmitForReviewButton room={row} onSuccess={() => fetchRooms()} iconOnly preview={previewNodeFor(row)} />
           )}
-          <IconButton variant="ghost" size="sm" tooltip="បញ្ចប់ / ពិនិត្យបញ្ជីផ្សាយ (Complete/Review Listing)" icon={<FileText className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />} onClick={() => navigate(`${basePath}/rooms/${row.id}/listing`)} />
-          <IconButton variant="ghost" size="sm" tooltip="មើលជាមុន (Preview)" icon={<ScanEye className="h-4 w-4 text-sky-600 dark:text-sky-400" />} onClick={() => setPreviewTarget(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="មើលព័ត៌មានលម្អិត" icon={<Eye className="h-4 w-4" />} onClick={() => handleOpenView(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="គ្រឿងបរិក្ខារ" icon={<KeySquare className="h-4 w-4" />} onClick={() => setAmenityTarget(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="ប្រភេទប្រើប្រាស់" icon={<Zap className="h-4 w-4" />} onClick={() => setUtilityTarget(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)} />
-          <IconButton variant="ghost" size="sm" tooltip="លុប" icon={<Trash2 className="h-4 w-4 text-red-600 dark:text-red-400 hover:text-red-700" />} onClick={() => setDeleteTarget(row)} />
+          <IconButton
+            variant="ghost"
+            size="sm"
+            tooltip="មើលព័ត៌មានលម្អិត"
+            icon={<Eye className="h-4 w-4" />}
+            onClick={() => handleOpenView(row)}
+          />
+          <IconButton
+            variant="ghost"
+            size="sm"
+            tooltip="កែប្រែ"
+            icon={<Edit className="h-4 w-4" />}
+            onClick={() => openEdit(row)}
+          />
+          <RoomActionsMenu
+            room={row}
+            onListing={() => navigate(`${basePath}/rooms/${row.id}/listing`)}
+            onPreview={() => setPreviewTarget(row)}
+            onAmenities={() => setAmenityTarget(row)}
+            onUtilities={() => setUtilityTarget(row)}
+            onDelete={() => setDeleteTarget(row)}
+            onCreateContract={() => handleCreateContractForRoom(row.id)}
+          />
         </div>
       ),
     },
@@ -490,7 +513,7 @@ export default function Rooms() {
     if (!form.roomTypeId) errs.roomTypeId = 'តម្រូវឱ្យជ្រើសរើសប្រភេទបន្ទប់';
     if (!form.roomNumber.trim()) errs.roomNumber = 'តម្រូវឱ្យបញ្ចូលលេខបន្ទប់';
     if (Number(form.monthlyRent) < 0) errs.monthlyRent = 'ថ្លៃជួលមិនអាចជាលេខអវិជ្ជមានបានទេ';
-    if (Number(form.securityDeposit) < 0) errs.securityDeposit = 'ប្រាក់ដាក់ប្រាកដមិនអាចជាលេខអវិជ្ជមានបានទេ';
+    if (Number(form.securityDeposit) < 0) errs.securityDeposit = 'ប្រាក់កក់មិនអាចជាលេខអវិជ្ជមានបានទេ';
     setFormErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -561,8 +584,8 @@ export default function Rooms() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between">
+      <div className="min-w-0 space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
           <Skeleton className="h-8 w-40" />
           <Skeleton className="h-9 w-32" />
         </div>
@@ -583,16 +606,16 @@ export default function Rooms() {
   const hasActiveFilters = Boolean(searchTerm || statusFilter || houseFilter || publicationFilter);
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">បន្ទប់</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             ទិដ្ឋភាពទូទៅនៃបន្ទប់ តម្លៃប្រចាំខែ និងការស្នាក់នៅរបស់អ្នកជួល។
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>
             ធ្វើឱ្យស្រស់
           </Button>
@@ -602,7 +625,25 @@ export default function Rooms() {
             leftIcon={<FileSpreadsheet className="h-4 w-4" />}
             onClick={() => navigate(`${basePath}/rooms/import${houseFilter ? `?houseId=${houseFilter}` : ''}`)}
           >
-            នាំចូល CSV/Excel
+            <span className="hidden sm:inline">នាំចូល CSV/Excel</span>
+            <span className="sm:hidden">CSV/Excel</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<Zap className="h-4 w-4" />}
+            onClick={() => navigate(`${basePath}/rooms/meters-import${houseFilter ? `?houseId=${houseFilter}` : ''}`)}
+          >
+            <span className="hidden lg:inline">នាំចូល CSV បន្ទប់ + ម៉ែត្រ</span>
+            <span className="lg:hidden">ម៉ែត្រ</span>
+          </Button>
+          <Button variant="outline" size="sm" leftIcon={<Zap className="h-4 w-4" />} onClick={() => setBulkUtilityOpen(true)}>
+            <span className="hidden lg:inline">កំណត់ប្រភេទប្រើប្រាស់ច្រើនបន្ទប់</span>
+            <span className="lg:hidden">ប្រើប្រាស់</span>
+          </Button>
+          <Button variant="outline" size="sm" leftIcon={<KeySquare className="h-4 w-4" />} onClick={() => setBulkAmenityOpen(true)}>
+            <span className="hidden lg:inline">កំណត់គ្រឿងបរិក្ខារច្រើនបន្ទប់</span>
+            <span className="lg:hidden">បរិក្ខារ</span>
           </Button>
           <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>
             បង្កើតបន្ទប់
@@ -626,74 +667,74 @@ export default function Rooms() {
           <button
             type="button"
             onClick={() => handleStatusFilterChange('')}
-            className={`flex items-center justify-between rounded-xl border p-3.5 text-left transition-all ${
+            className={`flex items-center justify-between gap-2 rounded-xl border p-3 text-left transition-all sm:p-3.5 ${
               statusFilter === ''
                 ? 'border-slate-400 bg-slate-100/80 dark:border-slate-600 dark:bg-gray-800'
                 : 'border-slate-200/80 bg-white hover:border-slate-300 dark:border-gray-800 dark:bg-gray-900'
             }`}
           >
-            <div>
-              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">បន្ទប់សរុប</p>
-              <p className="text-xl font-bold text-slate-800 dark:text-white"><CountUp value={stats.total} /></p>
+            <div className="min-w-0">
+              <p className="truncate text-[10px] font-medium uppercase tracking-wider text-slate-400 sm:text-xs">បន្ទប់សរុប</p>
+              <p className="text-lg font-bold text-slate-800 dark:text-white sm:text-xl"><CountUp value={stats.total} /></p>
             </div>
-            <BedDouble className="h-5 w-5 text-slate-400" />
+            <BedDouble className="h-5 w-5 shrink-0 text-slate-400" />
           </button>
 
           <button
             type="button"
             onClick={() => handleStatusFilterChange(statusFilter === 'AVAILABLE' ? '' : 'AVAILABLE')}
-            className={`flex items-center justify-between rounded-xl border p-3.5 text-left transition-all ${
+            className={`flex items-center justify-between gap-2 rounded-xl border p-3 text-left transition-all sm:p-3.5 ${
               statusFilter === 'AVAILABLE'
                 ? 'border-emerald-500 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/30'
                 : 'border-slate-200/80 bg-white hover:border-slate-300 dark:border-gray-800 dark:bg-gray-900'
             }`}
           >
-            <div>
-              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">ទំនេរ</p>
-              <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400"><CountUp value={stats.available} /></p>
+            <div className="min-w-0">
+              <p className="truncate text-[10px] font-medium uppercase tracking-wider text-slate-400 sm:text-xs">ទំនេរ</p>
+              <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 sm:text-xl"><CountUp value={stats.available} /></p>
             </div>
-            <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+            <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-500" />
           </button>
 
           <button
             type="button"
             onClick={() => handleStatusFilterChange(statusFilter === 'OCCUPIED' ? '' : 'OCCUPIED')}
-            className={`flex items-center justify-between rounded-xl border p-3.5 text-left transition-all ${
+            className={`flex items-center justify-between gap-2 rounded-xl border p-3 text-left transition-all sm:p-3.5 ${
               statusFilter === 'OCCUPIED'
                 ? 'border-slate-500 bg-slate-100 dark:border-slate-600 dark:bg-gray-800'
                 : 'border-slate-200/80 bg-white hover:border-slate-300 dark:border-gray-800 dark:bg-gray-900'
             }`}
           >
-            <div>
-              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">មានអ្នកស្នាក់នៅ</p>
-              <p className="text-xl font-bold text-slate-700 dark:text-slate-300"><CountUp value={stats.occupied} /></p>
+            <div className="min-w-0">
+              <p className="truncate text-[10px] font-medium uppercase tracking-wider text-slate-400 sm:text-xs">មានអ្នកស្នាក់នៅ</p>
+              <p className="text-lg font-bold text-slate-700 dark:text-slate-300 sm:text-xl"><CountUp value={stats.occupied} /></p>
             </div>
-            <DoorOpen className="h-5 w-5 text-slate-400" />
+            <DoorOpen className="h-5 w-5 shrink-0 text-slate-400" />
           </button>
 
           <button
             type="button"
             onClick={() => handleStatusFilterChange(statusFilter === 'MAINTENANCE' ? '' : 'MAINTENANCE')}
-            className={`flex items-center justify-between rounded-xl border p-3.5 text-left transition-all ${
+            className={`flex items-center justify-between gap-2 rounded-xl border p-3 text-left transition-all sm:p-3.5 ${
               statusFilter === 'MAINTENANCE'
                 ? 'border-amber-500 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/30'
                 : 'border-slate-200/80 bg-white hover:border-slate-300 dark:border-gray-800 dark:bg-gray-900'
             }`}
           >
-            <div>
-              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">កំពុងជួសជុល</p>
-              <p className="text-xl font-bold text-amber-600 dark:text-amber-400"><CountUp value={stats.maintenance} /></p>
+            <div className="min-w-0">
+              <p className="truncate text-[10px] font-medium uppercase tracking-wider text-slate-400 sm:text-xs">កំពុងជួសជុល</p>
+              <p className="text-lg font-bold text-amber-600 dark:text-amber-400 sm:text-xl"><CountUp value={stats.maintenance} /></p>
             </div>
-            <Wrench className="h-5 w-5 text-amber-500" />
+            <Wrench className="h-5 w-5 shrink-0 text-amber-500" />
           </button>
         </div>
       )}
 
       {/* Filter Bar */}
       {rooms.length > 0 && (
-        <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-1 flex-col gap-2.5 sm:flex-row sm:items-center">
-            <div className="flex-1">
+        <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-white p-3 dark:border-gray-800 dark:bg-gray-900 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-1 flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
+            <div className="w-full flex-1 sm:min-w-[200px]">
               <Input
                 placeholder="តម្រងតាមលេខបន្ទប់ ឬឈ្មោះ..."
                 leftIcon={<Search className="h-4 w-4 text-slate-400" />}
@@ -741,8 +782,8 @@ export default function Rooms() {
             )}
           </div>
 
-          <div className="flex items-center justify-between border-t border-slate-100 pt-2 dark:border-gray-800 sm:border-0 sm:pt-0">
-            <span className="text-xs text-slate-400 mr-2">{filtered.length} បន្ទប់</span>
+          <div className="flex items-center justify-between border-t border-slate-100 pt-2 dark:border-gray-800 lg:border-0 lg:pt-0">
+            <span className="mr-2 text-xs text-slate-400">{filtered.length} បន្ទប់</span>
             <div className="flex items-center rounded-lg bg-slate-100 p-1 dark:bg-gray-800">
               <button
                 type="button"
@@ -753,18 +794,18 @@ export default function Rooms() {
                     : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
                 }`}
               >
-                <LayoutGrid className="h-3.5 w-3.5 inline mr-1" /> ក្រឡា
+                <LayoutGrid className="mr-1 inline h-3.5 w-3.5" /> ក្រឡា
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode('table')}
-                className={`rounded px-2.5 py-1 text-xs font-medium transition-all ${
+                className={`hidden rounded px-2.5 py-1 text-xs font-medium transition-all sm:inline-flex sm:items-center ${
                   viewMode === 'table'
                     ? 'bg-white text-slate-900 shadow-sm dark:bg-gray-900 dark:text-white'
                     : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
                 }`}
               >
-                <List className="h-3.5 w-3.5 inline mr-1" /> តារាង
+                <List className="mr-1 inline h-3.5 w-3.5" /> តារាង
               </button>
             </div>
           </div>
@@ -789,7 +830,11 @@ export default function Rooms() {
         <>
           {viewMode === 'table' ? (
             <Card className="overflow-hidden rounded-xl border-slate-200/80 dark:border-gray-800">
-              <Table columns={columns} data={paginatedRooms} onRowClick={handleOpenView} />
+              <div className="w-full overflow-x-auto">
+                <div className="min-w-[900px]">
+                  <Table columns={columns} data={paginatedRooms} onRowClick={handleOpenView} />
+                </div>
+              </div>
             </Card>
           ) : (
             /* Grid Cards View */
@@ -801,22 +846,22 @@ export default function Rooms() {
                   <div
                     key={room.id}
                     onClick={() => handleOpenView(room)}
-                    className="group cursor-pointer rounded-xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700 flex flex-col justify-between"
+                    className="group flex cursor-pointer flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-4 transition-all hover:border-slate-300 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700"
                   >
                     <div>
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex min-w-0 items-center gap-3">
                           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-gray-800 dark:text-slate-300">
                             <DoorOpen className="h-5 w-5" />
                           </span>
-                          <div>
-                            <h3 className="font-semibold text-slate-800 dark:text-white">
+                          <div className="min-w-0">
+                            <h3 className="truncate font-semibold text-slate-800 dark:text-white">
                               {room.name || `បន្ទប់ ${room.roomNumber}`}
                             </h3>
-                            <p className="font-mono text-xs text-slate-400">អង្គភាព #{room.roomNumber}</p>
+                            <p className="truncate font-mono text-xs text-slate-400">អង្គភាព #{room.roomNumber}</p>
                           </div>
                         </div>
-                        {getStatusBadge(room.status)}
+                        <div className="shrink-0">{getStatusBadge(room.status)}</div>
                       </div>
 
                       <div className="mt-3.5 flex flex-wrap gap-2 text-xs text-slate-500 dark:text-slate-400">
@@ -834,7 +879,7 @@ export default function Rooms() {
                           ) : (
                             <Layers className="h-3 w-3 text-slate-400" />
                           )}
-                          {roomTypeName(room.roomTypeId)}
+                          <span className="max-w-[130px] truncate">{roomTypeName(room.roomTypeId)}</span>
                         </span>
                         {room.floorNumber != null && (
                           <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 dark:bg-gray-800">
@@ -846,38 +891,38 @@ export default function Rooms() {
                       {/* Tenant info */}
                       <div className="mt-3 rounded-lg bg-slate-50/70 p-2.5 dark:bg-gray-800/50">
                         {primaryTenant ? (
-                          <div className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-2 truncate">
-                              <UserIcon className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                              <span className="font-medium text-slate-700 dark:text-slate-200 truncate">{primaryTenant}</span>
+                          <div className="flex items-center justify-between gap-2 text-xs">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <UserIcon className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                              <span className="truncate font-medium text-slate-700 dark:text-slate-200">{primaryTenant}</span>
                             </div>
-                            <span className="text-[10px] font-semibold text-slate-400 uppercase">អ្នកជួល</span>
+                            <span className="shrink-0 text-[10px] font-semibold uppercase text-slate-400">អ្នកជួល</span>
                           </div>
                         ) : (
-                          <div className="flex items-center justify-between text-xs text-slate-400">
-                            <span>មិនទាន់មានអ្នកជួល</span>
+                          <div className="flex items-center justify-between gap-2 text-xs text-slate-400">
+                            <span className="truncate">មិនទាន់មានអ្នកជួល</span>
                             {room.status === 'AVAILABLE' && (
-                              <span className="text-emerald-600 dark:text-emerald-400 font-medium">ទំនេរ</span>
+                              <span className="shrink-0 font-medium text-emerald-600 dark:text-emerald-400">ទំនេរ</span>
                             )}
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="mt-4 border-t border-slate-100 pt-3 dark:border-gray-800 flex items-center justify-between">
-                      <div>
+                    <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3 dark:border-gray-800">
+                      <div className="min-w-0">
                         <span className="text-[11px] text-slate-400">ថ្លៃជួល</span>
-                        <p className="font-bold text-slate-900 dark:text-white text-base">{formatCurrency(room.monthlyRent)}</p>
+                        <p className="truncate text-base font-bold text-slate-900 dark:text-white">{formatCurrency(room.monthlyRent)}</p>
                       </div>
 
-                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex shrink-0 items-center gap-1" onClick={(e) => e.stopPropagation()}>
                         {room.status === 'AVAILABLE' && (
                           <Button
                             variant="outline"
                             size="xs"
                             leftIcon={<FilePlus className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />}
                             onClick={() => handleCreateContractForRoom(room.id)}
-                            className="mr-1 text-xs"
+                            className="hidden text-xs sm:inline-flex"
                           >
                             កិច្ចសន្យា
                           </Button>
@@ -885,12 +930,29 @@ export default function Rooms() {
                         {canSubmitRoom(room) && (
                           <SubmitForReviewButton room={room} onSuccess={() => fetchRooms()} iconOnly preview={previewNodeFor(room)} />
                         )}
-                        <IconButton variant="ghost" size="sm" tooltip="បញ្ចប់ / ពិនិត្យបញ្ជីផ្សាយ (Complete/Review Listing)" icon={<FileText className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />} onClick={() => navigate(`${basePath}/rooms/${room.id}/listing`)} />
-                        <IconButton variant="ghost" size="sm" tooltip="មើលជាមុន (Preview)" icon={<ScanEye className="h-4 w-4 text-sky-600 dark:text-sky-400" />} onClick={() => setPreviewTarget(room)} />
-                        <IconButton variant="ghost" size="sm" tooltip="គ្រឿងបរិក្ខារ" icon={<KeySquare className="h-4 w-4" />} onClick={() => setAmenityTarget(room)} />
-                        <IconButton variant="ghost" size="sm" tooltip="ប្រភេទប្រើប្រាស់" icon={<Zap className="h-4 w-4" />} onClick={() => setUtilityTarget(room)} />
-                        <IconButton variant="ghost" size="sm" tooltip="កែប្រែ" icon={<Edit className="h-4 w-4" />} onClick={() => openEdit(room)} />
-                        <IconButton variant="ghost" size="sm" tooltip="លុប" icon={<Trash2 className="h-4 w-4 text-red-500" />} onClick={() => setDeleteTarget(room)} />
+                        <IconButton
+                          variant="ghost"
+                          size="sm"
+                          tooltip="មើលជាមុន (Preview)"
+                          icon={<ScanEye className="h-4 w-4 text-sky-600 dark:text-sky-400" />}
+                          onClick={() => setPreviewTarget(room)}
+                        />
+                        <IconButton
+                          variant="ghost"
+                          size="sm"
+                          tooltip="កែប្រែ"
+                          icon={<Edit className="h-4 w-4" />}
+                          onClick={() => openEdit(room)}
+                        />
+                        <RoomActionsMenu
+                          room={room}
+                          onListing={() => navigate(`${basePath}/rooms/${room.id}/listing`)}
+                          onPreview={() => setPreviewTarget(room)}
+                          onAmenities={() => setAmenityTarget(room)}
+                          onUtilities={() => setUtilityTarget(room)}
+                          onDelete={() => setDeleteTarget(room)}
+                          onCreateContract={() => handleCreateContractForRoom(room.id)}
+                        />
                       </div>
                     </div>
                   </div>
@@ -900,7 +962,7 @@ export default function Rooms() {
           )}
 
           {totalPages > 1 && (
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-center pt-4 sm:justify-end">
               <Pagination
                 currentPage={page + 1}
                 totalPages={totalPages}
@@ -921,7 +983,7 @@ export default function Rooms() {
         title={editTarget ? `កែប្រែបន្ទប់ ${editTarget.roomNumber}` : 'បង្កើតបន្ទប់'}
         description={editTarget ? 'កែប្រែតម្លៃជួល ឬព័ត៌មានលម្អិតរបស់បន្ទប់។' : 'បន្ថែមបន្ទប់ទៅក្នុងផ្ទះរបស់អ្នក។'}
         footer={
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <Button
               variant="outline"
               onClick={() => {
@@ -1009,6 +1071,22 @@ export default function Rooms() {
         amenities={previewAmenities.amenities}
       />
 
+      {/* Bulk assignment modals */}
+      <RoomBulkModal
+        mode="utilities"
+        open={bulkUtilityOpen}
+        rooms={rooms}
+        houses={houses}
+        onClose={() => setBulkUtilityOpen(false)}
+      />
+      <RoomBulkModal
+        mode="amenities"
+        open={bulkAmenityOpen}
+        rooms={rooms}
+        houses={houses}
+        onClose={() => setBulkAmenityOpen(false)}
+      />
+
       {/* Amenity manager */}
       <RoomAmenityManager room={amenityTarget} onClose={() => setAmenityTarget(null)} />
 
@@ -1031,13 +1109,64 @@ export default function Rooms() {
   );
 }
 
+/* ─────────────────────────────────────────────────────────
+   RoomActionsMenu – collapses secondary actions into a
+   dropdown so card/table rows don't overflow on small screens.
+   ───────────────────────────────────────────────────────── */
+const RoomActionsMenu = ({ room, onListing, onPreview, onAmenities, onUtilities, onDelete, onCreateContract }) => {
+  const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
+
+  const item = (icon, label, handler, danger = false) => (
+    <button
+      type="button"
+      onClick={() => { close(); handler(); }}
+      className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors ${
+        danger
+          ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30'
+          : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-gray-800'
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+
+  return (
+    <div className="relative">
+      <IconButton
+        variant="ghost"
+        size="sm"
+        tooltip="សកម្មភាពផ្សេងទៀត"
+        icon={<MoreVertical className="h-4 w-4" />}
+        onClick={() => setOpen((v) => !v)}
+      />
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={close} />
+          <div className="absolute right-0 top-full z-20 mt-1 w-48 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+            {room.status === 'AVAILABLE' &&
+              item(<FilePlus className="h-3.5 w-3.5 text-emerald-500" />, 'បង្កើតកិច្ចសន្យា', onCreateContract)}
+            {item(<FileText className="h-3.5 w-3.5 text-indigo-500" />, 'បញ្ជីផ្សាយ', onListing)}
+            {item(<ScanEye className="h-3.5 w-3.5 text-sky-500" />, 'មើលជាមុន', onPreview)}
+            {item(<KeySquare className="h-3.5 w-3.5" />, 'គ្រឿងបរិក្ខារ', onAmenities)}
+            {item(<Zap className="h-3.5 w-3.5" />, 'ប្រភេទប្រើប្រាស់', onUtilities)}
+            <div className="my-1 border-t border-slate-100 dark:border-gray-800" />
+            {item(<Trash2 className="h-3.5 w-3.5" />, 'លុប', onDelete, true)}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 const DetailItem = ({ icon, label, value }) => (
   <div className="flex items-center gap-2 rounded-lg border border-slate-200/80 bg-white p-2.5 dark:border-gray-800 dark:bg-gray-900">
-    <div className="flex h-8 w-8 items-center justify-center rounded bg-slate-100 text-slate-500 dark:bg-gray-800 dark:text-slate-300">
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-slate-100 text-slate-500 dark:bg-gray-800 dark:text-slate-300">
       {icon}
     </div>
     <div className="min-w-0">
-      <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400">{label}</p>
+      <p className="truncate text-[10px] font-medium uppercase tracking-wider text-slate-400">{label}</p>
       <p className="truncate text-xs font-semibold text-slate-800 dark:text-slate-200">{value}</p>
     </div>
   </div>
@@ -1054,7 +1183,7 @@ const RoomForm = ({ form, errors, onChange, houses, roomTypes, onSubmit }) => {
         ចូររក្សាតែព័ត៌មានរូបវន្ដបន្ទប់ (Physical Room) ទីនេះ។
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Select
           label="ផ្ទះ"
           required
@@ -1088,13 +1217,13 @@ const RoomForm = ({ form, errors, onChange, houses, roomTypes, onSubmit }) => {
 
       {/* RoomType info chip — shows auto-filled defaults */}
       {selectedRoomType && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs text-slate-600 dark:border-gray-800 dark:bg-gray-800/40 dark:text-slate-300">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs text-slate-600 dark:border-gray-800 dark:bg-gray-800/40 dark:text-slate-300">
           <span className="font-semibold text-slate-700 dark:text-slate-200">{selectedRoomType.name}</span>
-          {selectedRoomType.bedrooms != null && <span className="ml-3">🛏 {selectedRoomType.bedrooms} Bed</span>}
-          {selectedRoomType.bathrooms != null && <span className="ml-2">🚿 {selectedRoomType.bathrooms} Bath</span>}
-          {selectedRoomType.areaSqm != null && <span className="ml-2">📐 {selectedRoomType.areaSqm} m²</span>}
-          {selectedRoomType.capacity != null && <span className="ml-2">👥 {selectedRoomType.capacity} នាក់</span>}
-          {selectedRoomType.furnishing && <span className="ml-2">🪑 {selectedRoomType.furnishing}</span>}
+          {selectedRoomType.bedrooms != null && <span>🛏 {selectedRoomType.bedrooms} Bed</span>}
+          {selectedRoomType.bathrooms != null && <span>🚿 {selectedRoomType.bathrooms} Bath</span>}
+          {selectedRoomType.areaSqm != null && <span>📐 {selectedRoomType.areaSqm} m²</span>}
+          {selectedRoomType.capacity != null && <span>👥 {selectedRoomType.capacity} នាក់</span>}
+          {selectedRoomType.furnishing && <span>🪑 {selectedRoomType.furnishing}</span>}
         </div>
       )}
 
@@ -1103,9 +1232,9 @@ const RoomForm = ({ form, errors, onChange, houses, roomTypes, onSubmit }) => {
         <Input label="ជាន់ (Floor)" type="number" min="0" name="floorNumber" value={form.floorNumber} onChange={onChange} placeholder="ឧ. 1" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Input label="ថ្លៃជួលប្រចាំខែ ($)" type="number" step="0.01" min="0" name="monthlyRent" value={form.monthlyRent} onChange={onChange} error={errors.monthlyRent} />
-        <Input label="ប្រាក់ដាក់ប្រាកដ ($)" type="number" step="0.01" min="0" name="securityDeposit" value={form.securityDeposit} onChange={onChange} error={errors.securityDeposit} />
+        <Input label="ប្រាក់កក់ ($)" type="number" step="0.01" min="0" name="securityDeposit" value={form.securityDeposit} onChange={onChange} error={errors.securityDeposit} />
         <Select
           label="ស្ថានភាព"
           name="status"
@@ -1140,17 +1269,17 @@ const ViewRoomDetails = ({
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100 text-slate-700 dark:bg-gray-800 dark:text-slate-200">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700 dark:bg-gray-800 dark:text-slate-200">
             <DoorOpen className="h-6 w-6" />
           </span>
-          <div>
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white">{room.name || `បន្ទប់ ${room.roomNumber}`}</h2>
-            <p className="font-mono text-xs text-slate-400">អង្គភាព #{room.roomNumber} · {hName}</p>
+          <div className="min-w-0">
+            <h2 className="truncate text-lg font-bold text-slate-800 dark:text-white">{room.name || `បន្ទប់ ${room.roomNumber}`}</h2>
+            <p className="truncate font-mono text-xs text-slate-400">អង្គភាព #{room.roomNumber} · {hName}</p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           {room.status === 'AVAILABLE' && (
             <Button variant="primary" size="sm" leftIcon={<FilePlus className="h-4 w-4" />} onClick={onCreateContract}>
               បង្កើតកិច្ចសន្យា
@@ -1164,11 +1293,11 @@ const ViewRoomDetails = ({
 
       {/* ── HOUSE section ── */}
       <div className="rounded-lg border border-slate-200/80 bg-slate-50/60 p-3 dark:border-gray-800 dark:bg-gray-800/40">
-        <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+        <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
           <Building2 className="h-3 w-3" /> ផ្ទះ (House)
         </p>
-        <p className="font-semibold text-sm text-slate-800 dark:text-white">{hName}</p>
-        {house?.address && <p className="text-xs text-slate-500 mt-0.5">{house.address}</p>}
+        <p className="text-sm font-semibold text-slate-800 dark:text-white">{hName}</p>
+        {house?.address && <p className="mt-0.5 text-xs text-slate-500">{house.address}</p>}
         {house?.cityProvince && <p className="text-xs text-slate-500">{house.cityProvince}</p>}
         {mapUrl && (
           <a
@@ -1183,10 +1312,10 @@ const ViewRoomDetails = ({
       {/* ── ROOM TYPE section ── */}
       {roomType && (
         <div className="rounded-lg border border-slate-200/80 bg-slate-50/60 p-3 dark:border-gray-800 dark:bg-gray-800/40">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
             <Layers className="h-3 w-3" /> ប្រភេទបន្ទប់ (Room Type)
           </p>
-          <p className="font-semibold text-sm text-slate-800 dark:text-white">{rtName}</p>
+          <p className="text-sm font-semibold text-slate-800 dark:text-white">{rtName}</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {roomType.bedrooms != null && (
               <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] dark:bg-gray-800">🛏 {roomType.bedrooms} Bed</span>
@@ -1227,8 +1356,8 @@ const ViewRoomDetails = ({
         {occupants.length > 0 ? (
           <div className="space-y-1.5">
             {occupants.map((t) => (
-              <div key={t.tenantId} className="flex items-center justify-between rounded bg-white px-3 py-2 text-xs font-semibold text-slate-700 dark:bg-gray-900 dark:text-slate-200 border border-slate-200/60 dark:border-gray-800">
-                <span className="flex items-center gap-2"><UserIcon className="h-3.5 w-3.5 text-slate-400" />{t.name}</span>
+              <div key={t.tenantId} className="flex items-center justify-between gap-2 rounded border border-slate-200/60 bg-white px-3 py-2 text-xs font-semibold text-slate-700 dark:border-gray-800 dark:bg-gray-900 dark:text-slate-200">
+                <span className="flex min-w-0 items-center gap-2"><UserIcon className="h-3.5 w-3.5 shrink-0 text-slate-400" /><span className="truncate">{t.name}</span></span>
                 {t.isPrimary && <Badge variant="info">ចម្បង</Badge>}
               </div>
             ))}
@@ -1240,7 +1369,7 @@ const ViewRoomDetails = ({
 
       {/* Amenities */}
       <div className="rounded-lg border border-slate-200/80 bg-slate-50/70 p-3 dark:border-gray-800 dark:bg-gray-800/40">
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2 flex items-center justify-between gap-2">
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">គ្រឿងបរិក្ខារ (Amenities)</p>
           <Button variant="outline" size="xs" leftIcon={<KeySquare className="h-3.5 w-3.5" />} onClick={onManageAmenities}>
             គ្រប់គ្រង
@@ -1249,7 +1378,7 @@ const ViewRoomDetails = ({
         {viewAmenities?.amenities?.length > 0 ? (
           <div className="flex flex-wrap gap-1.5">
             {viewAmenities.amenities.map((a) => (
-              <span key={a.amenityId} className="inline-flex items-center gap-1 rounded bg-white px-2.5 py-1 text-xs text-slate-700 dark:bg-gray-900 dark:text-slate-200 border border-slate-200/60 dark:border-gray-800">
+              <span key={a.amenityId} className="inline-flex items-center gap-1 rounded border border-slate-200/60 bg-white px-2.5 py-1 text-xs text-slate-700 dark:border-gray-800 dark:bg-gray-900 dark:text-slate-200">
                 <CheckCircle2 className="h-3 w-3 text-emerald-500" /> {a.amenityName}
               </span>
             ))}
@@ -1261,7 +1390,7 @@ const ViewRoomDetails = ({
 
       {/* Utilities */}
       <div className="rounded-lg border border-slate-200/80 bg-slate-50/70 p-3 dark:border-gray-800 dark:bg-gray-800/40">
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2 flex items-center justify-between gap-2">
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">ប្រើប្រាស់ (Utilities)</p>
           <Button variant="outline" size="xs" leftIcon={<Zap className="h-3.5 w-3.5" />} onClick={onManageUtilities}>
             គ្រប់គ្រង
@@ -1270,7 +1399,7 @@ const ViewRoomDetails = ({
         {viewUtilities?.utilities?.length > 0 ? (
           <div className="flex flex-wrap gap-1.5">
             {viewUtilities.utilities.map((u) => (
-              <span key={u.utilityTypeId} className="inline-flex items-center gap-1 rounded bg-white px-2.5 py-1 text-xs text-slate-700 dark:bg-gray-900 dark:text-slate-200 border border-slate-200/60 dark:border-gray-800">
+              <span key={u.utilityTypeId} className="inline-flex items-center gap-1 rounded border border-slate-200/60 bg-white px-2.5 py-1 text-xs text-slate-700 dark:border-gray-800 dark:bg-gray-900 dark:text-slate-200">
                 <Zap className="h-3 w-3 text-amber-500" />
                 {u.utilityTypeName}
                 <span className="ml-1 text-[10px] text-slate-400">({u.billingMethod === 'FIXED' ? 'Fixed' : 'Metered'})</span>
@@ -1284,11 +1413,11 @@ const ViewRoomDetails = ({
 
       {/* Publication section */}
       <div className="rounded-lg border border-slate-200/80 bg-slate-50/70 p-3 dark:border-gray-800 dark:bg-gray-800/40">
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2 flex items-center justify-between gap-2">
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">ការផ្សាយ (Publication)</p>
           <PublicationStatusBadge status={room.publicationStatus} />
         </div>
-        <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="grid grid-cols-1 gap-1 text-xs sm:grid-cols-2 sm:gap-2">
           <span className="text-slate-400">ដាក់ស្នើ៖ <span className="font-semibold text-slate-700 dark:text-slate-200">{formatDate(room.submittedAt)}</span></span>
           <span className="text-slate-400">បានផ្សាយ៖ <span className="font-semibold text-slate-700 dark:text-slate-200">{formatDate(room.publishedAt)}</span></span>
         </div>
@@ -1392,7 +1521,7 @@ const RoomAmenityManager = ({ room, onClose }) => {
                 <span key={a.amenityId} className="inline-flex items-center gap-1.5 rounded bg-slate-100 px-2.5 py-1 text-xs text-slate-700 dark:bg-gray-800 dark:text-slate-200">
                   <CheckCircle2 className="h-3 w-3 text-emerald-500" />
                   {a.amenityName}
-                  <button type="button" disabled={busyId === a.amenityId} onClick={() => handleRemove(a.amenityId)} className="text-slate-400 hover:text-red-500 ml-1">
+                  <button type="button" disabled={busyId === a.amenityId} onClick={() => handleRemove(a.amenityId)} className="ml-1 text-slate-400 hover:text-red-500">
                     <X className="h-3 w-3" />
                   </button>
                 </span>
@@ -1499,7 +1628,7 @@ const RoomUtilityManager = ({ room, onClose }) => {
                   <Badge variant={u.billingMethod === 'FIXED' ? 'info' : 'default'} className="ml-1">
                     {getBillingMethodLabel(u.billingMethod)}
                   </Badge>
-                  <button type="button" disabled={busyId === u.utilityTypeId} onClick={() => handleRemove(u.utilityTypeId)} className="text-slate-400 hover:text-red-500 ml-1">
+                  <button type="button" disabled={busyId === u.utilityTypeId} onClick={() => handleRemove(u.utilityTypeId)} className="ml-1 text-slate-400 hover:text-red-500">
                     <X className="h-3 w-3" />
                   </button>
                 </span>
@@ -1535,4 +1664,300 @@ const RoomUtilityManager = ({ room, onClose }) => {
       </div>
     </Modal>
   );
-}
+};
+
+const RoomBulkModal = ({ mode, open, rooms, houses, onClose }) => {
+  const isUtilities = mode === 'utilities';
+  const { types, loading: loadingTypes, fetchTypes } = useUtilityTypes();
+  const [amenities, setAmenities] = useState([]);
+  const [loadingAmenities, setLoadingAmenities] = useState(false);
+
+  const [search, setSearch] = useState('');
+  const [houseFilter, setHouseFilter] = useState('');
+  const [floorFilter, setFloorFilter] = useState('');
+  const [selectedRoomIds, setSelectedRoomIds] = useState(() => new Set());
+  const [entityIds, setEntityIds] = useState(() => new Set());
+  const [isIncluded, setIsIncluded] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState(null);
+  const toast = useToast();
+
+  useEffect(() => {
+    if (!open) return;
+    setSearch('');
+    setHouseFilter('');
+    setFloorFilter('');
+    setSelectedRoomIds(new Set());
+    setEntityIds(new Set());
+    setResult(null);
+    setSubmitting(false);
+    if (isUtilities) {
+      setLoadingAmenities(false);
+      fetchTypes({ page: 0, size: 100, status: 'ACTIVE' }).catch(() => {});
+    } else {
+      setLoadingAmenities(true);
+      roomApi
+        .getMyAmenities()
+        .then(setAmenities)
+        .finally(() => setLoadingAmenities(false));
+    }
+  }, [open, isUtilities, fetchTypes]);
+
+  const entities = isUtilities ? types : amenities;
+  const entitiesLoading = isUtilities ? loadingTypes : loadingAmenities;
+  const houseName = (id) => houses.find((h) => h.id === id)?.name || `ផ្ទះ #${id}`;
+
+  const floors = useMemo(() => {
+    const set = new Set();
+    rooms.forEach((r) => {
+      if (r.floorNumber != null) set.add(r.floorNumber);
+    });
+    return [...set].sort((a, b) => a - b);
+  }, [rooms]);
+
+  const visibleRooms = useMemo(() => {
+    let list = rooms;
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (r) =>
+          (r.roomNumber && r.roomNumber.toLowerCase().includes(q)) ||
+          (r.name && r.name.toLowerCase().includes(q))
+      );
+    }
+    if (houseFilter) list = list.filter((r) => String(r.houseId) === String(houseFilter));
+    if (floorFilter) list = list.filter((r) => String(r.floorNumber ?? '') === floorFilter);
+    return list;
+  }, [rooms, search, houseFilter, floorFilter]);
+
+  const allVisibleSelected =
+    visibleRooms.length > 0 && visibleRooms.every((r) => selectedRoomIds.has(r.id));
+
+  const selectAllVisible = () =>
+    setSelectedRoomIds((prev) => {
+      const next = new Set(prev);
+      visibleRooms.forEach((r) => {
+        if (allVisibleSelected) next.delete(r.id);
+        else next.add(r.id);
+      });
+      return next;
+    });
+
+  const toggleRoom = (id) =>
+    setSelectedRoomIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const toggleEntity = (id) =>
+    setEntityIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const roomNumberById = (id) => rooms.find((r) => r.id === id)?.roomNumber || id;
+  const entityNameById = (id) => entities.find((e) => e.id === id)?.name || id;
+
+  const handleSubmit = async () => {
+    if (selectedRoomIds.size === 0 || entityIds.size === 0) return;
+    setSubmitting(true);
+    setResult(null);
+    try {
+      const payload = {
+        roomIds: [...selectedRoomIds],
+        ...(isUtilities
+          ? { utilityTypeIds: [...entityIds], isIncluded }
+          : { amenityIds: [...entityIds] }),
+      };
+      const res = isUtilities
+        ? await roomApi.bulkAssignUtilities(payload)
+        : await roomApi.bulkAssignAmenities(payload);
+      setResult(res);
+      toast.success(
+        isUtilities ? 'កំណត់ប្រភេទប្រើប្រាស់ច្រើនបន្ទប់' : 'កំណត់គ្រឿងបរិក្ខារច្រើនបន្ទប់',
+        `បានកំណត់ ${res.assignmentsCreated} កន្លែង · មានរួចហើយ ${res.alreadyAssigned} · បរាជ័យ ${res.failures?.length || 0}`
+      );
+    } catch (err) {
+      toast.error(
+        'ការកំណត់បរាជ័យ',
+        err.response?.data?.message || err.response?.data?.error || 'ប្រតិបត្តិការបរាជ័យ។'
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      size="lg"
+      title={isUtilities ? 'កំណត់ប្រភេទប្រើប្រាស់ច្រើនបន្ទប់' : 'កំណត់គ្រឿងបរិក្ខារច្រើនបន្ទប់'}
+      description={
+        isUtilities
+          ? 'ជ្រើសរើសប្រភេទប្រើប្រាស់ និងបន្ទប់ដែលត្រូវកំណត់ទាំងអស់ក្នុងពេលតែមួយ។'
+          : 'ជ្រើសរើសគ្រឿងបរិក្ខារ និងបន្ទប់ដែលត្រូវកំណត់ទាំងអស់ក្នុងពេលតែមួយ។'
+      }
+      footer={
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button variant="outline" onClick={onClose}>
+            បោះបង់
+          </Button>
+          <Button
+            loading={submitting}
+            disabled={selectedRoomIds.size === 0 || entityIds.size === 0}
+            onClick={handleSubmit}
+          >
+            {submitting
+              ? 'កំពុងកំណត់...'
+              : `កំណត់ទៅ ${selectedRoomIds.size} បន្ទប់`}
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-4">
+        <div>
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            {isUtilities ? 'ប្រភេទប្រើប្រាស់ (Utilities)' : 'គ្រឿងបរិក្ខារ (Amenities)'}
+          </p>
+          {entitiesLoading ? (
+            <Skeleton className="h-6 w-32" />
+          ) : entities.length === 0 ? (
+            <p className="text-xs text-slate-400">មិនមានទិន្នន័យទេ។</p>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {entities.map((e) => {
+                const selected = entityIds.has(e.id);
+                return (
+                  <button
+                    key={e.id}
+                    type="button"
+                    onClick={() => toggleEntity(e.id)}
+                    className={`inline-flex items-center gap-1.5 rounded border px-2.5 py-1 text-xs transition-colors ${
+                      selected
+                        ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-gray-900'
+                        : 'border-slate-300 text-slate-600 hover:border-slate-400 dark:border-gray-700 dark:text-slate-300'
+                    }`}
+                  >
+                    {selected && <Check className="h-3 w-3" />}
+                    {e.name}
+                    {isUtilities && (
+                      <span className={`text-[10px] ${selected ? 'text-slate-300 dark:text-gray-500' : 'text-slate-400'}`}>
+                        ({e.billingMethod === 'METERED' ? 'Metered' : 'Fixed'})
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="border-t border-slate-100 pt-3 dark:border-gray-800">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">បន្ទប់ (Rooms)</p>
+            <span className="ml-auto text-xs font-medium text-slate-500 dark:text-slate-400">
+              {selectedRoomIds.size} បន្ទប់បានជ្រើសរើស
+            </span>
+            <Button variant="ghost" size="xs" onClick={selectAllVisible}>
+              {allVisibleSelected ? 'មិនជ្រើសរើសទាំងអស់' : 'ជ្រើសរើសទាំងអស់'}
+            </Button>
+            <Button variant="ghost" size="xs" onClick={() => setSelectedRoomIds(new Set())}>
+              សម្អាត
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-2 pb-2 sm:grid-cols-3">
+            <Input
+              placeholder="ស្វែងរកលេខបន្ទប់ ឬឈ្មោះ..."
+              leftIcon={<Search className="h-4 w-4 text-slate-400" />}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <Select
+              options={[
+                { value: '', label: 'ផ្ទះទាំងអស់' },
+                ...houses.map((h) => ({ value: String(h.id), label: h.name })),
+              ]}
+              value={houseFilter}
+              onChange={(e) => setHouseFilter(e.target.value)}
+            />
+            <Select
+              options={[
+                { value: '', label: 'ជាន់ទាំងអស់' },
+                ...floors.map((f) => ({ value: String(f), label: `ជាន់ ${f}` })),
+              ]}
+              value={floorFilter}
+              onChange={(e) => setFloorFilter(e.target.value)}
+            />
+          </div>
+
+          <div className="max-h-64 space-y-0.5 overflow-y-auto rounded-lg border border-slate-200/80 p-1.5 dark:border-gray-800">
+            {visibleRooms.length === 0 ? (
+              <p className="px-2 py-4 text-center text-xs text-slate-400">គ្មានបន្ទប់ត្រូវនឹងលក្ខខណ្ឌ។</p>
+            ) : (
+              visibleRooms.map((r) => (
+                <div
+                  key={r.id}
+                  onClick={() => toggleRoom(r.id)}
+                  className={`flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 text-sm transition-colors ${
+                    selectedRoomIds.has(r.id)
+                      ? 'bg-slate-100 dark:bg-gray-800'
+                      : 'hover:bg-slate-50 dark:hover:bg-gray-800/60'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    readOnly
+                    checked={selectedRoomIds.has(r.id)}
+                    className="h-4 w-4 shrink-0 accent-gray-900 dark:accent-white"
+                  />
+                  <span className="shrink-0 font-mono text-xs text-slate-400">#{r.roomNumber}</span>
+                  <span className="min-w-0 flex-1 truncate text-slate-700 dark:text-slate-200">
+                    {r.name || r.roomNumber}
+                  </span>
+                  <span className="hidden max-w-[140px] truncate text-xs text-slate-400 sm:block">
+                    {houseName(r.houseId)}
+                  </span>
+                  <span className="shrink-0 text-xs text-slate-400">ជាន់ {r.floorNumber ?? '—'}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {isUtilities && (
+          <div className="border-t border-slate-100 pt-3 dark:border-gray-800">
+            <Checkbox
+              label="រាប់បញ្ចូលក្នុងវិក្ក័ប្រើប្រាស់ (Included in bill)"
+              checked={isIncluded}
+              onChange={(e) => setIsIncluded(e.target.checked)}
+            />
+          </div>
+        )}
+
+        {result && (
+          <div className="rounded-lg border border-slate-200/80 bg-slate-50/60 p-3 text-sm dark:border-gray-800 dark:bg-gray-800/40">
+            <p className="font-semibold text-slate-800 dark:text-white">
+              បានដំណើរការ {result.roomsProcessed} បន្ទប់ · បង្កើត {result.assignmentsCreated} ·
+              មានរួចហើយ {result.alreadyAssigned} · បរាជ័យ {result.failures?.length || 0}
+            </p>
+            {result.failures?.length > 0 && (
+              <ul className="mt-2 max-h-32 space-y-1 overflow-y-auto text-xs text-slate-500 dark:text-slate-400">
+                {result.failures.map((f, i) => (
+                  <li key={i}>
+                    បន្ទប់ #{roomNumberById(f.roomId)} · {entityNameById(f.entityId)} — {f.reason}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
+    </Modal>
+  );
+};

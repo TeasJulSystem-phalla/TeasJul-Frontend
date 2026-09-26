@@ -13,6 +13,15 @@ export const invoiceApi = {
   getInvoices: (params) =>
     api.get("/invoices", { params }).then((res) => res.data),
 
+  getSummary: (params) =>
+    api.get("/owner/invoices/summary", { params }).then((res) => res.data),
+
+  getEligibleContracts: (params) =>
+    api.get("/owner/invoices/eligible-contracts", { params }).then((res) => res.data),
+
+  getGeneratePreview: (params) =>
+    api.get("/owner/invoices/generate-preview", { params }).then((res) => res.data),
+
   getInvoiceById: (id) =>
     api.get(`/invoices/${id}`).then((res) => res.data),
 

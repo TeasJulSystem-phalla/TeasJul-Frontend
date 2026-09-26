@@ -10,7 +10,6 @@ import {
   LogOut,
   X,
   Bell,
-  Bot,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 
@@ -22,7 +21,6 @@ const NAV_ITEMS = [
   { to: '/tenant/payments', label: 'ការទូទាត់ (Payments)', icon: Wallet },
   { to: '/tenant/utilities', label: 'ទឹក និងភ្លើង', icon: Zap },
   { to: '/tenant/notifications', label: 'ការជូនដំណឹង', icon: Bell },
-  { to: '/tenant/assistant', label: 'ជំនួយការ AI', icon: Bot },
 ];
 
 const Brand = ({ isCollapsed }) => (
@@ -32,7 +30,7 @@ const Brand = ({ isCollapsed }) => (
     </div>
     {!isCollapsed && (
       <div className="min-w-0">
-        <p className="truncate text-[15px] font-semibold text-slate-800 dark:text-white">RentalHub</p>
+        <p className="truncate text-[15px] font-semibold text-slate-800 dark:text-white">TeasJul</p>
         <p className="truncate text-[11px] font-medium text-slate-400 dark:text-slate-500">តំបន់អ្នកជួល</p>
       </div>
     )}

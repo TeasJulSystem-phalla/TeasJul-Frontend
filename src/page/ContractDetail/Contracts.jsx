@@ -105,7 +105,7 @@ export default function Contracts() {
   const [activeTab, setActiveTab] = useState('');
   const [houseFilter, setHouseFilter] = useState('');
   const [sortBy, setSortBy] = useState('recent');
-  const [view, setView] = useState('grid');
+  const [view, setView] = useState('table');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [page, setPage] = useState(0);

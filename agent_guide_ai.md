@@ -236,7 +236,7 @@ A typical page (see `src/page/Users.jsx` and `src/page/Properties.jsx`) follows 
 9. **View details:** a read-only `<Modal>` showing structured info sections.
 
 Styling uses Tailwind utility classes throughout with explicit light/dark variants
-(`dark:` prefixes). Brand name shown in the sidebar is "RentalHub".
+(`dark:` prefixes). Brand name shown in the sidebar is "TeasJul".
 
 ## Adding a new feature/resource
 

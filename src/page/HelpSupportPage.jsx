@@ -105,7 +105,7 @@ export default function HelpSupportPage() {
   );
 
   const isManager = location.pathname.startsWith('/manager');
-  const assistantPath = isManager ? '/manager/assistant' : '/assistant';
+  const assistantPath = isManager ? '/manager/assistant' : '/owner/assistant';
   const guidePath = (route) => {
     if (isManager) {
       const managerRoutes = {
@@ -121,13 +121,13 @@ export default function HelpSupportPage() {
     }
 
     const ownerRoutes = {
-      properties: '/properties',
-      rooms: '/rooms',
-      tenants: '/tenants',
-      contracts: '/contracts',
-      payments: '/finance/payments',
-      reports: '/owner-report',
-      maintenance: '/maintenance',
+      properties: '/owner/properties',
+      rooms: '/owner/rooms',
+      tenants: '/owner/tenants',
+      contracts: '/owner/contracts',
+      payments: '/owner/finance/payments',
+      reports: '/owner/owner-report',
+      maintenance: '/owner/maintenance',
     };
     return ownerRoutes[route];
   };
