@@ -28,6 +28,9 @@ import {
   MapPin,
   Type,
   SunMoon,
+  UserSquare,
+  Briefcase,
+  Calendar,
 } from "lucide-react";
 
 const TABS = [
@@ -73,12 +76,32 @@ const LANGUAGE_OPTIONS = [
   { value: "BOTH", label: "Both (KM + EN)" },
 ];
 
+// Mirrors the backend Gender enum. The leading "" entry keeps the field optional.
+const GENDER_OPTIONS = [
+  { value: "", label: "មិនជ្រើសរើស (Not specified)" },
+  { value: "MALE", label: "ប្រុស (Male)" },
+  { value: "FEMALE", label: "ស្រី (Female)" },
+  { value: "OTHER", label: "ផ្សេងទៀត (Other)" },
+];
+
+const EMPTY_CONTRACT_PARTY = {
+  fullName: "",
+  gender: "",
+  dateOfBirth: "",
+  nationality: "",
+  nationalId: "",
+  currentAddress: "",
+  phone: "",
+  occupation: "",
+};
+
 export default function SettingsPage() {
   const { settings, loading, saving, error, saveSettings, DEFAULT_SETTINGS } = useSettings();
   const toast = useToast();
   const [activeTab, setActiveTab] = useState("general");
   const [form, setForm] = useState(DEFAULT_SETTINGS);
   const [dirty, setDirty] = useState(false);
+  const [partyErrors, setPartyErrors] = useState({});
 
   useEffect(() => {
     if (settings && !loading) {
@@ -97,9 +120,70 @@ export default function SettingsPage() {
     setDirty(true);
   }, []);
 
+  const handlePartyChange = useCallback((field, value) => {
+    setForm((prev) => ({
+      ...prev,
+      contractParty: { ...EMPTY_CONTRACT_PARTY, ...(prev.contractParty || {}), [field]: value },
+    }));
+    setDirty(true);
+    setPartyErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
+  }, []);
+
+  // Optional fields stay optional: only length limits and a real, non-future
+  // date are enforced, so valid Cambodian names and addresses are never rejected.
+  const validateContractParty = useCallback((party) => {
+    const errs = {};
+    const trimmed = {
+      fullName: (party.fullName || "").trim(),
+      dateOfBirth: (party.dateOfBirth || "").trim(),
+      nationalId: (party.nationalId || "").trim(),
+      currentAddress: (party.currentAddress || "").trim(),
+      phone: (party.phone || "").trim(),
+    };
+
+    if (trimmed.fullName.length > 200) errs.fullName = "ឈ្មោះមិនត្រូវលើសពី 200 តួអក្សរ";
+    if (trimmed.nationalId.length > 100) errs.nationalId = "លេខអត្តសញ្ញាណបថណ្ណលេខមិនត្រូវលើសពី 100 តួអក្សរ";
+    if (trimmed.currentAddress.length > 255) errs.currentAddress = "អាសថយដ្ឋានមិនត្រូវលើសពី 255 តួអក្សរ";
+    if (trimmed.phone.length > 30) errs.phone = "លេខទូរស័ព្ទមិនត្រូវលើសពី 30 តួអក្សរ";
+    if (trimmed.dateOfBirth) {
+      const dob = new Date(trimmed.dateOfBirth);
+      if (Number.isNaN(dob.getTime())) {
+        errs.dateOfBirth = "ថ្ងៃខែឆ្នាំកំណើតមិនត្រឹមតែណា";
+      } else if (dob.getTime() > Date.now()) {
+        errs.dateOfBirth = "ថ្ងៃខែឆ្នាំកំណើតត្រូវតែជាថ្ងៃកន្លងមក";
+      }
+    }
+    return errs;
+  }, []);
+
   const handleSave = async () => {
+    const party = { ...EMPTY_CONTRACT_PARTY, ...(form.contractParty || {}) };
+    const errs = validateContractParty(party);
+    setPartyErrors(errs);
+    if (Object.keys(errs).length > 0) {
+      setActiveTab("contract");
+      toast.error("ការកំណត់បរាជ័យ", "សូមកែពាក្យពថត៌មានកិច្ចសន្យាដែលមិនត្រឹមតែណា");
+      return;
+    }
+
+    // Send the block with trimmed values so leading/trailing spaces never reach
+    // the contract document.
+    const payload = {
+      ...form,
+      contractParty: {
+        fullName: party.fullName.trim(),
+        gender: party.gender || null,
+        dateOfBirth: party.dateOfBirth || null,
+        nationality: party.nationality.trim(),
+        nationalId: party.nationalId.trim(),
+        currentAddress: party.currentAddress.trim(),
+        phone: party.phone.trim(),
+        occupation: party.occupation.trim(),
+      },
+    };
+
     try {
-      const saved = await saveSettings(form);
+      const saved = await saveSettings(payload);
       setDirty(false);
       window.dispatchEvent(new CustomEvent('rentalhub:settings-updated', { detail: saved }));
       toast.success("រក្សាទុកជោគជ័យ", "ការកំណត់ត្រូវបានរក្សាទុកដោយជោគជ័យ");
@@ -110,6 +194,7 @@ export default function SettingsPage() {
 
   const handleReset = () => {
     setForm(settings);
+    setPartyErrors({});
     setDirty(false);
   };
 
@@ -176,7 +261,12 @@ export default function SettingsPage() {
             <InvoiceSection form={form} onChange={handleChange} onNumberChange={handleNumberChange} />
           )}
           {activeTab === "contract" && (
-            <ContractSection form={form} onChange={handleChange} />
+            <ContractSection
+              form={form}
+              onChange={handleChange}
+              onPartyChange={handlePartyChange}
+              partyErrors={partyErrors}
+            />
           )}
           {activeTab === "receipt" && (
             <ReceiptSection form={form} onChange={handleChange} />
@@ -447,10 +537,104 @@ function InvoiceSection({ form, onChange, onNumberChange }) {
   );
 }
 
-function ContractSection({ form, onChange }) {
+function ContractPartySection({ party, onPartyChange, errors }) {
   return (
     <div className="space-y-6">
-      <SectionHeader icon={FileSignature} title="ការកំណត់កិច្ចសន្យា" subtitle="លក្ខខណ្ឌ និងទម្រង់កិច្ចសន្យា" />
+      <SectionHeader
+        icon={UserSquare}
+        title="ព័ត៌មានកិច្ចសន្យា (Contract Party A)"
+        subtitle="ព័ត៌មានផ្ទាល់ខ្លួនរបស់អ្នកដែលបោះពុម្ភជាភាគីក ក្នុងកិច្ចសន្យាជួលផ្ទះ"
+      />
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <Input
+          label="ឈ្មោះពេញ (Full Name)"
+          value={party.fullName}
+          onChange={(e) => onPartyChange("fullName", e.target.value)}
+          placeholder="ឧ. សុភា សុខាជ"
+          error={errors.fullName}
+          leftIcon={<UserSquare className="h-4 w-4" />}
+        />
+        <Select
+          label="ភេទ (Gender)"
+          options={GENDER_OPTIONS}
+          placeholder=""
+          value={party.gender}
+          onChange={(e) => onPartyChange("gender", e.target.value)}
+        />
+        <Input
+          label="ថ្ងៃខែឆ្នាំកំណើត (Date of Birth)"
+          type="date"
+          value={party.dateOfBirth}
+          onChange={(e) => onPartyChange("dateOfBirth", e.target.value)}
+          error={errors.dateOfBirth}
+          leftIcon={<Calendar className="h-4 w-4" />}
+        />
+        <Input
+          label="សញ្ជាតិ (Nationality)"
+          value={party.nationality}
+          onChange={(e) => onPartyChange("nationality", e.target.value)}
+          placeholder="ឧ. ខ្មែរ"
+          leftIcon={<Globe className="h-4 w-4" />}
+        />
+        <Input
+          label="អត្តសញ្ញាណបថណ្ណលេខ (National ID)"
+          value={party.nationalId}
+          onChange={(e) => onPartyChange("nationalId", e.target.value)}
+          error={errors.nationalId}
+          leftIcon={<Hash className="h-4 w-4" />}
+        />
+        <Input
+          label="ទូរស័ព្ទលេខ (Phone)"
+          value={party.phone}
+          onChange={(e) => onPartyChange("phone", e.target.value)}
+          placeholder="012 345 678"
+          error={errors.phone}
+          leftIcon={<Phone className="h-4 w-4" />}
+        />
+        <div className="md:col-span-2">
+          <Input
+            label="ទីលំនៅបច្ចុប្បន្ន (Current Address)"
+            value={party.currentAddress}
+            onChange={(e) => onPartyChange("currentAddress", e.target.value)}
+            placeholder="រាជធានីភ្នំពេញ, ព្រះរាជាណាចក្រកម្ពុជា"
+            error={errors.currentAddress}
+            leftIcon={<MapPin className="h-4 w-4" />}
+          />
+        </div>
+        <div className="md:col-span-2">
+          <Input
+            label="មុខរបរបច្ចុប្បន្ន (Occupation)"
+            value={party.occupation}
+            onChange={(e) => onPartyChange("occupation", e.target.value)}
+            placeholder="ឧ. អាជីវករ"
+            leftIcon={<Briefcase className="h-4 w-4" />}
+          />
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-[13px] text-slate-600 dark:border-gray-700 dark:bg-gray-800/50 dark:text-slate-300">
+        <p>
+          ព័ត៌មាននេះត្រូវបានរក្សាទុកជាភាគីកនៃកិច្ចសន្យាជួលផ្ទះ
+          នៅពេលបង្កើត។ កិច្ចសន្យាដែលបានបង្កើតរួចហើយនឹងបង្ហាញព័ត៌មានដូចនៅពេលចុះហត្ថលេខ
+          មិនលៀនចាំងការផ្លាស់ប្តូរនៅឯករាជ្យាទេ។ វាលទ្រង់ទ្រាយអាចទុកទទេបាន។
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ContractSection({ form, onChange, onPartyChange, partyErrors }) {
+  return (
+    <div className="space-y-8">
+      <ContractPartySection
+        party={{ ...EMPTY_CONTRACT_PARTY, ...(form.contractParty || {}) }}
+        onPartyChange={onPartyChange}
+        errors={partyErrors || {}}
+      />
+
+      <div className="space-y-6 border-t border-slate-200 pt-6 dark:border-gray-700">
+        <SectionHeader icon={FileSignature} title="លក្ខខណ្ឌ និងទម្រង់កិច្ចសន្យា" subtitle="ចំណងជើង ភាសា និងលក្ខខណ្ឌកិច្ចសន្យា" />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <Input
@@ -496,6 +680,7 @@ function ContractSection({ form, onChange }) {
           placeholder="លក្ខខណ្ឌបន្ថែមផ្សេងៗ..."
           rows={3}
         />
+        </div>
       </div>
     </div>
   );

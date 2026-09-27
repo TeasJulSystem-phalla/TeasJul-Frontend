@@ -28,6 +28,12 @@ export const invoiceApi = {
   addItem: (id, data) =>
     api.post(`/invoices/${id}/items`, data).then((res) => res.data),
 
+  updateLateFee: (id, lateFee) =>
+    api.patch(`/invoices/${id}/late-fee`, { lateFee }).then((res) => res.data),
+
+  recalculateLateFee: (id) =>
+    api.patch(`/invoices/${id}/late-fee/recalculate`).then((res) => res.data),
+
   updateStatus: (id, status) =>
     api.patch(`/invoices/${id}/status`, null, { params: { status } }).then((res) => res.data),
 

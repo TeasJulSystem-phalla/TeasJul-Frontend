@@ -389,12 +389,16 @@ export default function InvoicePdfDocument({ invoice, settings }) {
                 {showKhr && <Text style={s.grandKhr}>≈ {fmtKHR(invoice.totalAmount, exchangeRate)}</Text>}
               </View>
             </View>
-            {invoice.status === 'PARTIAL' && Number(invoice.paidAmount) > 0 && (
-              <View style={s.paid}>
-                <Text style={s.paidLabel}>បានបង់រួច / Paid:</Text>
-                <Text style={s.paidValue}>{fmtUSD(invoice.paidAmount)}</Text>
-              </View>
-            )}
+            <View style={s.paid}>
+              <Text style={s.paidLabel}>បានបង់រួច / Paid:</Text>
+              <Text style={s.paidValue}>{fmtUSD(invoice.paidAmount || 0)}</Text>
+            </View>
+            <View style={s.paid}>
+              <Text style={s.paidLabel}>នៅសល់ / Remaining:</Text>
+              <Text style={s.paidValue}>{fmtUSD(invoice.remainingAmount != null
+                ? invoice.remainingAmount
+                : Math.max(Number(invoice.totalAmount || 0) - Number(invoice.paidAmount || 0), 0))}</Text>
+            </View>
           </View>
         </View>
 

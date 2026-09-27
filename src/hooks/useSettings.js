@@ -28,6 +28,18 @@ const DEFAULT_SETTINGS = {
   contractTerminationTerms: "",
   contractAdditionalTerms: "",
   contractLanguage: "KM",
+  // Party A - the owner's own identity printed on rental agreements.
+  // Snapshotted onto each contract when it is created.
+  contractParty: {
+    fullName: "",
+    gender: "",
+    dateOfBirth: "",
+    nationality: "",
+    nationalId: "",
+    currentAddress: "",
+    phone: "",
+    occupation: "",
+  },
   receiptPrefix: "RCP",
   receiptLanguage: "KM",
   receiptFooter: "",

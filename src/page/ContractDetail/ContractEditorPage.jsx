@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useContracts, useContractDeposits, useContractRenewals, useContractTenants } from '../../hooks/useContracts.js';
 import { useRooms } from '../../hooks/useRooms.js';
+import { useRoomBookings } from '../../hooks/useRoomBookings.js';
 import { useHouses } from '../../hooks/useHouses.js';
 import { useRoomTypes } from '../../hooks/useRoomType.js';
 import { useTenants } from '../../hooks/useTenants.js';
@@ -87,6 +88,7 @@ export default function ContractEditorPage() {
     updateContract,
   } = useContracts();
   const { rooms } = useRooms();
+  const { bookings } = useRoomBookings();
   const { houses } = useHouses();
   const { roomTypes } = useRoomTypes();
   const toast = useToast();
@@ -104,7 +106,7 @@ export default function ContractEditorPage() {
   const [submitting, setSubmitting] = useState(false);
 
   // Inline Room Selector State
-  const [roomFilterStatus, setRoomFilterStatus] = useState(isEdit ? '' : 'AVAILABLE');
+  const [roomFilterStatus, setRoomFilterStatus] = useState('');
   const [roomSearchTerm, setRoomSearchTerm] = useState('');
   const [houseFilter, setHouseFilter] = useState('');
   const [showRoomGrid, setShowRoomGrid] = useState(true);
@@ -113,6 +115,22 @@ export default function ContractEditorPage() {
     () => rooms.find((r) => String(r.id) === String(form.roomId)),
     [rooms, form.roomId]
   );
+
+  const currentBookingByRoomId = useMemo(() => {
+    const byRoomId = new Map();
+    bookings
+      .filter((booking) => booking.status === 'BOOKED')
+      .forEach((booking) => {
+        if (!byRoomId.has(String(booking.roomId))) {
+          byRoomId.set(String(booking.roomId), booking);
+        }
+      });
+    return byRoomId;
+  }, [bookings]);
+
+  const selectedBooking = selectedRoom
+    ? currentBookingByRoomId.get(String(selectedRoom.id))
+    : null;
 
   const houseName = useCallback(
     (houseId) => houses.find((h) => h.id === houseId)?.name || `ផ្ទះ #${houseId}`,
@@ -245,7 +263,12 @@ export default function ContractEditorPage() {
 
   // Inline Filtered rooms
   const inlineFilteredRooms = useMemo(() => {
-    let result = rooms;
+    let result = rooms.filter((room) => {
+      const hasCurrentBooking = currentBookingByRoomId.has(String(room.id));
+      return room.status === 'AVAILABLE'
+        || (room.status === 'BOOKED' && hasCurrentBooking)
+        || (isEdit && String(room.id) === String(contract?.roomId));
+    });
     if (roomFilterStatus) {
       result = result.filter((r) => r.status === roomFilterStatus);
     }
@@ -261,7 +284,7 @@ export default function ContractEditorPage() {
       );
     }
     return result;
-  }, [rooms, roomFilterStatus, houseFilter, roomSearchTerm]);
+  }, [rooms, currentBookingByRoomId, isEdit, contract?.roomId, roomFilterStatus, houseFilter, roomSearchTerm]);
 
   if (loading) {
     return (
@@ -337,6 +360,12 @@ export default function ContractEditorPage() {
                 <p className="text-xs text-slate-500 mt-0.5">
                   {houseName(selectedRoom.houseId)} · {roomTypeName(selectedRoom.roomTypeId)} · ថ្លៃជួល: <span className="font-bold text-emerald-700 dark:text-emerald-400">{formatCurrency(selectedRoom.monthlyRent)}/ខែ</span>
                 </p>
+                {selectedBooking && (
+                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+                    Booking customer: <span className="font-semibold">{selectedBooking.customerName}</span>
+                    {selectedBooking.customerPhone ? ` · ${selectedBooking.customerPhone}` : ''}
+                  </p>
+                )}
               </div>
             </div>
             <Button
@@ -403,7 +432,9 @@ export default function ContractEditorPage() {
                 {inlineFilteredRooms.map((room) => {
                   const isSelected = String(room.id) === String(form.roomId);
                   const isAvailable = room.status === 'AVAILABLE';
-                  const canSelect = isAvailable || (isEdit && String(room.id) === String(contract?.roomId));
+                  const booking = currentBookingByRoomId.get(String(room.id));
+                  const canSelect = isAvailable || Boolean(booking)
+                    || (isEdit && String(room.id) === String(contract?.roomId));
 
                   return (
                     <div
@@ -444,6 +475,7 @@ export default function ContractEditorPage() {
                         <div className="mt-2.5 text-xs text-slate-500 dark:text-slate-400 space-y-0.5">
                           <p className="truncate">{houseName(room.houseId)} · {roomTypeName(room.roomTypeId)}</p>
                           {room.floorNumber != null && <p>ជាន់ {room.floorNumber} · សមត្ថភាព: {room.capacity} នាក់</p>}
+                          {booking && <p className="font-medium text-amber-700 dark:text-amber-300">Booking: {booking.customerName} · {booking.customerPhone}</p>}
                         </div>
                       </div>
 

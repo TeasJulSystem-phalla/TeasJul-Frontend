@@ -54,6 +54,11 @@ const STATUS_FILTERS = [
   { value: 'ENTERED', label: 'បានបញ្ចូល' },
 ];
 
+const TENANT_STATUS_FILTERS = [
+  { value: 'ALL', label: 'ទាំងអស់' },
+  { value: 'OCCUPIED', label: 'មានអ្នកជួល' },
+];
+
 export default function UtilityReadings() {
   const { getMonthlySheet, getMonthlySheetFloors, saveMonthlySheet } = useUtilityReadings();
   const { houses, loading: housesLoading, error: housesError } = useHouses();
@@ -66,6 +71,7 @@ export default function UtilityReadings() {
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('ALL');
+  const [tenantStatus, setTenantStatus] = useState('ALL');
 
   const [sheet, setSheet] = useState([]);
   const [currents, setCurrents] = useState({});
@@ -164,14 +170,23 @@ export default function UtilityReadings() {
     }
   }, [houseId, loadSheet, getMonthlySheetFloors]);
 
+  // "មានអ្នកជួល" reuses the tenant the sheet already resolved server-side from an ACTIVE
+  // rental contract with a tenant assignment whose term covers today, so a booking,
+  // cancelled/terminated contract or a tenant elsewhere never counts as occupied.
+  const hasActiveTenant = useCallback(
+    (group) => Boolean(String(group.room?.tenantName || '').trim()),
+    []
+  );
+
   const rooms = useMemo(() => {
     const map = new Map();
     sheet.forEach((r) => {
       if (!map.has(r.roomId)) map.set(r.roomId, { room: r, meters: [] });
       map.get(r.roomId).meters.push(r);
     });
-    return [...map.values()];
-  }, [sheet]);
+    const groups = [...map.values()];
+    return tenantStatus === 'OCCUPIED' ? groups.filter(hasActiveTenant) : groups;
+  }, [sheet, tenantStatus, hasActiveTenant]);
 
   const valueOf = useCallback((meterId) => currents[String(meterId)], [currents]);
 
@@ -274,6 +289,15 @@ export default function UtilityReadings() {
         />
       );
     }
+    if (tenantStatus === 'OCCUPIED') {
+      return (
+        <EmptyState
+          icon={DoorClosed}
+          title="រកមិនឃើញបន្ទប់ដែលកំពុងមានអ្នកជួលទេ។"
+          description="សូមកែប្រូរតម្រងដែលផ្សេង ឬជ្រើសរើស «ទាំងអស់» ដើម្បីមើលបន្ទប់ទាំងអស់។"
+        />
+      );
+    }
     if (status === 'NOT_ENTERED') {
       return (
         <EmptyState
@@ -340,6 +364,14 @@ export default function UtilityReadings() {
               value={String(floor)}
               onChange={(e) => setFloor(e.target.value)}
               disabled={floorsLoading || !floorOptions.length}
+            />
+          </div>
+          <div className="w-full sm:w-48">
+            <Select
+              label="ស្ថានភាពអ្នកជួល"
+              options={TENANT_STATUS_FILTERS}
+              value={tenantStatus}
+              onChange={(e) => setTenantStatus(e.target.value)}
             />
           </div>
           <div className="w-full lg:max-w-xs lg:flex-1">

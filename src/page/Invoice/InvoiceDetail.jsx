@@ -87,10 +87,15 @@ export default function InvoiceDetail() {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [paying, setPaying] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [lateFeeInput, setLateFeeInput] = useState('');
+  const [savingLateFee, setSavingLateFee] = useState(false);
+  const [lateFeeError, setLateFeeError] = useState('');
 
   const openPaymentModal = useCallback(async () => {
     setPaymentMethodId('');
-    setPaymentAmount(invoice?.totalAmount != null ? String(invoice.totalAmount) : '');
+    setPaymentAmount(invoice?.remainingAmount != null
+      ? String(invoice.remainingAmount)
+      : String(Math.max(Number(invoice?.totalAmount || 0) - Number(invoice?.paidAmount || 0), 0)));
     setPaymentOpen(true);
     try {
       const data = await paymentApi.listPaymentMethods();
@@ -117,14 +122,67 @@ export default function InvoiceDetail() {
     fetchInvoice();
   }, [fetchInvoice]);
 
-  const handleMarkPaid = async () => {
-    try {
-      const updated = await invoiceApi.markPaid(id);
-      setInvoice(updated);
-      toast.success('បានសម្គាល់ជាបង់រួច', 'វិក្កយបត្រត្រូវបានសម្គាល់ថាបានបង់ពេញ។');
-    } catch (err) {
-      toast.error('ការបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'មិនអាចធ្វើបានទេ។');
+  // A late fee may only be edited while the invoice is still collectable.
+  const lateFeeEditable = Boolean(
+    invoice && invoice.status !== 'PAID' && invoice.status !== 'CANCELLED'
+  );
+
+  const invoiceId = invoice?.id;
+  const storedLateFee = invoice?.lateFee;
+
+  useEffect(() => {
+    if (invoiceId == null) return;
+    setLateFeeInput(storedLateFee != null ? String(storedLateFee) : '0');
+    setLateFeeError('');
+  }, [invoiceId, storedLateFee]);
+
+  const handleSaveLateFee = async () => {
+    const raw = String(lateFeeInput).trim();
+    if (raw === '') {
+      setLateFeeError('សូមបញ្ចូលចំនួនថ្លៃពន្យាពេល។');
+      return;
     }
+    const amount = Number(raw);
+    if (!Number.isFinite(amount)) {
+      setLateFeeError('តម្លៃត្រូវតែជាលេខច្នេក្រេង។');
+      return;
+    }
+    if (amount < 0) {
+      setLateFeeError('ថ្លៃពន្យាពេលមិនអាចតិចជាងសូន្យឡើយ។');
+      return;
+    }
+    if (amount > 9999999999.99) {
+      setLateFeeError('ថ្លៃពន្យាពេលច្រើនពេក។');
+      return;
+    }
+    setLateFeeError('');
+    setSavingLateFee(true);
+    try {
+      await invoiceApi.updateLateFee(id, amount);
+      await fetchInvoice();
+      toast.success('បានរក្សាទុកថ្លៃពន្យាពេល', 'ថ្លៃពន្យាពេលត្រូវបានកែសម្រួលដោយជោគជ័យ។');
+    } catch (err) {
+      toast.error('ការរក្សាទុកបានបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'មិនអាចរក្សាទុកថ្លៃពន្យាពេលបានទេ។');
+    } finally {
+      setSavingLateFee(false);
+    }
+  };
+
+  const handleRecalculateLateFee = async () => {
+    setSavingLateFee(true);
+    try {
+      await invoiceApi.recalculateLateFee(id);
+      await fetchInvoice();
+      toast.success('បានគណនាឡើងវិញ', 'ថ្លៃពន្យាពេលត្រូវបានគណនាតាមកាលបរិច្ឆេទផុតកំណត់ហើយ។');
+    } catch (err) {
+      toast.error('ការគណនាបានបរាជ័យ', err.response?.data?.message || err.response?.data?.error || 'មិនអាចគណនាថ្លៃពន្យាពេលបានទេ។');
+    } finally {
+      setSavingLateFee(false);
+    }
+  };
+
+  const handleMarkPaid = async () => {
+    await openPaymentModal();
   };
 
   const handleRecordPayment = async () => {
@@ -192,11 +250,16 @@ export default function InvoiceDetail() {
 
   const canMarkPaid = invoice.status === 'PENDING' || invoice.status === 'PARTIAL' || invoice.status === 'OVERDUE';
   const canCancel = invoice.status !== 'CANCELLED' && invoice.status !== 'PAID';
+  const paidAmount = Number(invoice.paidAmount || 0);
+  const remainingAmount = invoice.remainingAmount != null
+    ? Number(invoice.remainingAmount)
+    : Math.max(Number(invoice.totalAmount || 0) - paidAmount, 0);
+  const canRecordPayment = invoice.status === 'PENDING' || invoice.status === 'PARTIAL' || invoice.status === 'OVERDUE';
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <button
             onClick={() => navigate(`${basePath}/invoices`)}
             className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-gray-800"
@@ -205,7 +268,7 @@ export default function InvoiceDetail() {
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">{invoice.invoiceNo}</h1>
               <Badge variant={STATUS_VARIANT[invoice.status] || 'default'}>
                 {STATUS_LABELS[invoice.status] || invoice.status}
@@ -216,7 +279,7 @@ export default function InvoiceDetail() {
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
           {/* ── Preview & Download Real Khmer Invoice ── */}
           <Button
             variant="outline"
@@ -236,7 +299,7 @@ export default function InvoiceDetail() {
             ទាញយក PDF
           </Button>
 
-          {invoice.status === 'PENDING' && (
+          {canRecordPayment && (
             <Button variant="outline" size="sm" leftIcon={<DollarSign className="h-4 w-4" />} onClick={openPaymentModal}>
               កត់ត្រាការទូទាត់
             </Button>
@@ -300,24 +363,103 @@ export default function InvoiceDetail() {
           </div>
         </Card>
 
+        {/* ── Redesigned Summary Card ── */}
         <Card className="p-6">
-          <h3 className="text-sm font-medium text-slate-400 dark:text-slate-500">សរុបដល់ត្រូវបង់</h3>
-          <p className="mt-1 text-3xl font-semibold text-slate-800 dark:text-white">
-            {formatCurrency(invoice.totalAmount)}
-          </p>
-          <div className="mt-4 space-y-1.5 border-t border-slate-100 pt-4 text-sm dark:border-gray-800">
-            <div className="flex justify-between text-slate-500 dark:text-slate-400">
-              <span>សរុបរង</span>
-              <span>{formatCurrency(invoice.subtotal)}</span>
+          {/* Total Due — hero */}
+          <div>
+            <h3 className="text-sm font-medium text-slate-400 dark:text-slate-500">
+              សរុបត្រូវបង់ / Total Due
+            </h3>
+            <p className="mt-1 text-3xl font-semibold tracking-tight text-slate-800 tabular-nums dark:text-white">
+              {formatCurrency(invoice.totalAmount)}
+            </p>
+          </div>
+
+          {/* Breakdown */}
+          <dl className="mt-5 space-y-2.5 border-t border-slate-100 pt-5 text-sm dark:border-gray-800">
+            <div className="flex items-baseline justify-between gap-4">
+              <dt className="text-slate-500 dark:text-slate-400">សរុបរង</dt>
+              <dd className="font-medium tabular-nums text-slate-700 dark:text-slate-200">
+                {formatCurrency(invoice.subtotal)}
+              </dd>
             </div>
-            <div className="flex justify-between text-slate-500 dark:text-slate-400">
-              <span>បញ្ចុះតម្លៃ</span>
-              <span>{formatCurrency(invoice.discount)}</span>
+
+            <div className="flex items-baseline justify-between gap-4">
+              <dt className="text-slate-500 dark:text-slate-400">បញ្ចុះតម្លៃ</dt>
+              <dd className="font-medium tabular-nums text-slate-700 dark:text-slate-200">
+                −{formatCurrency(invoice.discount)}
+              </dd>
             </div>
-            <div className="flex justify-between text-slate-500 dark:text-slate-400">
-              <span>ថ្លៃពន្យាពេល</span>
-              <span>{formatCurrency(invoice.lateFee)}</span>
+
+            {/* Late fee — label on its own line, controls below on mobile, inline on sm+ */}
+            <div className="pt-1">
+              <div className="flex items-baseline justify-between gap-4">
+                <dt className="text-slate-500 dark:text-slate-400">ថ្លៃពន្យាពេល</dt>
+                {!lateFeeEditable && (
+                  <dd className="font-medium tabular-nums text-slate-700 dark:text-slate-200">
+                    {formatCurrency(invoice.lateFee)}
+                  </dd>
+                )}
+              </div>
+
+              {lateFeeEditable && (
+                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    className="w-full text-right sm:w-28"
+                    value={lateFeeInput}
+                    onChange={(e) => setLateFeeInput(e.target.value)}
+                    disabled={savingLateFee}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="flex-1 sm:flex-none"
+                      onClick={handleSaveLateFee}
+                      disabled={savingLateFee}
+                    >
+                      {savingLateFee ? 'កំពុងរក្សាទុក...' : 'រក្សាទុក'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="flex-1 sm:flex-none"
+                      onClick={handleRecalculateLateFee}
+                      disabled={savingLateFee}
+                      title="គណនាតាម $1.00 ក្នុងមួយថ្ងៃលើសកាលបរិច្ឆេទផុតកំណត់"
+                    >
+                      គណនាឡើងវិញ
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {lateFeeError && (
+                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{lateFeeError}</p>
+              )}
             </div>
+
+            {/* Divider before payment status */}
+            <div className="!mt-4 border-t border-slate-100 pt-3 dark:border-gray-800">
+              <div className="flex items-baseline justify-between gap-4">
+                <dt className="text-slate-500 dark:text-slate-400">បានបង់រួច / Paid</dt>
+                <dd className="font-medium tabular-nums text-emerald-600 dark:text-emerald-400">
+                  {formatCurrency(paidAmount)}
+                </dd>
+              </div>
+            </div>
+          </dl>
+
+          {/* Remaining — emphasized footer */}
+          <div className="mt-4 flex items-baseline justify-between gap-4 rounded-lg bg-slate-50 px-4 py-3 dark:bg-gray-800/60">
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+              នៅសល់ / Remaining
+            </span>
+            <span className="text-lg font-semibold tabular-nums text-slate-900 dark:text-white">
+              {formatCurrency(remainingAmount)}
+            </span>
           </div>
         </Card>
       </div>
@@ -327,7 +469,7 @@ export default function InvoiceDetail() {
           <h2 className="font-semibold text-slate-800 dark:text-white">ពត៌មានលម្អិតវិក្កយបត្រ</h2>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[32rem] text-sm">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:border-gray-800 dark:bg-gray-800/50 dark:text-slate-400">
                 <th className="px-6 py-3 font-medium">ការពិពណ៌នា</th>
@@ -392,7 +534,7 @@ export default function InvoiceDetail() {
       <Modal open={paymentOpen} onOpenChange={setPaymentOpen} title="កត់ត្រាការទូទាត់">
         <div className="space-y-4">
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            ចំនួនដែលត្រូវបង់គឺ <span className="font-medium text-slate-700 dark:text-slate-200">{formatCurrency(invoice.totalAmount)}</span>។
+            ចំនួននៅសល់ត្រូវបង់គឺ <span className="font-medium text-slate-700 dark:text-slate-200">{formatCurrency(remainingAmount)}</span>។
           </p>
           <Input
             label="ចំនួនទឹកប្រាក់ ($)"

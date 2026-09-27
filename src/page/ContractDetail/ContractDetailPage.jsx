@@ -161,20 +161,25 @@ export default function ContractDetailPage() {
     };
   }, [fitContractToPage]);
 
+  // Party A comes from the snapshot stored on the contract itself, not from the
+  // signed-in user. A manager previewing another owner's lease would otherwise
+  // print their own identity as the landlord, and a contract would change retro-
+  // actively whenever the owner edited their settings. The session user is only a
+  // fallback for contracts created before the snapshot existed.
   const landlord = useMemo(() => {
-    const name = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
+    const sessionName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
     return {
-      name: name || user?.username || 'ម្ចាស់ផ្ទះ',
+      name: contract?.ownerFullName || sessionName || user?.username || 'ម្ចាស់ផ្ទះ',
       email: user?.email,
-      phone: user?.phone,
-      gender: user?.gender,
-      dob: user?.dob,
-      nationality: user?.nationality,
-      idNumber: user?.idNumber,
-      address: user?.address,
-      occupation: user?.occupation,
+      phone: contract?.ownerPhone || user?.phone,
+      gender: contract?.ownerGender,
+      dob: contract?.ownerDateOfBirth,
+      nationality: contract?.ownerNationality,
+      idNumber: contract?.ownerNationalId,
+      address: contract?.ownerAddress,
+      occupation: contract?.ownerOccupation,
     };
-  }, [user]);
+  }, [contract, user]);
 
   const tenantsById = useMemo(
     () => Object.fromEntries((tenants || []).map((t) => [t.id, t])),

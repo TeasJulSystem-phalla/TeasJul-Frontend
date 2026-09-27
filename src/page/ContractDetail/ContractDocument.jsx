@@ -26,7 +26,13 @@ const ContractDocument = forwardRef(function ContractDocument(
 
         <div className="mt-[2.5mm] space-y-[2.5mm]">
           <KhmerPartySection landlord={landlord} primaryTenant={primaryTenant} />
-          <KhmerPropertySection contract={contract} room={room} house={house} roomType={roomType} />
+          <KhmerPropertySection
+            contract={contract}
+            room={room}
+            house={house}
+            roomType={roomType}
+            occupantCount={contractTenants ? contractTenants.length : null}
+          />
           <KhmerAgreementSection contract={contract} room={room} house={house} roomAmenities={roomAmenities} />
           <KhmerDepositSection deposits={deposits} />
           <KhmerSignatureSection landlord={landlord} primaryTenant={primaryTenant} contract={contract} />

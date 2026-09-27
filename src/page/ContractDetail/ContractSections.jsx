@@ -7,6 +7,8 @@ import {
   occupationLabel,
   fullName,
   roomLabel,
+  contractDuration,
+  roomPrice,
 } from './format';
 
 /* ---------- Shared Primitives ---------- */
@@ -106,19 +108,22 @@ const PartyCard = ({ badge, title, rows }) => (
 );
 
 export const KhmerPartySection = ({ landlord, primaryTenant }) => {
+  // Party A prints exactly what the owner configured for the contract. Optional
+  // details they left blank render as "-", never as an invented value.
   const landlordRows = [
     { label: 'ឈ្មោះ', value: landlord?.name },
-    { label: 'ភេទ', value: landlord?.gender ? genderLabel(landlord.gender) : 'ប្រុស' },
+    { label: 'ភេទ', value: landlord?.gender ? genderLabel(landlord.gender) : null },
     { label: 'ថ្ងៃខែឆ្នាំកំណើត', value: landlord?.dob },
-    { label: 'សញ្ជាតិ', value: landlord?.nationality || 'ខ្មែរ' },
-    { label: 'អត្តសញ្ញាណប័ណ្ណលេខ', value: landlord?.idNumber, span: 2 },
+    { label: 'សញ្ជាតិ', value: landlord?.nationality },
+    { label: 'អត្តសញ្ញាណបថណ្ណលេខ', value: landlord?.idNumber, span: 2 },
     { label: 'ទីលំនៅបច្ចុប្បន្ន', value: landlord?.address, span: 2 },
     { label: 'ទូរស័ព្ទលេខ', value: landlord?.phone },
     {
       label: 'មុខរបរបច្ចុប្បន្ន',
-      value: landlord?.occupation ? occupationLabel(landlord.occupation) : 'អាជីវករ',
+      value: landlord?.occupation ? occupationLabel(landlord.occupation) : null,
     },
   ];
+
 
   const tenantRows = primaryTenant
     ? [
@@ -147,46 +152,46 @@ export const KhmerPartySection = ({ landlord, primaryTenant }) => {
   );
 };
 
-export const KhmerPropertySection = ({ contract, room, house, roomType }) => (
-  <section>
-    <SectionBar number="១" title="ព័ត៌មានអចលនទ្រព្យ" />
-    <div className="rounded border border-slate-400 px-2.5 py-[1.5mm]">
-      <div className="grid grid-cols-3 gap-x-3 gap-y-1 text-[10px]">
-        <Field label="ឈ្មោះផ្ទះ" value={house?.name} />
-        <Field label="បន្ទប់លេខ" value={room ? roomLabel(room) : null} />
-        <Field label="ជាន់" value={room?.floorNumber} />
-        <Field label="អាស័យដ្ឋាន" value={house?.address} span={3} />
-        <Field label="ប្រភេទបន្ទប់" value={roomType?.name} />
-        <Field
-          label="តម្លៃបន្ទប់"
-          value={roomType?.price ? `$${formatCurrency(roomType.price)}/ខែ` : null}
-        />
-        <Field
-          label="ចំនួនអ្នកស្នាក់នៅ"
-          value={contract?.occupants ? `${contract.occupants} នាក់` : null}
-        />
-        <Field
-          label="ថ្លៃជួលប្រចាំខែ"
-          value={<span className="text-emerald-700">${formatCurrency(contract?.monthlyRent)}</span>}
-        />
-        <Field
-          label="ប្រាក់កក់"
-          value={<span className="text-amber-700">${formatCurrency(contract?.securityDeposit)}</span>}
-        />
-        <Field
-          label="រយៈពេលជួល"
-          value={contract?.durationMonths ? `${contract.durationMonths} ខែ` : null}
-        />
+export const KhmerPropertySection = ({ contract, room, house, roomType, occupantCount }) => {
+  const price = roomPrice(room, roomType);
+  return (
+    <section>
+      <SectionBar number="១" title="ព័ត៌មានអចលនទ្រព្យ" />
+      <div className="rounded border border-slate-400 px-2.5 py-[1.5mm]">
+        <div className="grid grid-cols-3 gap-x-3 gap-y-1 text-[10px]">
+          <Field label="ឈ្មោះផ្ទះ" value={house?.name} />
+          <Field label="បន្ទប់លេខ" value={room ? roomLabel(room) : null} />
+          <Field label="ជាន់" value={room?.floorNumber} />
+          <Field label="អាស័យដ្ឋាន" value={house?.address} span={3} />
+          <Field label="ប្រភេទបន្ទប់" value={roomType?.name} />
+          <Field
+            label="តម្លៃបន្ទប់"
+            value={price !== null ? `$${formatCurrency(price)}/ខែ` : null}
+          />
+          <Field
+            label="ចំនួនអ្នកស្នាក់នៅ"
+            value={occupantCount === null || occupantCount === undefined ? null : `${occupantCount} នាក់`}
+          />
+          <Field
+            label="ថ្លៃជួលប្រចាំខែ"
+            value={<span className="text-emerald-700">${formatCurrency(contract?.monthlyRent)}</span>}
+          />
+          <Field
+            label="ប្រាក់កក់"
+            value={<span className="text-amber-700">${formatCurrency(contract?.securityDeposit)}</span>}
+          />
+          <Field label="រយៈពេលជួល" value={contractDuration(contract)} />
+        </div>
+        {contract?.furniture && (
+          <p className="mt-[1mm] text-[10px]">
+            <span className="font-semibold text-slate-500">គ្រឿងសង្ហារឹម: </span>
+            <span className="font-bold text-slate-900">{contract.furniture}</span>
+          </p>
+        )}
       </div>
-      {contract?.furniture && (
-        <p className="mt-[1mm] text-[10px]">
-          <span className="font-semibold text-slate-500">គ្រឿងសង្ហារឹម: </span>
-          <span className="font-bold text-slate-900">{contract.furniture}</span>
-        </p>
-      )}
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export const KhmerAgreementSection = ({ contract, room, house, roomAmenities }) => (
   <section>
@@ -195,7 +200,7 @@ export const KhmerAgreementSection = ({ contract, room, house, roomAmenities }) 
       <Clause n="១">
         ម្ចាស់ផ្ទះបានយល់ព្រមជួលផ្ទះ ទៅអោយអ្នកទទួលជួលផ្ទះជាន់ទី {room?.floorNumber || '1'}{' '}
         (ជាន់ / ផ្នែក) នៃផ្ទះដែលមាន អាស័យដ្ឋាន {house?.address || '—'} {room?.name || '—'}{' '}
-        សម្រាប់រយៈពេល {contract?.durationMonths || 2} (ពីរ) ឆ្នាំ ដោយគិតចាប់ពីថ្ងៃទី{' '}
+        សម្រាប់រយៈពេល {contractDuration(contract) || '—'} ដោយគិតចាប់ពីថ្ងៃទី{' '}
         <strong className="text-slate-900">{formatShortDate(contract?.startDate)}</strong> ដល់{' '}
         <strong className="text-slate-900">{formatShortDate(contract?.endDate)}</strong>។
         អ្នកទទួលជួលផ្ទះ នឹងប្រើប្រាស់ផ្ទះដែលបានយល់ព្រមជួលទាំងស្រុង ក្នុងរយៈពេលនៃការជួល
@@ -204,7 +209,7 @@ export const KhmerAgreementSection = ({ contract, room, house, roomAmenities }) 
 
       <Clause n="២">
         ថ្ងៃជួលមានតម្លៃ{' '}
-        <strong className="text-slate-900">${formatCurrency(contract?.monthlyRent || 270)}</strong>{' '}
+        <strong className="text-slate-900">${formatCurrency(contract?.monthlyRent)}</strong>{' '}
         ដុល្លារអាមេរិកក្នុងមួយខែ។
         <span className="mt-[0.8mm] block pl-3 text-[8.5px] text-slate-600">
           ក. អ្នកទទួលជួលផ្ទះត្រូវបង់ថ្លៃជួលផ្ទះជូនម្ចាស់ផ្ទះជា រៀងរាល់ដើមខែ។ ការបង់យឺតយ៉ាវមិនអោយលើសពី១អាទិត្យឡើយ។ (ពីថ្ងៃទី 1 ដល់ ថ្ងៃ 10)

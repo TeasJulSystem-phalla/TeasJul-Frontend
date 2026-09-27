@@ -355,18 +355,26 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
               </td>
             </tr>
 
-            {/* If partial status */}
-            {invoice.status === 'PARTIAL' && Number(invoice.paidAmount) > 0 && (
-              <tr>
-                <td colSpan={3} className="border border-black bg-white"></td>
-                <td className="border border-black px-3 py-1 text-right text-slate-700 font-medium">
-                  បានបង់រួច / Paid:
-                </td>
-                <td className="border border-black px-3 py-1 text-right font-mono font-bold text-black">
-                  {formatUSD(invoice.paidAmount)}
-                </td>
-              </tr>
-            )}
+            <tr>
+              <td colSpan={3} className="border border-black bg-white"></td>
+              <td className="border border-black px-3 py-1 text-right text-slate-700 font-medium">
+                បានបង់រួច / Paid:
+              </td>
+              <td className="border border-black px-3 py-1 text-right font-mono font-bold text-black">
+                {formatUSD(invoice.paidAmount || 0)}
+              </td>
+            </tr>
+            <tr>
+              <td colSpan={3} className="border border-black bg-white"></td>
+              <td className="border border-black px-3 py-1 text-right text-slate-700 font-medium">
+                នៅសល់ / Remaining:
+              </td>
+              <td className="border border-black px-3 py-1 text-right font-mono font-bold text-black">
+                {formatUSD(invoice.remainingAmount != null
+                  ? invoice.remainingAmount
+                  : Math.max(Number(invoice.totalAmount || 0) - Number(invoice.paidAmount || 0), 0))}
+              </td>
+            </tr>
           </tfoot>
         </table>
       </div>
