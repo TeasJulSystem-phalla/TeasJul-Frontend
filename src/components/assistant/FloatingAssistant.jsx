@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Bot, Sparkles, X } from "lucide-react";
 import { AssistantChat } from "./AssistantChat";
 
@@ -24,6 +24,7 @@ const ASSISTANT_ROUTES = new Set([
  */
 const FloatingAssistant = () => {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const launcherRef = useRef(null);
 
@@ -38,6 +39,18 @@ const FloatingAssistant = () => {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open]);
+
+  // Determine the full-page route matching the current layout
+  const handleExpandToFullPage = () => {
+    setOpen(false);
+    if (pathname.startsWith("/manager")) {
+      navigate("/manager/assistant");
+    } else if (pathname.startsWith("/tenant")) {
+      navigate("/tenant/assistant");
+    } else {
+      navigate("/owner/assistant");
+    }
+  };
 
   // No duplicate entry point on the full assistant page routes.
   const isAssistantRoute = ASSISTANT_ROUTES.has(pathname);
@@ -75,14 +88,18 @@ const FloatingAssistant = () => {
         aria-hidden={!open}
         inert={!open}
         className={[
-          "fixed right-4 bottom-20 z-40 w-[min(24rem,calc(100vw-2rem))] h-[min(34rem,calc(100dvh-11rem))] transition-all duration-200 ease-out print:hidden sm:right-6 sm:bottom-24",
+          "fixed right-4 bottom-20 z-40 w-[min(28rem,calc(100vw-2rem))] h-[min(38rem,calc(100dvh-7rem))] transition-all duration-200 ease-out print:hidden sm:right-6 sm:bottom-24",
           open
             ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
             : "pointer-events-none translate-y-3 scale-[0.98] opacity-0",
         ].join(" ")}
       >
         <div className="h-full overflow-hidden rounded-2xl bg-white shadow-2xl shadow-slate-900/20 ring-1 ring-slate-200 dark:bg-gray-900 dark:shadow-black/40 dark:ring-gray-800">
-          <AssistantChat autoFocus={open} onClose={() => setOpen(false)} />
+          <AssistantChat
+            autoFocus={open}
+            onClose={() => setOpen(false)}
+            onExpand={handleExpandToFullPage}
+          />
         </div>
       </div>
     </>

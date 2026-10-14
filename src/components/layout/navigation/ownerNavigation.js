@@ -23,6 +23,7 @@ import {
   CircleDollarSign,
   Wrench,
   Folder,
+  Bot,
 } from 'lucide-react';
 import { systemManagementGroup, helpGroup } from './sharedNavigation';
 
@@ -32,6 +33,7 @@ export const ownerNavigation = [
     label: 'មេ',
     items: [
       { to: '/owner/dashboard', label: 'ផ្ទាំងគ្រប់គ្រង', icon: LayoutDashboard, end: true },
+      { to: '/owner/assistant', label: 'ជំនួយការ AI', icon: Bot },
       { to: '/owner/owner-report', label: 'របាយការណ៍ប្រចាំខែ', icon: BarChart3 },
       { to: '/owner/notifications', label: 'ការជូនដំណឹង', icon: Bell },
       { to: '/owner/feedback', label: 'វាយតម្លៃ TeasJul', icon: Star },

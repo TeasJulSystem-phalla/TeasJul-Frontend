@@ -1,7 +1,7 @@
 const Tabs = ({ tabs = [], activeTab, onChange, className = '' }) => {
   return (
     <div className={`border-b border-gray-200 dark:border-gray-800 ${className}`}>
-      <nav className="flex gap-0 -mb-px" role="tablist">
+      <nav className="-mb-px flex gap-0 overflow-x-auto" role="tablist">
         {tabs.map((tab) => {
           const isActive = tab.value === activeTab;
           return (
@@ -13,7 +13,7 @@ const Tabs = ({ tabs = [], activeTab, onChange, className = '' }) => {
               disabled={tab.disabled}
               onClick={() => onChange && onChange(tab.value)}
               className={`
-                -mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition-colors
+                -mb-px shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors sm:px-4
                 disabled:cursor-not-allowed disabled:opacity-50
                 ${
                   isActive

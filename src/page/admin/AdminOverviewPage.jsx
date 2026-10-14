@@ -295,7 +295,8 @@ export default function AdminOverviewPage() {
                   description="មិនទាន់មានបន្ទប់ណាត្រូវបានដាក់ស្នើសម្រាប់ការពិនិត្យទេ។"
                 />
               ) : (
-                <div className="overflow-x-auto">
+                <>
+                <div className="hidden overflow-x-auto md:block">
                   <table className="w-full text-left">
                     <thead>
                       <tr className="border-b border-slate-100 text-[11px] uppercase tracking-wider text-slate-400 dark:border-gray-800 dark:text-slate-500">
@@ -326,6 +327,26 @@ export default function AdminOverviewPage() {
                     </tbody>
                   </table>
                 </div>
+
+                <div className="space-y-2.5 md:hidden">
+                  {data.recentSubmissions.map((room) => (
+                    <div key={room.id} className="rounded-lg border border-slate-100 p-3 dark:border-gray-800">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-[13px] font-medium text-slate-800 dark:text-slate-100">
+                            {room.name || `បន្ទប់ ${room.roomNumber}`}
+                          </p>
+                          <p className="text-xs text-slate-400">#{room.roomNumber} · {formatDate(room.submittedAt)}</p>
+                        </div>
+                        <PublicationStatusBadge status={room.publicationStatus} />
+                      </div>
+                      <p className="mt-1.5 text-[13px] font-semibold text-slate-800 dark:text-slate-100">
+                        {formatCurrency(room.monthlyRent)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                </>
               )}
             </Card>
 
@@ -349,7 +370,8 @@ export default function AdminOverviewPage() {
                   description="មិនទាន់មានគណនីម្ចាស់អចលនទ្រព្យទេ។"
                 />
               ) : (
-                <div className="overflow-x-auto">
+                <>
+                <div className="hidden overflow-x-auto md:block">
                   <table className="w-full text-left">
                     <thead>
                       <tr className="border-b border-slate-100 text-[11px] uppercase tracking-wider text-slate-400 dark:border-gray-800 dark:text-slate-500">
@@ -383,6 +405,30 @@ export default function AdminOverviewPage() {
                     </tbody>
                   </table>
                 </div>
+
+                <div className="space-y-2.5 md:hidden">
+                  {data.recentOwners.map((owner) => (
+                    <div key={owner.id} className="rounded-lg border border-slate-100 p-3 dark:border-gray-800">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="min-w-0 truncate text-[13px] font-medium text-slate-800 dark:text-slate-100">
+                          {[owner.firstName, owner.lastName].filter(Boolean).join(" ") || owner.username}
+                        </p>
+                        <span
+                          className={`inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            owner.status === "ACTIVE"
+                              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                              : "bg-slate-100 text-slate-600 dark:bg-gray-800 dark:text-slate-300"
+                          }`}
+                        >
+                          {owner.status === "ACTIVE" ? "សកម្ម" : "អសកម្ម"}
+                        </span>
+                      </div>
+                      <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">{owner.email || "—"}</p>
+                      <p className="mt-1 text-xs text-slate-400">ចូលចុងក្រោយ {formatDate(owner.lastLoginAt)}</p>
+                    </div>
+                  ))}
+                </div>
+                </>
               )}
             </Card>
           </div>

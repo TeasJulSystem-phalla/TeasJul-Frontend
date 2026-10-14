@@ -467,15 +467,63 @@ export default function TenantInvitationsPage() {
           />
         ) : (
           <>
-            <div className="min-w-0 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
-              <div className="w-full min-w-0 overflow-x-auto">
-                <Table
-                  columns={columns}
-                  data={paginatedInvitations}
-                  className="border-0"
-                  emptyMessage="មិនមានការអញ្ជើញទេ"
-                />
-              </div>
+            <div className="hidden min-w-0 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 md:block">
+              <Table
+                columns={columns}
+                data={paginatedInvitations}
+                className="border-0"
+                emptyMessage="មិនមានការអញ្ជើញទេ"
+              />
+            </div>
+
+            <div className="space-y-3 md:hidden">
+              {paginatedInvitations.map((row) => {
+                const s = STATUS_MAP[row.status] || { label: row.status, variant: 'neutral' };
+                return (
+                  <div
+                    key={row.id}
+                    className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Building2 className="h-4 w-4 shrink-0 text-gray-400" />
+                        <span className="min-w-0 truncate font-medium text-slate-800 dark:text-white">
+                          {row.houseName}
+                        </span>
+                      </div>
+                      <Badge variant={s.variant}>{s.label}</Badge>
+                    </div>
+
+                    <div className="mt-3 space-y-1.5 text-xs text-slate-500 dark:text-slate-400">
+                      <p className="flex items-center gap-1.5">
+                        <Mail className="h-3.5 w-3.5 shrink-0" />
+                        <span className="min-w-0 truncate">{row.email || '—'}</span>
+                      </p>
+                      <p className="flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5 shrink-0" />
+                        បង្កើតនៅ {formatDate(row.createdAt)}
+                      </p>
+                      <p className="flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5 shrink-0" />
+                        ផុតកំណត់ {formatDate(row.expiresAt)}
+                      </p>
+                    </div>
+
+                    {row.status === 'PENDING' && (
+                      <div className="mt-3 flex justify-end border-t border-slate-100 pt-3 dark:border-gray-800">
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          leftIcon={<Trash2 className="h-4 w-4" />}
+                          onClick={() => setRevokeTarget(row)}
+                        >
+                          លុបចោល
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {totalPages > 1 && (

@@ -322,8 +322,8 @@ export default function Invoices() {
       </div>
 
       {/* Filter bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="flex-1">
+      <div className="space-y-3 lg:flex lg:flex-wrap lg:items-center lg:gap-3 lg:space-y-0">
+        <div className="lg:min-w-[220px] lg:flex-1">
           <Input
             placeholder="ស្វែងរកតាមលេខវិក្កយបត្រ ឬអ្នកជួល..."
             leftIcon={<Search className="h-4 w-4" />}
@@ -331,20 +331,22 @@ export default function Invoices() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="w-full sm:w-40">
-          <Select options={houseOptions} value={houseFilter} onChange={(e) => setHouseFilter(e.target.value)} placeholder="អចលនទ្រព្យទាំងអស់" />
-        </div>
-        <div className="w-full sm:w-36">
-          <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} />
-        </div>
-        <div className="w-full sm:w-32">
-          <Select options={MONTH_OPTIONS} value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)} />
-        </div>
-        <div className="w-full sm:w-32">
-          <Select options={YEAR_OPTIONS} value={yearFilter} onChange={(e) => setYearFilter(e.target.value)} />
+        <div className="grid grid-cols-2 gap-3 lg:flex lg:items-center lg:gap-3">
+          <div className="lg:w-40">
+            <Select options={houseOptions} value={houseFilter} onChange={(e) => setHouseFilter(e.target.value)} placeholder="អចលនទ្រព្យទាំងអស់" />
+          </div>
+          <div className="lg:w-36">
+            <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} />
+          </div>
+          <div className="lg:w-32">
+            <Select options={MONTH_OPTIONS} value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)} />
+          </div>
+          <div className="lg:w-32">
+            <Select options={YEAR_OPTIONS} value={yearFilter} onChange={(e) => setYearFilter(e.target.value)} />
+          </div>
         </div>
         {isFiltered && (
-          <Button variant="outline" size="sm" onClick={clearFilters}>សម្អាត</Button>
+          <Button variant="outline" size="sm" className="w-full lg:w-auto" onClick={clearFilters}>សម្អាត</Button>
         )}
       </div>
 
@@ -446,12 +448,61 @@ export default function Invoices() {
         )
       ) : (
         <>
-          <Card>
-            <Table columns={columns} data={invoices} keyExtractor={(row) => row.id} className="w-full" />
-          </Card>
+          <div className="hidden md:block">
+            <Card>
+              <Table columns={columns} data={invoices} keyExtractor={(row) => row.id} className="w-full" />
+            </Card>
+          </div>
+
+          <div className="space-y-3 md:hidden">
+            {invoices.map((row) => (
+              <div
+                key={row.id}
+                onClick={() => navigate(`${basePath}/invoices/${row.id}`)}
+                className="cursor-pointer rounded-xl border border-gray-200 bg-white p-4 transition-colors hover:border-slate-300 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+                      <FileText className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-slate-800 dark:text-white">{row.invoiceNo}</p>
+                      <p className="text-xs text-slate-400">
+                        {row.billingMonth}/{row.billingYear}
+                      </p>
+                    </div>
+                  </div>
+                  {getStatusBadge(row.status)}
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <span className="inline-flex min-w-0 items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{row.tenantName || '—'}</span>
+                  </span>
+                  <span className="inline-flex min-w-0 items-center gap-1.5">
+                    <Building2 className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{row.houseName || '—'}</span>
+                  </span>
+                  <span className="text-slate-500 dark:text-slate-400">បន្ទប់ {row.roomNumber || '—'}</span>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-gray-800">
+                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-800 dark:text-white">
+                    <DollarSign className="h-4 w-4 text-slate-400" />
+                    {formatCurrency(row.totalAmount)}
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                    <Eye className="h-3.5 w-3.5" /> មើល
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
 
           {totalPages > 1 && (
-            <div className="flex justify-end">
+            <div className="flex justify-center sm:justify-end">
               <Pagination currentPage={page + 1} totalPages={totalPages} onPageChange={(p) => setPage(p - 1)} />
             </div>
           )}

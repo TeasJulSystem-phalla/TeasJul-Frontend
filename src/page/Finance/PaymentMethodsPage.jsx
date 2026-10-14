@@ -188,9 +188,54 @@ export default function PaymentMethodsPage() {
           action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={openCreate}>បន្ថែមវិធីសាស្ត្រ</Button>}
         />
       ) : (
-        <Card>
-          <Table columns={columns} data={methods} keyExtractor={(row) => row.id} className="w-full" />
-        </Card>
+        <>
+          <div className="hidden md:block">
+            <Card>
+              <Table columns={columns} data={methods} keyExtractor={(row) => row.id} className="w-full" />
+            </Card>
+          </div>
+
+          <div className="space-y-3 md:hidden">
+            {methods.map((row) => (
+              <div
+                key={row.id}
+                className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
+                      <CreditCard className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-slate-800 dark:text-white">{row.name}</p>
+                      {row.code && (
+                        <code className="mt-0.5 inline-block rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-gray-800 dark:text-slate-300">
+                          {row.code}
+                        </code>
+                      )}
+                    </div>
+                  </div>
+                  <Badge variant={STATUS_VARIANT[row.status] || 'default'}>
+                    {STATUS_LABELS[row.status] || row.status || '—'}
+                  </Badge>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <p className="min-w-0 truncate text-xs text-slate-500 dark:text-slate-400">
+                    {row.description || '—'}
+                  </p>
+                  <IconButton
+                    variant="ghost"
+                    size="sm"
+                    tooltip="កែសម្រួល"
+                    icon={<Pencil className="h-4 w-4" />}
+                    onClick={() => openEdit(row)}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       <Modal

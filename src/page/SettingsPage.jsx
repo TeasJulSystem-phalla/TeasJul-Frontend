@@ -208,8 +208,8 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
             ការកំណត់ (Settings)
           </h1>
@@ -217,7 +217,7 @@ export default function SettingsPage() {
             គ្រប់គ្រងការកំណត់អាជីវកម្ម និងការកំណត់ឯកសាររបស់អ្នក
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {dirty && (
             <Button variant="ghost" leftIcon={<RotateCcw className="h-4 w-4" />} onClick={handleReset}>
               បោះបង់
@@ -242,11 +242,11 @@ export default function SettingsPage() {
       )}
 
       <div className="rounded-xl border border-slate-200 bg-white dark:border-gray-700 dark:bg-gray-900">
-        <div className="border-b border-slate-200 px-4 dark:border-gray-700">
+        <div className="border-b border-slate-200 px-2 dark:border-gray-700 sm:px-4">
           <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {activeTab === "general" && (
             <GeneralSection form={form} onChange={handleChange} onNumberChange={handleNumberChange} />
           )}
@@ -278,13 +278,13 @@ export default function SettingsPage() {
       </div>
 
       {dirty && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed left-4 right-20 bottom-4 z-50 sm:inset-x-auto sm:right-6 sm:bottom-6">
           <Button
             variant="primary"
             leftIcon={<Save className="h-4 w-4" />}
             onClick={handleSave}
             loading={saving}
-            className="shadow-lg"
+            className="w-full shadow-lg sm:w-auto"
           >
             រក្សាទុកការកំណត់
           </Button>

@@ -362,9 +362,77 @@ export default function AdminSystemDefaultsPage() {
           action={<Button variant="primary" leftIcon={<Plus className="h-4 w-4" />} onClick={() => openCreate()}>បង្កើតលំនាំដើម</Button>}
         />
       ) : (
-        <Card className="overflow-hidden rounded-xl border-slate-200/80 dark:border-gray-800">
-          <Table columns={columns} data={filtered} keyExtractor={(row) => row.id} onRowClick={setViewTarget} className="w-full" />
-        </Card>
+        <>
+          <Card className="hidden overflow-hidden rounded-xl border-slate-200/80 dark:border-gray-800 md:block">
+            <Table columns={columns} data={filtered} keyExtractor={(row) => row.id} onRowClick={setViewTarget} className="w-full" />
+          </Card>
+
+          <div className="space-y-3 md:hidden">
+            {filtered.map((row) => (
+              <div
+                key={row.id}
+                className="rounded-xl border border-slate-200/80 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400">
+                      {row.kind === "UTILITY" ? <Zap className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-slate-800 dark:text-white">{row.name}</p>
+                      <p className="truncate font-mono text-xs text-slate-400">{row.code}</p>
+                    </div>
+                  </div>
+                  <Badge variant={row.status === "ACTIVE" ? "success" : "warning"}>
+                    {row.status === "ACTIVE" ? "សកម្ម" : "អសកម្ម"}
+                  </Badge>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Badge variant={row.kind === "UTILITY" ? "info" : "default"}>
+                    {FIELD_LABELS[row.kind] || row.kind}
+                  </Badge>
+                  {row.kind === "UTILITY" && (
+                    <>
+                      <span className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                        <Scale className="h-3.5 w-3.5" /> {row.unit || "—"}
+                      </span>
+                      <Badge variant={row.billingMethod === "FIXED" ? "info" : "default"}>
+                        {row.billingMethod === "METERED" ? "Metered" : row.billingMethod === "FIXED" ? "Fixed" : row.billingMethod || "—"}
+                      </Badge>
+                    </>
+                  )}
+                </div>
+
+                {row.description && (
+                  <p className="mt-2 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">{row.description}</p>
+                )}
+
+                <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-slate-400">
+                  <Calendar className="h-3.5 w-3.5" />
+                  {formatDate(row.createdAt)}
+                </p>
+
+                <div className="mt-3 flex flex-wrap justify-end gap-1 border-t border-slate-100 pt-3 dark:border-gray-800">
+                  <Button variant="ghost" size="sm" leftIcon={<Eye className="h-4 w-4" />} onClick={() => setViewTarget(row)}>
+                    មើល
+                  </Button>
+                  <Button variant="ghost" size="sm" leftIcon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)}>
+                    កែប្រែ
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    leftIcon={row.status === "ACTIVE" ? <PowerOff className="h-4 w-4 text-red-500" /> : <Power className="h-4 w-4 text-emerald-500" />}
+                    onClick={() => setToggleTarget(row)}
+                  >
+                    {row.status === "ACTIVE" ? "បិទ" : "បើក"}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       <Modal

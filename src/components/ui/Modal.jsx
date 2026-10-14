@@ -54,8 +54,8 @@ const Modal = ({ open, onClose, title, description, children, footer, size = 'md
         `}
       >
         {(title || onClose) && (
-          <div className="flex items-start justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-            <div>
+          <div className="flex items-start justify-between border-b border-gray-200 px-4 py-4 dark:border-gray-800 sm:px-6">
+            <div className="min-w-0">
               {title && (
                 <h2 id="modal-title" className="text-lg font-semibold text-gray-900 dark:text-white">
                   {title}
@@ -79,9 +79,9 @@ const Modal = ({ open, onClose, title, description, children, footer, size = 'md
             )}
           </div>
         )}
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">{children}</div>
         {footer && (
-          <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+          <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-200 px-4 py-4 dark:border-gray-800 sm:px-6">
             {footer}
           </div>
         )}

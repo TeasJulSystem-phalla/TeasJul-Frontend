@@ -244,11 +244,64 @@ export default function AdminFeedbackPage() {
         />
       ) : (
         <>
-          <Card className="overflow-hidden rounded-xl border-slate-200/80 dark:border-gray-800">
+          <Card className="hidden overflow-hidden rounded-xl border-slate-200/80 dark:border-gray-800 md:block">
             <Table columns={columns} data={data.content} />
           </Card>
+
+          <div className="space-y-3 md:hidden">
+            {data.content.map((row) => {
+              const isPublished = row.status === "PUBLISHED";
+              return (
+                <div
+                  key={row.id}
+                  className="rounded-xl border border-slate-200/80 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-slate-800 dark:text-white">
+                        {row.ownerName || `#${row.ownerId}`}
+                      </p>
+                      {row.ownerName && <p className="text-xs text-slate-400">ID: #{row.ownerId}</p>}
+                    </div>
+                    <FeedbackStatusBadge status={row.status} />
+                  </div>
+
+                  <div className="mt-3 flex items-center gap-2">
+                    <StarRating value={row.rating} readOnly size="h-4 w-4" />
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      {row.rating}/5
+                    </span>
+                  </div>
+
+                  <p className="mt-2 text-[13px] leading-snug text-slate-600 dark:text-slate-300">
+                    {row.comment}
+                  </p>
+
+                  <div className="mt-3 flex items-center justify-between gap-2 border-t border-slate-100 pt-3 dark:border-gray-800">
+                    <span className="text-xs text-slate-400">{formatDate(row.createdAt)}</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      leftIcon={
+                        isPublished ? (
+                          <EyeOff className="h-4 w-4 text-amber-600" />
+                        ) : (
+                          <Globe className="h-4 w-4 text-emerald-600" />
+                        )
+                      }
+                      onClick={() => runAction(row.id, isPublished ? "UNPUBLISH" : "PUBLISH")}
+                      loading={actingId === row.id}
+                    >
+                      {isPublished ? "ដកផ្សាយ" : "ផ្សាយ"}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
           {data.totalPages > 1 && (
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-center pt-2 sm:justify-end">
               <Pagination
                 currentPage={page + 1}
                 totalPages={data.totalPages}

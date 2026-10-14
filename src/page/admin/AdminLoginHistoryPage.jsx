@@ -18,14 +18,12 @@ import {
   Button,
   Badge,
   Alert,
-  Input,
   EmptyState,
   Pagination,
   Skeleton,
 } from "../../components/ui/index.js";
 import { adminLoginHistoryApi } from "../../api/adminLoginHistory.api.js";
 import { ownerAdminApi } from "../../api/ownerAdmin.api.js";
-import { formatDate } from "../../utils/format.js";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 const fullName = (u) =>
@@ -421,7 +419,7 @@ export default function AdminLoginHistoryPage() {
         />
       ) : (
         <>
-          <Card className="overflow-hidden rounded-xl border-slate-200/80 dark:border-gray-800">
+          <Card className="hidden overflow-hidden rounded-xl border-slate-200/80 dark:border-gray-800 md:block">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] text-sm">
                 <thead>
@@ -503,9 +501,51 @@ export default function AdminLoginHistoryPage() {
             </div>
           </Card>
 
+          {/* Mobile cards */}
+          <div className="space-y-3 md:hidden">
+            {filtered.map((row) => {
+              const { label, variant } = outcomeLabel(row.outcome);
+              return (
+                <div
+                  key={row.id}
+                  className="rounded-xl border border-slate-200/80 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                      {formatDateTime(row.occurredAt)}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      {row.outcome === "SUCCESS" ? (
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-red-500" />
+                      )}
+                      <Badge variant={variant}>{label}</Badge>
+                    </span>
+                  </div>
+
+                  <div className="mt-3 space-y-1.5 text-xs text-slate-500 dark:text-slate-400">
+                    <p className="inline-flex items-center gap-1.5">
+                      <Shield className="h-3.5 w-3.5 shrink-0" />
+                      {methodLabel(row.method)}
+                    </p>
+                    <p className="inline-flex items-center gap-1.5 font-mono">
+                      <Globe className="h-3.5 w-3.5 shrink-0" />
+                      {row.ip || "—"}
+                    </p>
+                    <p className="inline-flex items-center gap-1.5">
+                      <Monitor className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{parseUA(row.userAgent)}</span>
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
           {/* ── pagination ── */}
           {data.totalPages > 1 && (
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-col items-center gap-2 pt-2 sm:flex-row sm:justify-between">
               <span className="text-xs text-slate-400">
                 ទំព័រ {page + 1} / {data.totalPages} ·{" "}
                 {data.totalElements} កំណត់ត្រាសរុប

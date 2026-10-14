@@ -1,4 +1,4 @@
-@import "tailwindcss";
+       @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -29,12 +29,6 @@ html {
     margin: 10mm;
   }
 
-  /* Dedicated zero-margin page so the rental contract fits exactly one A4 sheet */
-  @page contract-page {
-    size: A4;
-    margin: 0;
-  }
-
   html,
   body {
     background: #fff !important;
@@ -58,31 +52,13 @@ html {
     position: absolute;
     left: 0;
     top: 0;
-    box-shadow: none;
-    border: none;
-    background: #fff !important;
-  }
-
-  #contract-document {
-    page: contract-page;
-    width: 210mm;
-    max-width: none;
-    height: 296mm;
-    margin: 0;
-    padding: 8mm;
-    box-sizing: border-box;
-    overflow: hidden;
-    page-break-after: avoid;
-    break-after: avoid;
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-
-  #invoice-document {
     width: 100%;
     max-width: none;
     margin: 0;
     padding: 0;
+    box-shadow: none;
+    border: none;
+    background: #fff !important;
   }
 
   #contract-document .print\:hidden,
@@ -95,24 +71,4 @@ html {
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0; }
-}
-
-/* Hide scrollbars (public site filter rows, image strips, etc.) */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Remove number input spinners (public price filters) */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type="number"] {
-  -moz-appearance: textfield;
-  appearance: textfield;
 }

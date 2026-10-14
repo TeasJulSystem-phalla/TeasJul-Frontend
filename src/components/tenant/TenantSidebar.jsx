@@ -10,12 +10,14 @@ import {
   LogOut,
   X,
   Bell,
+  Bot,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 
 const NAV_ITEMS = [
   { to: '/tenant', label: 'ទំព័រដើម', icon: LayoutDashboard, end: true },
   { to: '/tenant/dashboard', label: 'ផ្ទាំងគ្រប់គ្រង', icon: Home },
+  { to: '/tenant/assistant', label: 'ជំនួយការ AI', icon: Bot },
   { to: '/tenant/profile', label: 'ប្រវត្តិរបស់ខ្ញុំ', icon: UserCircle },
   { to: '/tenant/maintenance', label: 'ការជួសជុល', icon: Wrench },
   { to: '/tenant/payments', label: 'ការទូទាត់ (Payments)', icon: Wallet },

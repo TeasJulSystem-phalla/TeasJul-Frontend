@@ -361,11 +361,66 @@ export default function AdminOwnersPage() {
         />
       ) : (
         <>
-          <Card className="overflow-hidden rounded-xl border-slate-200/80 dark:border-gray-800">
+          <Card className="hidden overflow-hidden rounded-xl border-slate-200/80 dark:border-gray-800 md:block">
             <Table columns={tableMemo} data={data.content} />
           </Card>
+
+          <div className="space-y-3 md:hidden">
+            {data.content.map((row) => (
+              <div
+                key={row.id}
+                className="rounded-xl border border-slate-200/80 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <Avatar image={row.avatar} fallback={ownerName(row)} size="sm" />
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-slate-800 dark:text-white">{ownerName(row)}</p>
+                      <p className="truncate text-xs text-slate-400">@{row.username}</p>
+                    </div>
+                  </div>
+                  <Badge variant={row.status === "ACTIVE" ? "success" : "danger"}>
+                    {row.status === "ACTIVE" ? "សកម្ម" : "អសកម្ម"}
+                  </Badge>
+                </div>
+
+                <div className="mt-3 space-y-1.5 text-xs text-slate-500 dark:text-slate-400">
+                  <p className="flex items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{row.email || "—"}</span>
+                  </p>
+                  <p className="flex items-center gap-1.5">
+                    <Phone className="h-3.5 w-3.5 shrink-0" />
+                    {row.phone || "—"}
+                  </p>
+                  <p className="flex items-center gap-1.5">
+                    <UserCircle2 className="h-3.5 w-3.5 shrink-0" />
+                    ចូលចុងក្រោយ {formatDate(row.lastLoginAt)}
+                  </p>
+                </div>
+
+                <div className="mt-3 flex flex-wrap justify-end gap-1 border-t border-slate-100 pt-3 dark:border-gray-800">
+                  <Button variant="ghost" size="sm" leftIcon={<Eye className="h-4 w-4" />} onClick={() => setViewTarget(row)}>
+                    មើល
+                  </Button>
+                  <Button variant="ghost" size="sm" leftIcon={<Edit className="h-4 w-4" />} onClick={() => openEdit(row)}>
+                    កែប្រែ
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    leftIcon={row.status === "ACTIVE" ? <PowerOff className="h-4 w-4 text-red-500" /> : <Power className="h-4 w-4 text-emerald-500" />}
+                    onClick={() => setToggleTarget(row)}
+                  >
+                    {row.status === "ACTIVE" ? "បិទគណនី" : "បើកគណនី"}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
           {data.totalPages > 1 && (
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-center pt-2 sm:justify-end">
               <Pagination
                 currentPage={page + 1}
                 totalPages={data.totalPages}

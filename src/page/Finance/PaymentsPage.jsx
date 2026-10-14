@@ -371,13 +371,15 @@ export default function PaymentsPage() {
         <div className="w-full sm:w-40">
           <Select options={STATUS_OPTIONS} value={statusFilter} onChange={(e) => applyImmediately({ status: e.target.value })} placeholder="ស្ថានភាពទាំងអស់" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2 sm:w-auto">
           <Input type="date" value={fromDate} onChange={(e) => applyImmediately({ fromDate: e.target.value })} aria-label="ពីកាលបរិច្ឆេទ" />
           <span className="text-xs text-slate-400">→</span>
           <Input type="date" value={toDate} onChange={(e) => applyImmediately({ toDate: e.target.value })} aria-label="ដល់កាលបរិច្ឆេទ" />
         </div>
-        <Button variant="outline" size="sm" onClick={applyFilters}>អនុវត្ត</Button>
-        <Button variant="outline" size="sm" onClick={clearFilters}>សម្អាត</Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={applyFilters}>អនុវត្ត</Button>
+          <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={clearFilters}>សម្អាត</Button>
+        </div>
       </div>
 
       {!loading && payments.length === 0 ? (
@@ -393,12 +395,69 @@ export default function PaymentsPage() {
         />
       ) : (
         <>
-          <Card>
-            <Table columns={columns} data={payments} keyExtractor={(row) => row.id} className="w-full" />
-          </Card>
+          <div className="hidden md:block">
+            <Card>
+              <Table columns={columns} data={payments} keyExtractor={(row) => row.id} className="w-full" />
+            </Card>
+          </div>
+
+          <div className="space-y-3 md:hidden">
+            {payments.map((row) => (
+              <div
+                key={row.id}
+                className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400">
+                      <Wallet className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-slate-800 dark:text-white">{row.paymentNo}</p>
+                      <p className="max-w-[160px] truncate text-xs text-slate-400">
+                        {row.transactionId || '—'}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={STATUS_VARIANT[row.status] || 'default'}>
+                    {STATUS_LABELS[row.status] || row.status || '—'}
+                  </Badge>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <span className="inline-flex min-w-0 items-center gap-1.5">
+                    <Receipt className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{row.invoiceNo || '—'}</span>
+                  </span>
+                  <span className="inline-flex min-w-0 items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{row.tenantName || '—'}</span>
+                  </span>
+                  <span className="inline-flex min-w-0 items-center gap-1.5">
+                    <Building2 className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{row.houseName || '—'}</span>
+                  </span>
+                  <span className="inline-flex min-w-0 items-center gap-1.5">
+                    <CreditCard className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{row.paymentMethodName || '—'}</span>
+                  </span>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-gray-800">
+                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-800 dark:text-white">
+                    <DollarSign className="h-4 w-4 text-slate-400" />
+                    {formatCurrency(row.amount)}
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    {row.paidAt ? formatDate(row.paidAt) : formatDate(row.createdAt)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
 
           {totalPages > 1 && (
-            <div className="flex justify-end">
+            <div className="flex justify-center sm:justify-end">
               <Pagination currentPage={page + 1} totalPages={totalPages} onPageChange={(p) => setPage(p - 1)} />
             </div>
           )}

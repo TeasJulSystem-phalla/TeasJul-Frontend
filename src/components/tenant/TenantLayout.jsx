@@ -18,12 +18,12 @@ const TenantLayout = () => {
 
         <main
           className={[
-            "flex-1 transition-all duration-300",
+            "min-w-0 flex-1 transition-all duration-300",
             isCollapsed ? "lg:pl-20" : "lg:pl-64",
             "print:pl-0",
           ].join(" ")}
         >
-          <div className="p-4 md:p-6 lg:p-8 print:p-0">
+          <div className="min-w-0 p-4 md:p-6 lg:p-8 print:p-0">
             <Outlet />
           </div>
         </main>

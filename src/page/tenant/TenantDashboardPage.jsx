@@ -530,7 +530,7 @@ export default function TenantDashboardPage() {
         title="វិក្កយបត្រថ្មីៗ"
         description="ចុចលើវិក្កយបត្រដើម្បីមើលព័ត៌មានលម្អិត"
         footer={
-          <div className="flex justify-end">
+          <div className="flex justify-center sm:justify-end">
             <Pagination
               currentPage={pageData.page + 1}
               totalPages={pageData.totalPages || 1}
@@ -543,22 +543,68 @@ export default function TenantDashboardPage() {
         {invoicesError && (
           <Alert variant="danger" title="មិនអាចទាញយកវិក្កយបត្របានទេ" description={invoicesError} className="mb-4" />
         )}
-        <Table
-          columns={[
-            { header: 'លេខវិក្កយបត្រ', accessor: 'invoiceNo', cellClassName: 'font-mono font-semibold' },
-            { header: 'ខែគិតថ្លៃ', render: (row) => formatMonth(row.billingMonth) },
-            {
-              header: 'ចំនួនទឹកប្រាក់',
-              render: (row) => <span className="font-semibold text-slate-800 dark:text-slate-200">{formatCurrency(row.total)}</span>,
-            },
-            { header: 'ស្ថានភាព', render: (row) => { const cfg = invoiceStatus(row.status); return <Badge variant={cfg.variant}>{cfg.label}</Badge>; } },
-            { header: 'ថ្ងៃកំណត់', render: (row) => formatDate(row.dueDate) },
-          ]}
-          data={invoices}
-          loading={invoicesLoading}
-          emptyMessage="គ្មានវិក្កយបត្រ"
-          onRowClick={(row) => navigate(`/tenant/invoices/${row.id}`)}
-        />
+
+        {/* Desktop table */}
+        <div className="hidden md:block">
+          <Table
+            columns={[
+              { header: 'លេខវិក្កយបត្រ', accessor: 'invoiceNo', cellClassName: 'font-mono font-semibold' },
+              { header: 'ខែគិតថ្លៃ', render: (row) => formatMonth(row.billingMonth) },
+              {
+                header: 'ចំនួនទឹកប្រាក់',
+                render: (row) => <span className="font-semibold text-slate-800 dark:text-slate-200">{formatCurrency(row.total)}</span>,
+              },
+              { header: 'ស្ថានភាព', render: (row) => { const cfg = invoiceStatus(row.status); return <Badge variant={cfg.variant}>{cfg.label}</Badge>; } },
+              { header: 'ថ្ងៃកំណត់', render: (row) => formatDate(row.dueDate) },
+            ]}
+            data={invoices}
+            loading={invoicesLoading}
+            emptyMessage="គ្មានវិក្កយបត្រ"
+            onRowClick={(row) => navigate(`/tenant/invoices/${row.id}`)}
+          />
+        </div>
+
+        {/* Mobile cards */}
+        {invoicesLoading ? (
+          <div className="space-y-3 md:hidden">
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+        ) : invoices.length === 0 ? (
+          <div className="rounded-lg border border-gray-200 bg-white py-12 text-center md:hidden dark:border-gray-800 dark:bg-gray-900">
+            <p className="text-sm text-gray-500 dark:text-gray-400">គ្មានវិក្កយបត្រ</p>
+          </div>
+        ) : (
+          <div className="space-y-3 md:hidden">
+            {invoices.map((row) => {
+              const cfg = invoiceStatus(row.status);
+              return (
+                <button
+                  key={row.id}
+                  type="button"
+                  onClick={() => navigate(`/tenant/invoices/${row.id}`)}
+                  className="w-full rounded-xl border border-gray-200 bg-white p-4 text-left transition-colors hover:border-slate-300 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-mono text-sm font-bold text-slate-800 dark:text-white">{row.invoiceNo}</p>
+                      <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">{formatMonth(row.billingMonth)}</p>
+                    </div>
+                    <Badge variant={cfg.variant}>{cfg.label}</Badge>
+                  </div>
+                  <div className="mt-3 flex items-end justify-between gap-3 border-t border-slate-100 pt-3 dark:border-gray-800">
+                    <span className="inline-flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">
+                      <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+                      {formatDate(row.dueDate)}
+                    </span>
+                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{formatCurrency(row.total)}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </Card>
     </div>
   );

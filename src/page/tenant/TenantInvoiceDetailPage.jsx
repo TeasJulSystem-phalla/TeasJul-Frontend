@@ -204,7 +204,37 @@ export default function TenantInvoiceDetailPage() {
             description="វិក្កយបត្រនេះមានតែថ្លៃជួល និងតម្លៃផ្សេងៗប៉ុណ្ណោះ។"
           />
         ) : (
-          <Table columns={utilityColumns} data={invoice.utilities} />
+          <>
+            <div className="hidden md:block">
+              <Table columns={utilityColumns} data={invoice.utilities} />
+            </div>
+            <div className="space-y-3 md:hidden">
+              {invoice.utilities.map((row, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="inline-flex min-w-0 items-center gap-2">
+                      {utilityIcon(row.type)}
+                      <span className="truncate font-medium capitalize text-slate-800 dark:text-white">
+                        {row.type === 'ELECTRICITY' ? 'ភ្លើង' : 'ទឹក'}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-sm font-semibold text-slate-800 dark:text-white">
+                      {formatCurrency(row.amount)}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between border-t border-slate-100 pt-2 text-xs text-slate-500 dark:border-gray-800 dark:text-slate-400">
+                    <span>បរិមាណប្រើប្រាស់</span>
+                    <span className="font-medium text-slate-700 dark:text-slate-200">
+                      {`${formatNumber(row.usage)} ${row.unit || ''}`.trim()}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </Card>
     </div>

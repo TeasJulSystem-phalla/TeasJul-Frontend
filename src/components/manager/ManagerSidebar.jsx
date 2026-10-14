@@ -20,6 +20,7 @@ import {
   Bell,
   BarChart3,
   Home,
+  Bot,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 
@@ -28,6 +29,7 @@ const NAV_GROUPS = [
     label: 'មេ',
     items: [
       { to: '/manager', label: 'ផ្ទាំងគ្រប់គ្រង', icon: LayoutDashboard },
+      { to: '/manager/assistant', label: 'ជំនួយការ AI', icon: Bot },
       { to: '/manager/reports', label: 'របាយការណ៍ប្រចាំខែ', icon: BarChart3 },
       { to: '/manager/properties', label: 'អចលនទ្រព្យ', icon: Building2 },
       { to: '/manager/rooms', label: 'បន្ទប់', icon: DoorOpen },
