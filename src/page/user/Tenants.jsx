@@ -77,6 +77,18 @@ const formatDate = (dateStr) => {
 
 const fullName = (t) => `${t.firstName || ''} ${t.lastName || ''}`.trim() || `អ្នកជួល #${t.id}`;
 
+const formatTenantAddress = (t) => {
+  if (!t) return '—';
+  const parts = [];
+  if (t.houseNumber) parts.push(`ផ្ទះលេខ ${t.houseNumber}`);
+  if (t.streetNumber) parts.push(`ផ្លូវ ${t.streetNumber}`);
+  if (t.sangkat) parts.push(`សង្កាត់ ${t.sangkat}`);
+  if (t.khan) parts.push(`ខណ្ឌ ${t.khan}`);
+  if (t.cityProvince) parts.push(t.cityProvince);
+  if (parts.length > 0) return parts.join(', ');
+  return t.address || '—';
+};
+
 export default function Tenants() {
   const {
     tenants,
@@ -422,7 +434,7 @@ export default function Tenants() {
                 <DetailItem icon={<Phone className="h-4 w-4 text-slate-400" />} label="លេខទូរស័ព្ទ" value={viewData.phone || '—'} />
                 <DetailItem icon={<Mail className="h-4 w-4 text-slate-400" />} label="អ៊ីមែល" value={viewData.email || '—'} />
                 <DetailItem icon={<Calendar className="h-4 w-4 text-slate-400" />} label="ថ្ងៃខែឆ្នាំកំណើត" value={formatDate(viewData.dateOfBirth)} />
-                <DetailItem icon={<MapPin className="h-4 w-4 text-slate-400" />} label="អាសយដ្ឋាន" value={viewData.address || '—'} />
+                <DetailItem icon={<MapPin className="h-4 w-4 text-slate-400" />} label="អាសយដ្ឋាន" value={formatTenantAddress(viewData)} />
               </div>
             </div>
 

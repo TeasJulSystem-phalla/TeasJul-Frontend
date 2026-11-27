@@ -39,6 +39,11 @@ const EMPTY_FORM = {
   idType: '',
   idNumber: '',
   address: '',
+  houseNumber: '',
+  streetNumber: '',
+  sangkat: '',
+  khan: '',
+  cityProvince: '',
 };
 
 export default function TenantProfilePage() {
@@ -64,6 +69,11 @@ export default function TenantProfilePage() {
       idType: profile.idType || '',
       idNumber: profile.idNumber || '',
       address: profile.address || '',
+      houseNumber: profile.houseNumber || '',
+      streetNumber: profile.streetNumber || '',
+      sangkat: profile.sangkat || '',
+      khan: profile.khan || '',
+      cityProvince: profile.cityProvince || '',
     });
   }, [profile]);
 
@@ -89,6 +99,11 @@ export default function TenantProfilePage() {
         idType: form.idType.trim() || null,
         idNumber: form.idNumber.trim() || null,
         address: form.address.trim() || null,
+        houseNumber: form.houseNumber?.trim() || null,
+        streetNumber: form.streetNumber?.trim() || null,
+        sangkat: form.sangkat?.trim() || null,
+        khan: form.khan?.trim() || null,
+        cityProvince: form.cityProvince?.trim() || null,
       };
       await tenantApi.updateMe(payload);
       await fetchProfile();
@@ -236,13 +251,54 @@ export default function TenantProfilePage() {
         </Card>
 
         <Card title="អាសយដ្ឋាន" description="អាសយដ្ឋានស្នាក់នៅបច្ចុប្បន្ន">
-          <Input
-            label="អាសយដ្ឋាន"
-            name="address"
-            value={form.address}
-            onChange={handleChange}
-            placeholder="ឧ. ភ្នំពេញ"
-          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input
+              label="ផ្ទះលេខ (House No.)"
+              name="houseNumber"
+              value={form.houseNumber}
+              onChange={handleChange}
+              placeholder="ឧ. 12B"
+            />
+            <Input
+              label="ផ្លូវលេខ (Street No.)"
+              name="streetNumber"
+              value={form.streetNumber}
+              onChange={handleChange}
+              placeholder="ឧ. ផ្លូវ 271"
+            />
+            <Input
+              label="សង្កាត់/ឃុំ (Sangkat)"
+              name="sangkat"
+              value={form.sangkat}
+              onChange={handleChange}
+              placeholder="ឧ. បឹងទំពុន"
+            />
+            <Input
+              label="ខណ្ឌ/ស្រុក (Khan)"
+              name="khan"
+              value={form.khan}
+              onChange={handleChange}
+              placeholder="ឧ. មានជ័យ"
+            />
+            <div className="sm:col-span-2">
+              <Input
+                label="រាជធានី/ខេត្ត (City/Province)"
+                name="cityProvince"
+                value={form.cityProvince}
+                onChange={handleChange}
+                placeholder="ឧ. រាជធានីភ្នំពេញ"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Input
+                label="អាសយដ្ឋានពេញលេញ (Full / Legacy Address)"
+                name="address"
+                value={form.address}
+                onChange={handleChange}
+                placeholder="ឧ. ភ្នំពេញ"
+              />
+            </div>
+          </div>
         </Card>
 
         <div className="flex justify-end">

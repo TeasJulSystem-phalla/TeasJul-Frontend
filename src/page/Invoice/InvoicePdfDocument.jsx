@@ -115,16 +115,28 @@ const s = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 2, borderBottomColor: INK, paddingBottom: 12 },
   company: { flex: 7, paddingRight: 12 },
   companyName: { fontSize: 13, fontWeight: 700 },
-  companyLatin: { fontSize: 9, fontWeight: 700, marginTop: 2, letterSpacing: 1 },
+  companyLatin: { fontFamily: 'Times-Italic', fontSize: 9, marginTop: 2, letterSpacing: 0.5 },
   companyAddress: { fontSize: 8, color: MUTED, marginTop: 6, lineHeight: 1.5 },
   logo: { maxHeight: 42, maxWidth: 150, marginBottom: 6, objectFit: 'contain' },
   meta: { flex: 5, alignItems: 'flex-end' },
   titleBox: { borderWidth: 2, borderColor: INK, paddingVertical: 6, paddingHorizontal: 22, backgroundColor: ROW, alignItems: 'center' },
-  titleKhmer: { fontSize: 17, fontWeight: 700 },
-  titleLatin: { fontSize: 9, fontWeight: 700, letterSpacing: 2, marginTop: 1 },
+  titleKhmer: { fontFamily: 'Khmer-Bold', fontSize: 17 },
+  titleLatin: { fontFamily: 'Times-Italic', fontSize: 9, letterSpacing: 2, marginTop: 1 },
   metaLine: { flexDirection: 'row', justifyContent: 'space-between', borderBottomWidth: 1, borderBottomColor: DASH, paddingVertical: 3, marginTop: 6, minWidth: 200 },
   metaLabel: { fontSize: 8, color: MUTED },
   metaValue: { fontSize: 8.5, fontWeight: 700 },
+
+  /* English document typography style (mirrors .english-doc: Times New Roman italic) */
+  englishLabel: { fontFamily: 'Times-Italic', fontSize: 7.5, color: MUTED },
+  englishTh: { fontFamily: 'Times-Italic', fontSize: 7, color: MUTED },
+
+  /* Numeric typography style (mirrors .doc-number: Arial/Helvetica) */
+  numValue: { fontFamily: 'Helvetica', fontSize: 8.5 },
+  numBold: { fontFamily: 'Helvetica-Bold', fontSize: 8.5 },
+  numCell: { fontFamily: 'Helvetica', fontSize: 8, color: INK, paddingVertical: 5, paddingHorizontal: 6 },
+  numCellC: { fontFamily: 'Helvetica', fontSize: 8, color: INK, paddingVertical: 5, paddingHorizontal: 6, textAlign: 'center' },
+  numCellR: { fontFamily: 'Helvetica', fontSize: 8, color: INK, paddingVertical: 5, paddingHorizontal: 6, textAlign: 'right' },
+  numCellBoldR: { fontFamily: 'Helvetica-Bold', fontSize: 8, color: INK, paddingVertical: 5, paddingHorizontal: 6, textAlign: 'right' },
 
   /* Info grid */
   infoGrid: { flexDirection: 'row', borderWidth: 1, borderColor: INK, marginTop: 14 },
@@ -161,24 +173,24 @@ const s = StyleSheet.create({
   wordsLine: { fontSize: 8.5, marginTop: 4, textDecoration: 'underline' },
   payInfoTitle: { fontSize: 8, fontWeight: 700, marginTop: 6, borderTopWidth: 0.5, borderTopColor: '#cbd5e1', paddingTop: 4 },
   payInfoText: { fontSize: 8, color: MUTED, marginTop: 2 },
-  payInfoBold: { fontSize: 8, fontWeight: 700, color: INK },
+  payInfoBold: { fontFamily: 'Helvetica-Bold', fontSize: 8, color: INK },
   tLine: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, paddingHorizontal: 8, borderBottomWidth: 0.5, borderBottomColor: '#cbd5e1' },
   tLabel: { fontSize: 8.5, color: MUTED },
   tValue: { fontSize: 8.5 },
   tLineGreen: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, paddingHorizontal: 8, borderBottomWidth: 0.5, borderBottomColor: '#cbd5e1' },
   grand: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: ROW, paddingVertical: 6, paddingHorizontal: 8 },
   grandLabel: { fontSize: 9, fontWeight: 700 },
-  grandValue: { fontSize: 10, fontWeight: 700, textAlign: 'right' },
+  grandValue: { fontFamily: 'Helvetica-Bold', fontSize: 10, textAlign: 'right' },
   grandKhr: { fontSize: 7.5, color: MUTED, textAlign: 'right' },
   paid: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, paddingHorizontal: 8 },
   paidLabel: { fontSize: 8.5, fontWeight: 700 },
-  paidValue: { fontSize: 8.5, fontWeight: 700 },
+  paidValue: { fontFamily: 'Helvetica-Bold', fontSize: 8.5 },
 
   /* Signatures */
   sigWrap: { flexDirection: 'row', marginTop: 40 },
   sig: { flex: 1, alignItems: 'center' },
   sigTitle: { fontSize: 8.5, fontWeight: 700, textAlign: 'center' },
-  sigLatin: { fontSize: 7, color: MUTED, textAlign: 'center', marginTop: 2 },
+  sigLatin: { fontFamily: 'Times-Italic', fontSize: 7.5, color: MUTED, textAlign: 'center', marginTop: 2 },
   sigDate: { fontSize: 8, color: MUTED, textAlign: 'center', marginTop: 6 },
   sigLine: { borderBottomWidth: 1, borderBottomColor: INK, width: 165, marginTop: 40 },
   sigName: { fontSize: 8.5, fontWeight: 700, textAlign: 'center', marginTop: 8 },
@@ -186,7 +198,7 @@ const s = StyleSheet.create({
   /* Footer */
   footer: { marginTop: 24, borderTopWidth: 1, borderTopColor: '#cbd5e1', paddingTop: 8, alignItems: 'center' },
   footerNote: { fontSize: 7.5, color: MUTED, textAlign: 'center', lineHeight: 1.5 },
-  footerGen: { fontSize: 7, color: FAINT, marginTop: 3, fontFamily: 'Khmer' },
+  footerGen: { fontSize: 7, color: FAINT, marginTop: 3 },
 });
 
 const colNo =   { flex: 0.6 };
@@ -244,9 +256,9 @@ export default function InvoicePdfDocument({ invoice, settings }) {
               <Text style={s.companyAddress}>
                 អាសយដ្ឋាន៖ {addressText}
                 {'\n'}
-                ទំនាក់ទំនងលេខទូរស័ព្ទ៖ {phoneText}
+                ទំនាក់ទំនងលេខទូរស័ព្ទ៖ <Text style={s.numValue}>{phoneText}</Text>
                 {'\n'}
-                សារអេឡិចត្រូនិច (Email)៖ {emailText}
+                សារអេឡិចត្រូនិច (Email)៖ <Text style={s.numValue}>{emailText}</Text>
               </Text>
             )}
           </View>
@@ -256,16 +268,16 @@ export default function InvoicePdfDocument({ invoice, settings }) {
               <Text style={s.titleLatin}>INVOICE</Text>
             </View>
             <View style={s.metaLine}>
-              <Text style={s.metaLabel}>លេខវិក្កយបត្រ / Inv. No:</Text>
-              <Text style={s.metaValue}>{invoice.invoiceNo || '—'}</Text>
+              <Text style={s.metaLabel}>លេខវិក្កយបត្រ / <Text style={s.englishLabel}>Inv. No:</Text></Text>
+              <Text style={[s.metaValue, s.numBold]}>{invoice.invoiceNo || '—'}</Text>
             </View>
             <View style={s.metaLine}>
-              <Text style={s.metaLabel}>កាលបរិច្ឆេទ / Date:</Text>
-              <Text style={s.metaValue}>{fmtDate(invoice.createdAt)}</Text>
+              <Text style={s.metaLabel}>កាលបរិច្ឆេទ / <Text style={s.englishLabel}>Date:</Text></Text>
+              <Text style={[s.metaValue, s.numValue]}>{fmtDate(invoice.createdAt)}</Text>
             </View>
             <View style={s.metaLine}>
-              <Text style={s.metaLabel}>ថ្ងៃផុតកំណត់ / Due Date:</Text>
-              <Text style={s.metaValue}>{fmtDate(invoice.dueDate)}</Text>
+              <Text style={s.metaLabel}>ថ្ងៃផុតកំណត់ / <Text style={s.englishLabel}>Due Date:</Text></Text>
+              <Text style={[s.metaValue, s.numBold]}>{fmtDate(invoice.dueDate)}</Text>
             </View>
           </View>
         </View>
@@ -273,14 +285,14 @@ export default function InvoicePdfDocument({ invoice, settings }) {
         {/* 2. Customer & billing grid */}
         <View style={s.infoGrid}>
           <View style={s.infoCol}>
-            <Text style={s.infoTitle}>ព័ត៌មានអ្នកជួល / CUSTOMER (BILL TO)</Text>
+            <Text style={s.infoTitle}>ព័ត៌មានអ្នកជួល / <Text style={s.englishLabel}>CUSTOMER (BILL TO)</Text></Text>
             <View style={s.infoRow}>
               <Text style={s.infoK}>ឈ្មោះអ្នកជួល៖</Text>
               <Text style={s.infoV}>{invoice.tenantName || '—'}</Text>
             </View>
             <View style={s.infoRow}>
               <Text style={s.infoK}>បន្ទប់ស្នាក់នៅ៖</Text>
-              <Text style={s.infoV}>បន្ទប់លេខ {invoice.roomNumber || '—'}</Text>
+              <Text style={s.infoV}>បន្ទប់លេខ <Text style={s.numBold}>{invoice.roomNumber || '—'}</Text></Text>
             </View>
             <View style={s.infoRow}>
               <Text style={s.infoK}>អគារ/ទីតាំង៖</Text>
@@ -288,14 +300,14 @@ export default function InvoicePdfDocument({ invoice, settings }) {
             </View>
             <View style={s.infoRow}>
               <Text style={s.infoK}>កិច្ចសន្យាលេខ៖</Text>
-              <Text style={s.infoV}>{invoice.contractNo || '—'}</Text>
+              <Text style={[s.infoV, s.numBold]}>{invoice.contractNo || '—'}</Text>
             </View>
           </View>
           <View style={s.infoColRight}>
-            <Text style={s.infoTitle}>លក្ខខណ្ឌទូទាត់ / BILLING TERMS</Text>
+            <Text style={s.infoTitle}>លក្ខខណ្ឌទូទាត់ / <Text style={s.englishLabel}>BILLING TERMS</Text></Text>
             <View style={s.infoRow}>
               <Text style={s.infoK}>សម្រាប់រយៈពេល៖</Text>
-              <Text style={s.infoV}>{billingMonth}</Text>
+              <Text style={[s.infoV, s.numBold]}>{billingMonth}</Text>
             </View>
             <View style={s.infoRow}>
               <Text style={s.infoK}>កាលបរិច្ឆេទចេញ៖</Text>
@@ -311,11 +323,26 @@ export default function InvoicePdfDocument({ invoice, settings }) {
         {/* 3. Items table */}
         <View style={s.tableWrap}>
           <View style={s.thRow}>
-            <Text style={[s.thC, colNo]}>ល.រ</Text>
-            <Text style={[s.th, colDesc]}>បរិយាយមុខទំនិញ / សេវាកម្ម</Text>
-            <Text style={[s.thC, colQty]}>បរិមាណ</Text>
-            <Text style={[s.thR, colPrice]}>តម្លៃឯកតា</Text>
-            <Text style={[s.thR, colAmt]}>ចំនួនទឹកប្រាក់</Text>
+            <View style={[colNo, { paddingVertical: 5, paddingHorizontal: 4, alignItems: 'center' }]}>
+              <Text style={s.thC}>ល.រ</Text>
+              <Text style={s.englishTh}>No.</Text>
+            </View>
+            <View style={[colDesc, { paddingVertical: 5, paddingHorizontal: 6 }]}>
+              <Text style={s.th}>បរិយាយមុខទំនិញ / សេវាកម្ម</Text>
+              <Text style={s.englishTh}>Description of Items & Services</Text>
+            </View>
+            <View style={[colQty, { paddingVertical: 5, paddingHorizontal: 6, alignItems: 'center' }]}>
+              <Text style={s.thC}>បរិមាណ</Text>
+              <Text style={s.englishTh}>Qty</Text>
+            </View>
+            <View style={[colPrice, { paddingVertical: 5, paddingHorizontal: 6, alignItems: 'flex-end' }]}>
+              <Text style={s.thR}>តម្លៃឯកតា</Text>
+              <Text style={s.englishTh}>Unit Price</Text>
+            </View>
+            <View style={[colAmt, { paddingVertical: 5, paddingHorizontal: 6, alignItems: 'flex-end' }]}>
+              <Text style={s.thR}>ចំនួនទឹកប្រាក់</Text>
+              <Text style={s.englishTh}>Amount (USD)</Text>
+            </View>
           </View>
 
           {items.map((item, idx) => {
@@ -323,16 +350,16 @@ export default function InvoicePdfDocument({ invoice, settings }) {
             const isLast = idx === items.length - 1;
             return (
               <View key={item.id || idx} style={[s.tr, isAlt && s.trAlt, isLast && s.trLast]}>
-                <Text style={[s.cellC, colNo]}>{idx + 1}</Text>
+                <Text style={[s.numCellC, colNo]}>{idx + 1}</Text>
                 <View style={colDesc}>
                   <Text style={s.cellBold}>{invoiceItemName(item, ITEM_LABELS)}</Text>
                   {item.description && item.description !== invoiceItemName(item, ITEM_LABELS) && (
-                    <Text style={s.itemMeta}>{item.description}</Text>
+                    <Text style={[s.itemMeta, { fontFamily: 'Times-Italic' }]}>{item.description}</Text>
                   )}
                 </View>
-                <Text style={[s.cellC, colQty]}>{Number(item.quantity) || 1}</Text>
-                <Text style={[s.cellR, colPrice]}>{fmtUSD(item.unitPrice)}</Text>
-                <Text style={[s.cellBoldR, colAmt]}>{fmtUSD(item.amount)}</Text>
+                <Text style={[s.numCellC, colQty]}>{Number(item.quantity) || 1}</Text>
+                <Text style={[s.numCellR, colPrice]}>{fmtUSD(item.unitPrice)}</Text>
+                <Text style={[s.numCellBoldR, colAmt]}>{fmtUSD(item.amount)}</Text>
               </View>
             );
           })}
@@ -359,9 +386,9 @@ export default function InvoicePdfDocument({ invoice, settings }) {
         {/* 4. Totals + amount in words */}
         <View style={s.totalCol}>
           <View style={s.totalLeft}>
-            <Text style={s.totalLeftTitle}>ចំនួនទឹកប្រាក់ជាអក្សរ / Amount in words:</Text>
+            <Text style={s.totalLeftTitle}>ចំនួនទឹកប្រាក់ជាអក្សរ / <Text style={s.englishLabel}>Amount in words:</Text></Text>
             <Text style={s.wordsLine}>{numberToKhmerWords(invoice.totalAmount)}</Text>
-            <Text style={s.payInfoTitle}>ព័ត៌មាននៃការទូទាត់ប្រាក់ (Payment Info):</Text>
+            <Text style={s.payInfoTitle}>ព័ត៌មាននៃការទូទាត់ប្រាក់ <Text style={s.englishLabel}>(Payment Info):</Text></Text>
             <Text style={s.payInfoText}>
               {'• '}គណនីធនាគារ ABA / KHQR: <Text style={s.payInfoBold}>000 123 456 (TeasJul)</Text>
             </Text>
@@ -371,59 +398,44 @@ export default function InvoicePdfDocument({ invoice, settings }) {
           </View>
           <View style={s.totalRight}>
             <View style={s.tLine}>
-              <Text style={s.tLabel}>សរុបរង / Subtotal:</Text>
-              <Text style={s.tValue}>{fmtUSD(invoice.subtotal)}</Text>
+              <Text style={s.tLabel}>សរុបរង / <Text style={s.englishLabel}>Subtotal:</Text></Text>
+              <Text style={[s.tValue, s.numValue]}>{fmtUSD(invoice.subtotal)}</Text>
             </View>
             <View style={s.tLine}>
-              <Text style={s.tLabel}>បញ្ចុះតម្លៃ / Discount:</Text>
-              <Text style={s.tValue}>{Number(invoice.discount) > 0 ? `-${fmtUSD(invoice.discount)}` : '$0.00'}</Text>
+              <Text style={s.tLabel}>បញ្ចុះតម្លៃ / <Text style={s.englishLabel}>Discount:</Text></Text>
+              <Text style={[s.tValue, s.numValue]}>{Number(invoice.discount) > 0 ? `-${fmtUSD(invoice.discount)}` : '$0.00'}</Text>
             </View>
             <View style={s.tLine}>
-              <Text style={s.tLabel}>ថ្លៃយឺតយ៉ាវ / Late Fee:</Text>
-              <Text style={s.tValue}>{Number(invoice.lateFee) > 0 ? `+${fmtUSD(invoice.lateFee)}` : '$0.00'}</Text>
+              <Text style={s.tLabel}>ថ្លៃយឺតយ៉ាវ / <Text style={s.englishLabel}>Late Fee:</Text></Text>
+              <Text style={[s.tValue, s.numValue]}>{Number(invoice.lateFee) > 0 ? `+${fmtUSD(invoice.lateFee)}` : '$0.00'}</Text>
             </View>
             <View style={s.grand}>
-              <Text style={s.grandLabel}>សរុបត្រូវបង់ / Total Due:</Text>
+              <Text style={s.grandLabel}>សរុបត្រូវបង់ / <Text style={s.englishLabel}>Total Due:</Text></Text>
               <View>
-                {showUsd && <Text style={s.grandValue}>{fmtUSD(invoice.totalAmount)}</Text>}
-                {showKhr && <Text style={s.grandKhr}>≈ {fmtKHR(invoice.totalAmount, exchangeRate)}</Text>}
+                {showUsd && <Text style={[s.grandValue, s.numBold]}>{fmtUSD(invoice.totalAmount)}</Text>}
+                {showKhr && <Text style={[s.grandKhr, s.numValue]}>≈ {fmtKHR(invoice.totalAmount, exchangeRate)}</Text>}
               </View>
             </View>
             <View style={s.paid}>
-              <Text style={s.paidLabel}>បានបង់រួច / Paid:</Text>
-              <Text style={s.paidValue}>{fmtUSD(invoice.paidAmount || 0)}</Text>
+              <Text style={s.paidLabel}>បានបង់រួច / <Text style={s.englishLabel}>Paid:</Text></Text>
+              <Text style={[s.paidValue, s.numBold]}>{fmtUSD(invoice.paidAmount || 0)}</Text>
             </View>
             <View style={s.paid}>
-              <Text style={s.paidLabel}>នៅសល់ / Remaining:</Text>
-              <Text style={s.paidValue}>{fmtUSD(invoice.remainingAmount != null
+              <Text style={s.paidLabel}>នៅសល់ / <Text style={s.englishLabel}>Remaining:</Text></Text>
+              <Text style={[s.paidValue, s.numBold]}>{fmtUSD(invoice.remainingAmount != null
                 ? invoice.remainingAmount
                 : Math.max(Number(invoice.totalAmount || 0) - Number(invoice.paidAmount || 0), 0))}</Text>
             </View>
           </View>
-        </View>
-
-        {/* 5. Signatures */}
-        <View style={s.sigWrap}>
-          <View style={s.sig}>
-            <Text style={s.sigTitle}>ហត្ថលេខា និងឈ្មោះអ្នកបង់ប្រាក់</Text>
-            <Text style={s.sigLatin}>Customer / Tenant's Signature</Text>
-            <Text style={s.sigDate}>ថ្ងៃទី.......... ខែ.......... ឆ្នាំ...........</Text>
-            <View style={s.sigLine} />
-            <Text style={s.sigName}>{invoice.tenantName || '—'}</Text>
-          </View>
-          <View style={s.sig}>
-            <Text style={s.sigTitle}>ហត្ថលេខា និងឈ្មោះអ្នករៀបចំវិក្កយបត្រ</Text>
-            <Text style={s.sigLatin}>Authorized Signature & Official Stamp</Text>
-            <Text style={s.sigDate}>ថ្ងៃទី.......... ខែ.......... ឆ្នាំ...........</Text>
-            <View style={s.sigLine} />
-            <Text style={s.sigName}>{bizName}</Text>
-          </View>
-        </View>
+        </View>        
 
         {/* 6. Footer note */}
         <View style={s.footer}>
           <Text style={s.footerNote}>{footerNote}</Text>
-          <Text style={s.footerGen}>Generated by TeasJul Management System · Reference ID: {invoice.invoiceNo}</Text>
+          <Text style={s.footerGen}>
+            <Text style={{ fontFamily: 'Times-Italic' }}>Generated by TeasJul Management System · Reference ID: </Text>
+            <Text style={{ fontFamily: 'Helvetica' }}>{invoice.invoiceNo}</Text>
+          </Text>
         </View>
       </Page>
     </Document>

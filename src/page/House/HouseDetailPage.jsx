@@ -476,6 +476,30 @@ export default function HouseDetailPage() {
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <InfoRow icon={MapPin} label="អាសយដ្ឋាន" value={house?.address} />
+          {(house?.houseNumber || house?.streetNumber) && (
+            <InfoRow
+              icon={MapPin}
+              label="ផ្ទះ / ផ្លូវ"
+              value={[
+                house?.houseNumber && `ផ្ទះលេខ ${house.houseNumber}`,
+                house?.streetNumber && `ផ្លូវ ${house.streetNumber}`,
+              ]
+                .filter(Boolean)
+                .join(', ')}
+            />
+          )}
+          {(house?.sangkat || house?.khan) && (
+            <InfoRow
+              icon={MapPin}
+              label="សង្កាត់ / ខណ្ឌ"
+              value={[
+                house?.sangkat && `សង្កាត់ ${house.sangkat}`,
+                house?.khan && `ខណ្ឌ ${house.khan}`,
+              ]
+                .filter(Boolean)
+                .join(', ')}
+            />
+          )}
           <InfoRow icon={MapPin} label="ក្រុង/ខេត្ត" value={house?.cityProvince} />
           <InfoRow icon={Mail} label="លេខកូដប្រៃសណីយ៍" value={house?.postalCode} />
           <InfoRow

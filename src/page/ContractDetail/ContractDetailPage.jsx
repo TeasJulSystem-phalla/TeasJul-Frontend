@@ -38,6 +38,9 @@ import {
   DEPOSIT_STATUS_LABEL,
   fullName,
   roomLabel,
+  isBlank,
+  resolveAddress,
+  ageFromDob,
 } from './format';
 
 const STATUS_VARIANT = {
@@ -203,6 +206,72 @@ export default function ContractDetailPage() {
     return sorted[0] ? tenantsById?.[sorted[0].tenantId] : null;
   }, [contractTenants, tenantsById]);
 
+  // Only details that the printable agreement actually reads are checked here.
+  // Owner details come from the contract's Party A snapshot with legacy fallback;
+  // Tenant details come from the contract's Party B snapshot. Nothing is back-filled from live profiles.
+  const missingInfo = useMemo(() => {
+    const owner = [];
+    const tenant = [];
+
+    const ownerAddress = resolveAddress(
+      {
+        houseNumber: contract?.ownerHouseNumber,
+        streetNumber: contract?.ownerStreetNumber,
+        sangkat: contract?.ownerSangkat,
+        khan: contract?.ownerKhan,
+        cityProvince: contract?.ownerCityProvince,
+      },
+      contract?.ownerAddress || landlord?.address
+    );
+
+    if (isBlank(landlord?.name)) owner.push('ឈ្មោះ');
+    if (isBlank(landlord?.gender)) owner.push('ភេទ');
+    if (isBlank(ageFromDob(landlord?.dob))) owner.push('ថ្ងៃខែឆ្នាំកំណើត');
+    const ownerAddressParts = [
+      ['ផ្ទះលេខ', ownerAddress.houseNumber],
+      ['ផ្លូវលេខ', ownerAddress.streetNumber],
+      ['សង្កាត់', ownerAddress.sangkat],
+      ['ខណ្ឌ', ownerAddress.khan],
+    ]
+      .filter(([, value]) => isBlank(value))
+      .map(([label]) => label);
+    if (ownerAddressParts.length) {
+      owner.push(`អាស័យដ្ឋាន (${ownerAddressParts.join(', ')})`);
+    }
+
+    if (!primaryTenant) {
+      tenant.push('អ្នកជួល (មិនមានទិន្នន័យ)');
+    } else {
+      const tenantAddress = resolveAddress(
+        {
+          houseNumber: contract?.tenantHouseNumber,
+          streetNumber: contract?.tenantStreetNumber,
+          sangkat: contract?.tenantSangkat,
+          khan: contract?.tenantKhan,
+          cityProvince: contract?.tenantCityProvince,
+        },
+        null
+      );
+
+      if (isBlank(fullName(primaryTenant))) tenant.push('ឈ្មោះ');
+      if (isBlank(primaryTenant.gender)) tenant.push('ភេទ');
+      if (isBlank(ageFromDob(primaryTenant.dateOfBirth))) tenant.push('ថ្ងៃខែឆ្នាំកំណើត');
+      const tenantAddressParts = [
+        ['ផ្ទះលេខ', tenantAddress.houseNumber],
+        ['ផ្លូវលេខ', tenantAddress.streetNumber],
+        ['សង្កាត់', tenantAddress.sangkat],
+        ['ខណ្ឌ', tenantAddress.khan],
+      ]
+        .filter(([, value]) => isBlank(value))
+        .map(([label]) => label);
+      if (tenantAddressParts.length) {
+        tenant.push(`អាស័យដ្ឋាន (${tenantAddressParts.join(', ')})`);
+      }
+    }
+
+    return { owner, tenant };
+  }, [contract, landlord, primaryTenant]);
+
   const totalDepositPaid = useMemo(
     () => (deposits || []).reduce((sum, d) => sum + (d.paidAmount || 0), 0),
     [deposits]
@@ -307,6 +376,37 @@ export default function ContractDetailPage() {
           </p>
         </div>
       </div>
+
+      {/* Management-only warning: never part of the printable agreement */}
+      {(missingInfo.owner.length > 0 || missingInfo.tenant.length > 0) && (
+        <div className="rounded-xl border border-amber-200/70 bg-amber-50/60 px-4 py-2 print:hidden dark:border-amber-500/20 dark:bg-amber-500/5">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <p className="shrink-0 text-xs font-semibold text-amber-800 dark:text-amber-300">
+              ព័ត៌មានកិច្ចសន្យាមិនពេញលេញ
+            </p>
+            <p className="min-w-0 flex-1 truncate text-[11px] text-amber-700/80 dark:text-amber-400/80">
+              ក៖ {missingInfo.owner.join(', ') || '—'} · ខ៖ {missingInfo.tenant.join(', ') || '—'}
+            </p>
+            <div className="flex shrink-0 items-center gap-1">
+              {missingInfo.owner.length > 0 && (
+                <Link to="/owner/settings">
+                  <Button variant="ghost" size="sm" className="text-amber-700 dark:text-amber-300">
+                    Settings
+                  </Button>
+                </Link>
+              )}
+              {missingInfo.tenant.length > 0 && (
+                <Link to={primaryTenant ? `${basePath}/tenants/${primaryTenant.id}/edit` : `${basePath}/tenants`}>
+                  <Button variant="ghost" size="sm" className="text-amber-700 dark:text-amber-300">
+                    កែអ្នកជួល
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content: Document + Sidebar */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_340px]">

@@ -64,6 +64,7 @@ const formatDateTime = (dateStr) => {
 
 const EMPTY_FORM = {
   roomId: '',
+  tenantId: '',
   startDate: '',
   endDate: '',
   monthlyRent: '',
@@ -87,6 +88,7 @@ export default function ContractEditorPage() {
     createContract,
     updateContract,
   } = useContracts();
+  const { tenants } = useTenants();
   const { rooms } = useRooms();
   const { bookings } = useRoomBookings();
   const { houses } = useHouses();
@@ -228,6 +230,7 @@ export default function ContractEditorPage() {
 
   const buildPayload = () => ({
     roomId: Number(form.roomId),
+    tenantId: form.tenantId ? Number(form.tenantId) : null,
     startDate: form.startDate,
     endDate: form.endDate || null,
     monthlyRent: Number(form.monthlyRent),
@@ -521,6 +524,29 @@ export default function ContractEditorPage() {
             <Select label="ស្ថានភាព" name="status" options={STATUS_OPTIONS} value={form.status} onChange={handleFormChange} />
           </div>
 
+          {!isEdit && (
+            <div>
+              <Select
+                label="អ្នកជួលចម្បង (ស្រេចចិត្ត)"
+                name="tenantId"
+                options={[
+                  { value: '', label: '— ជ្រើសរើសអ្នកជួលចម្បង (ស្រេចចិត្ត) —' },
+                  ...(tenants || [])
+                    .filter((t) => t.status === 'ACTIVE' || t.status === 'PENDING')
+                    .map((t) => ({
+                      value: t.id,
+                      label: `${fullName(t)} (${t.tenantCode || `#${t.id}`}) · [${t.status === 'PENDING' ? 'រង់ចាំ' : 'សកម្ម'}]`,
+                    })),
+                ]}
+                value={form.tenantId}
+                onChange={handleFormChange}
+              />
+              <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+                ការជ្រើសរើសអ្នកជួលចម្បងនៅទីនេះ នឹងថតចម្លងអាសយដ្ឋានអ្នកជួលចូលក្នុងកិច្ចសន្យាជាភាគី «ខ» ដោយស្វ័យប្រវត្តិ។
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Input label="ថ្ងៃចាប់ផ្តើម" required type="date" name="startDate" value={form.startDate} onChange={handleFormChange} error={formErrors.startDate} />
             <Input label="ថ្ងៃបញ្ចប់" type="date" name="endDate" value={form.endDate} onChange={handleFormChange} />
@@ -570,7 +596,7 @@ const SectionCard = ({ icon, title, subtitle, headerAction, children }) => (
 
 /* Sub-sections for Edit mode (Tenants, Deposits, Renewals) */
 const TenantSection = ({ contractId }) => {
-  const { contractTenants, loading, fetchContractTenants, addTenant, removeTenant } = useContractTenants(contractId);
+  const { contractTenants, loading, fetchContractTenants, addTenant, updateTenant, removeTenant } = useContractTenants(contractId);
   const { tenants } = useTenants();
   const { contracts } = useContracts();
   const toast = useToast();
@@ -580,6 +606,34 @@ const TenantSection = ({ contractId }) => {
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [activelyRentingTenantIds, setActivelyRentingTenantIds] = useState(new Set());
+
+  const handleOpenAdd = () => {
+    const hasPrimary = (contractTenants || []).some((ct) => ct.isPrimary);
+    setForm({
+      tenantId: '',
+      isPrimary: !hasPrimary,
+      joinedAt: new Date().toISOString().split('T')[0],
+      leftAt: '',
+    });
+    setFormErrors({});
+    setAddOpen(true);
+  };
+
+  const handleSetPrimary = async (ct) => {
+    try {
+      await updateTenant(ct.id, {
+        contractId,
+        tenantId: ct.tenantId,
+        isPrimary: true,
+        joinedAt: ct.joinedAt,
+        leftAt: ct.leftAt,
+      });
+      toast.success('បានកំណត់ជាអ្នកជួលចម្បង', 'អាសយដ្ឋានអ្នកជួលត្រូវបានភ្ជាប់ទៅភាគី «ខ» ដោយជោគជ័យ។');
+      fetchContractTenants();
+    } catch (err) {
+      toast.error('កំហុស', err.response?.data?.message || 'មិនអាចកំណត់ជាអ្នកជួលចម្បងបានទេ។');
+    }
+  };
 
   // Fetch active renting tenant IDs when modal is opened
   useEffect(() => {
@@ -682,7 +736,7 @@ const TenantSection = ({ contractId }) => {
     <SectionCard icon={<UsersIcon className="h-5 w-5" />} title="អ្នកជួលដែលបានចាត់តាំង" subtitle="អ្នកជួលដែលទាក់ទងនឹងកិច្ចសន្យានេះ។">
       <div className="space-y-3">
         <div className="flex justify-end">
-          <Button variant="outline" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setAddOpen(true)}>
+          <Button variant="outline" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleOpenAdd}>
             បន្ថែមអ្នកជួល
           </Button>
         </div>
@@ -700,7 +754,18 @@ const TenantSection = ({ contractId }) => {
                       <p className="text-sm font-semibold text-slate-800 dark:text-white">
                         {t ? fullName(t) : `អ្នកជួល #${ct.tenantId}`}
                       </p>
-                      {ct.isPrimary && <Badge variant="info">ចម្បង</Badge>}
+                      {ct.isPrimary ? (
+                        <Badge variant="info">ចម្បង</Badge>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          className="h-6 px-1.5 text-[11px] text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                          onClick={() => handleSetPrimary(ct)}
+                        >
+                          កំណត់ជាចម្បង
+                        </Button>
+                      )}
                     </div>
                     <p className="text-xs text-slate-400 mt-0.5">ចូលរួម: {formatDate(ct.joinedAt)}</p>
                   </div>

@@ -48,6 +48,10 @@ const EMPTY_HOUSE = {
   cityProvince: "",
   postalCode: "",
   description: "",
+  houseNumber: "",
+  streetNumber: "",
+  sangkat: "",
+  khan: "",
 };
 
 const EMPTY_ROOM_TYPE = {
@@ -215,6 +219,10 @@ export default function AdminPropertyPostingPage() {
         cityProvince: resp.cityProvince || "",
         postalCode: resp.postalCode || "",
         description: resp.description || "",
+        houseNumber: resp.houseNumber || "",
+        streetNumber: resp.streetNumber || "",
+        sangkat: resp.sangkat || "",
+        khan: resp.khan || "",
       });
       if (resp.propertyType === "ROOM" && resp.roomTypeId) {
         setRoomTypeMode("reuse");
@@ -465,6 +473,10 @@ export default function AdminPropertyPostingPage() {
         cityProvince: house.cityProvince.trim() || undefined,
         postalCode: house.postalCode.trim() || undefined,
         description: house.description.trim() || undefined,
+        houseNumber: house.houseNumber?.trim() || undefined,
+        streetNumber: house.streetNumber?.trim() || undefined,
+        sangkat: house.sangkat?.trim() || undefined,
+        khan: house.khan?.trim() || undefined,
         propertyType: propertyType || undefined,
       };
     } else if (houseMode === "reuse" && houseId) {
@@ -476,6 +488,10 @@ export default function AdminPropertyPostingPage() {
         cityProvince: house.cityProvince.trim() || undefined,
         postalCode: house.postalCode.trim() || undefined,
         description: house.description.trim() || undefined,
+        houseNumber: house.houseNumber?.trim() || undefined,
+        streetNumber: house.streetNumber?.trim() || undefined,
+        sangkat: house.sangkat?.trim() || undefined,
+        khan: house.khan?.trim() || undefined,
         propertyType: propertyType || undefined,
         furnishing: listing.furnishing || undefined,
       };
@@ -807,9 +823,13 @@ export default function AdminPropertyPostingPage() {
               {!(houseMode === "reuse" && houseId) && (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Input label="ឈ្មោះផ្ទះ/អាគារ" required name="name" value={house.name} onChange={fieldSet(setHouse)} placeholder="ឧ. វីឡា សំណាង" />
-                  <Input label="អាសយដ្ឋាន" required name="address" value={house.address} onChange={fieldSet(setHouse)} placeholder="ផ្លូវ..., សង្កាត់..." />
-                  <Input label="ទីក្រុង/ខេត្ត" name="cityProvince" value={house.cityProvince} onChange={fieldSet(setHouse)} placeholder="ភ្នំពេញ" />
                   <Input label="លេខកូដប្រៃសណីយ៍" name="postalCode" value={house.postalCode} onChange={fieldSet(setHouse)} placeholder="ជម្រើស" />
+                  <Input label="ផ្ទះលេខ" name="houseNumber" value={house.houseNumber} onChange={fieldSet(setHouse)} placeholder="ឧ. 12B" />
+                  <Input label="ផ្លូវលេខ" name="streetNumber" value={house.streetNumber} onChange={fieldSet(setHouse)} placeholder="ឧ. 2004" />
+                  <Input label="សង្កាត់/ឃុំ" name="sangkat" value={house.sangkat} onChange={fieldSet(setHouse)} placeholder="ឧ. ទឹកថ្លា" />
+                  <Input label="ខណ្ឌ/ស្រុក" name="khan" value={house.khan} onChange={fieldSet(setHouse)} placeholder="ឧ. សែនសុខ" />
+                  <Input label="ទីក្រុង/ខេត្ត" name="cityProvince" value={house.cityProvince} onChange={fieldSet(setHouse)} placeholder="ភ្នំពេញ" />
+                  <Input label="អាសយដ្ឋាន (ពេញលេញ)" required name="address" value={house.address} onChange={fieldSet(setHouse)} placeholder="ផ្លូវ..., សង្កាត់..." />
                   <div className="sm:col-span-2">
                     <Textarea label="ការពិពណ៌នា" name="description" rows={3} value={house.description} onChange={fieldSet(setHouse)} placeholder="ពិពណ៌នាអំពីអចលនទ្រព្យ..." />
                   </div>

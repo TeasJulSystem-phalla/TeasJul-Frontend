@@ -67,7 +67,56 @@ html {
   }
 }
 
-/* Blinking cursor for streaming assistant messages */
+@font-face {
+  font-family: "Khmer OS Moul Light";
+  src: local("Khmer OS Moul Light"),
+       local("Khmer OS Muol Light"),
+       url("./assets/fonts/KhmerOS_muollight.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Khmer OS Muol Light";
+  src: local("Khmer OS Moul Light"),
+       local("Khmer OS Muol Light"),
+       url("./assets/fonts/KhmerOS_muollight.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Printable legal document typography (Khmer / English / serial number) */
+.khmer-moul-header {
+  font-family: "Khmer OS Moul Light", "Khmer OS Muol Light", "Moul", var(--font-khmer), serif;
+}
+
+.khmer-doc {
+  font-family: var(--font-khmer);
+  line-height: 1.8;
+}
+
+.english-doc {
+  font-family: "Times New Roman", Times, Georgia, serif;
+  font-style: italic;
+}
+
+.doc-number {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Inline dotted fill-in field used by the lease agreement form */
+.fill-blank {
+  display: inline-block;
+  min-width: 1.5rem;
+  padding: 0 0.15rem;
+  border-bottom: 1px dotted #000;
+  text-align: center;
+  line-height: 1.2;
+  vertical-align: baseline;
+}
+
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0; }

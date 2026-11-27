@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -30,6 +31,7 @@ import {
   Zap,
   ScanEye,
   MoreVertical,
+  ChevronDown,
 } from 'lucide-react';
 import { useRooms, useRoomAmenities } from '../../hooks/useRooms.js';
 import { useRoomBookings } from '../../hooks/useRoomBookings.js';
@@ -150,6 +152,9 @@ export default function Rooms() {
   const [publicationFilter, setPublicationFilter] = useState('');
   const [page, setPage] = useState(0);
   const pageSize = 10;
+  
+  // Header dropdown state
+  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
 
   const handleSearchChange = (val) => {
     setSearchTerm(val);
@@ -674,36 +679,45 @@ export default function Rooms() {
             ទិដ្ឋភាពទូទៅនៃបន្ទប់ តម្លៃប្រចាំខែ និងការស្នាក់នៅរបស់អ្នកជួល។
           </p>
         </div>
+        
+        {/* Fixed Header Actions */}
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={refresh}>
-            ធ្វើឱ្យស្រស់
+            <span className="hidden sm:inline">ធ្វើឱ្យស្រស់</span>
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            leftIcon={<FileSpreadsheet className="h-4 w-4" />}
-            onClick={() => navigate(`${basePath}/rooms/import${houseFilter ? `?houseId=${houseFilter}` : ''}`)}
-          >
-            <span className="hidden sm:inline">នាំចូល CSV/Excel</span>
-            <span className="sm:hidden">CSV/Excel</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            leftIcon={<Zap className="h-4 w-4" />}
-            onClick={() => navigate(`${basePath}/rooms/meters-import${houseFilter ? `?houseId=${houseFilter}` : ''}`)}
-          >
-            <span className="hidden lg:inline">នាំចូល CSV បន្ទប់ + ម៉ែត្រ</span>
-            <span className="lg:hidden">ម៉ែត្រ</span>
-          </Button>
-          <Button variant="outline" size="sm" leftIcon={<Zap className="h-4 w-4" />} onClick={() => setBulkUtilityOpen(true)}>
-            <span className="hidden lg:inline">កំណត់ប្រភេទប្រើប្រាស់ច្រើនបន្ទប់</span>
-            <span className="lg:hidden">ប្រើប្រាស់</span>
-          </Button>
-          <Button variant="outline" size="sm" leftIcon={<KeySquare className="h-4 w-4" />} onClick={() => setBulkAmenityOpen(true)}>
-            <span className="hidden lg:inline">កំណត់គ្រឿងបរិក្ខារច្រើនបន្ទប់</span>
-            <span className="lg:hidden">បរិក្ខារ</span>
-          </Button>
+          
+          <div className="relative">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              leftIcon={<MoreVertical className="h-4 w-4" />} 
+              rightIcon={<ChevronDown className="h-3 w-3" />}
+              onClick={() => setHeaderMenuOpen(!headerMenuOpen)}
+            >
+              ជម្រើសផ្សេងទៀត
+            </Button>
+            {headerMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setHeaderMenuOpen(false)} />
+                <div className="absolute right-0 top-full z-20 mt-1 w-56 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                  <button onClick={() => { setHeaderMenuOpen(false); navigate(`${basePath}/rooms/import${houseFilter ? `?houseId=${houseFilter}` : ''}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-gray-800">
+                    <FileSpreadsheet className="h-3.5 w-3.5" /> នាំចូល CSV/Excel
+                  </button>
+                  <button onClick={() => { setHeaderMenuOpen(false); navigate(`${basePath}/rooms/meters-import${houseFilter ? `?houseId=${houseFilter}` : ''}`); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-gray-800">
+                    <Zap className="h-3.5 w-3.5" /> នាំចូលបន្ទប់ + ម៉ែត្រ
+                  </button>
+                  <div className="my-1 border-t border-slate-100 dark:border-gray-800" />
+                  <button onClick={() => { setHeaderMenuOpen(false); setBulkUtilityOpen(true); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-gray-800">
+                    <Zap className="h-3.5 w-3.5" /> កំណត់ប្រភេទប្រើប្រាស់ច្រើនបន្ទប់
+                  </button>
+                  <button onClick={() => { setHeaderMenuOpen(false); setBulkAmenityOpen(true); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-gray-800">
+                    <KeySquare className="h-3.5 w-3.5" /> កំណត់គ្រឿងបរិក្ខារច្រើនបន្ទប់
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+
           <Button variant="primary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={handleCreateOpen}>
             បង្កើតបន្ទប់
           </Button>
@@ -890,7 +904,7 @@ export default function Rooms() {
           {viewMode === 'table' ? (
             <Card className="overflow-hidden rounded-xl border-slate-200/80 dark:border-gray-800">
               <div className="w-full overflow-x-auto">
-                <div className="min-w-[900px]">
+                <div className="min-w-[1000px]">
                   <Table columns={columns} data={paginatedRooms} onRowClick={handleOpenView} />
                 </div>
               </div>
@@ -1209,17 +1223,36 @@ export default function Rooms() {
 }
 
 /* ─────────────────────────────────────────────────────────
-   RoomActionsMenu – collapses secondary actions into a
-   dropdown so card/table rows don't overflow on small screens.
+   RoomActionsMenu – Updated to use Portal to prevent clipping
    ───────────────────────────────────────────────────────── */
 const RoomActionsMenu = ({ room, onListing, onPreview, onAmenities, onUtilities, onDelete, onCreateContract, onBook }) => {
   const [open, setOpen] = useState(false);
+  const buttonRef = useRef(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+  
+  const handleOpen = (e) => {
+    e.stopPropagation(); // Prevent row click
+    if (!open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      // Calculate position: bottom of button, shifted left to fit menu (192px is w-48 width)
+      setCoords({
+        top: rect.bottom + 4,
+        left: rect.right - 192,
+      });
+    }
+    setOpen(!open);
+  };
+
   const close = () => setOpen(false);
 
   const item = (icon, label, handler, danger = false) => (
     <button
       type="button"
-      onClick={() => { close(); handler(); }}
+      onClick={(e) => { 
+        e.stopPropagation(); // Prevent row click
+        close(); 
+        handler(); 
+      }}
       className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors ${
         danger
           ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30'
@@ -1232,18 +1265,26 @@ const RoomActionsMenu = ({ room, onListing, onPreview, onAmenities, onUtilities,
   );
 
   return (
-    <div className="relative">
-      <IconButton
-        variant="ghost"
-        size="sm"
-        tooltip="សកម្មភាពផ្សេងទៀត"
-        icon={<MoreVertical className="h-4 w-4" />}
-        onClick={() => setOpen((v) => !v)}
-      />
-      {open && (
+    <>
+      <div ref={buttonRef}>
+        <IconButton
+          variant="ghost"
+          size="sm"
+          tooltip="សកម្មភាពផ្សេងទៀត"
+          icon={<MoreVertical className="h-4 w-4" />}
+          onClick={handleOpen}
+        />
+      </div>
+
+      {/* Use Portal to render outside the table overflow context */}
+      {open && createPortal(
         <>
-          <div className="fixed inset-0 z-10" onClick={close} />
-          <div className="absolute right-0 top-full z-20 mt-1 w-48 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+          <div className="fixed inset-0 z-[100]" onClick={(e) => { e.stopPropagation(); close(); }} />
+          <div 
+            className="fixed z-[101] w-48 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-900"
+            style={{ top: coords.top, left: coords.left }}
+            onClick={(e) => e.stopPropagation()}
+          >
             {room.status === 'AVAILABLE' &&
               item(<FilePlus className="h-3.5 w-3.5 text-blue-500" />, 'កក់បន្ទប់', onBook)}
             {room.status === 'AVAILABLE' &&
@@ -1255,9 +1296,10 @@ const RoomActionsMenu = ({ room, onListing, onPreview, onAmenities, onUtilities,
             <div className="my-1 border-t border-slate-100 dark:border-gray-800" />
             {item(<Trash2 className="h-3.5 w-3.5" />, 'លុប', onDelete, true)}
           </div>
-        </>
+        </>,
+        document.body
       )}
-    </div>
+    </>
   );
 };
 

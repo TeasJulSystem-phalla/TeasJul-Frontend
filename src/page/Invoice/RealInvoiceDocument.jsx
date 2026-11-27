@@ -133,7 +133,7 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
     <div
       id="invoice-document"
       ref={ref}
-      className="mx-auto w-full max-w-[794px] bg-white text-black font-khmer p-8 sm:p-10 border border-slate-300 shadow-xl print:shadow-none print:border-none print:m-0 print:p-0"
+      className="khmer-doc mx-auto w-full max-w-[794px] bg-white text-black p-8 sm:p-10 border border-slate-300 shadow-xl print:shadow-none print:border-none print:m-0 print:p-0"
       style={{
         boxSizing: 'border-box',
         color: '#000000',
@@ -157,14 +157,14 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
                 {bizName}
               </h2>
             )}
-            <p className="text-[12px] font-bold tracking-wider text-slate-800 uppercase font-sans">
+            <p className="english-doc text-[13px] font-semibold tracking-wider text-slate-800 uppercase">
               {bizLatin}
             </p>
             {showBizInfo && (
               <div className="text-[11px] text-slate-700 leading-relaxed pt-1 space-y-0.5">
                 <p>អាសយដ្ឋាន៖ {addressText}</p>
-                <p>ទំនាក់ទំនងលេខទូរស័ព្ទ៖ {phoneText}</p>
-                <p>សារអេឡិចត្រូនិច (Email)៖ {emailText}</p>
+                <p>ទំនាក់ទំនងលេខទូរស័ព្ទ៖ <span className="doc-number">{phoneText}</span></p>
+                <p>សារអេឡិចត្រូនិច (Email)៖ <span className="doc-number">{emailText}</span></p>
               </div>
             )}
           </div>
@@ -172,26 +172,26 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
           {/* Title & Reference Box */}
           <div className="w-5/12 flex flex-col items-end">
             <div className="border-2 border-black px-6 py-2 text-center w-full max-w-[220px] bg-slate-50">
-              <h1 className="text-xl font-bold tracking-wider text-black leading-tight">
+              <h1 className="khmer-doc text-xl font-bold tracking-wider text-black leading-tight">
                 វិក្កយបត្រ
               </h1>
-              <p className="text-[12px] font-bold tracking-[0.2em] text-black uppercase font-sans">
+              <p className="english-doc text-[13px] font-bold tracking-[0.2em] text-black uppercase">
                 INVOICE
               </p>
             </div>
 
             <div className="mt-2 text-right text-[11.5px] space-y-1 w-full">
               <div className="flex justify-between border-b border-dotted border-slate-300 pb-0.5">
-                <span className="text-slate-600">លេខវិក្កយបត្រ / Inv. No:</span>
-                <span className="font-bold font-mono text-black">{invoice.invoiceNo || '—'}</span>
+                <span className="text-slate-600">លេខវិក្កយបត្រ / <span className="english-doc">Inv. No:</span></span>
+                <span className="doc-number font-bold font-mono text-black">{invoice.invoiceNo || '—'}</span>
               </div>
               <div className="flex justify-between border-b border-dotted border-slate-300 pb-0.5">
-                <span className="text-slate-600">កាលបរិច្ឆេទ / Date:</span>
-                <span className="font-semibold text-black">{formatDate(invoice.createdAt)}</span>
+                <span className="text-slate-600">កាលបរិច្ឆេទ / <span className="english-doc">Date:</span></span>
+                <span className="doc-number font-semibold text-black">{formatDate(invoice.createdAt)}</span>
               </div>
               <div className="flex justify-between border-b border-dotted border-slate-300 pb-0.5">
-                <span className="text-slate-600">ថ្ងៃផុតកំណត់ / Due Date:</span>
-                <span className="font-bold text-black">{formatDate(invoice.dueDate)}</span>
+                <span className="text-slate-600">ថ្ងៃផុតកំណត់ / <span className="english-doc">Due Date:</span></span>
+                <span className="doc-number font-bold text-black">{formatDate(invoice.dueDate)}</span>
               </div>
             </div>
           </div>
@@ -204,31 +204,31 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
           {/* Left Column: Tenant Information */}
           <div className="col-span-7 border-r border-black p-3 space-y-1.5">
             <div className="font-bold text-[11px] uppercase tracking-wider text-black border-b border-slate-300 pb-1 mb-1">
-              ព័ត៌មានអ្នកជួល / CUSTOMER (BILL TO)
+              ព័ត៌មានអ្នកជួល / <span className="english-doc">CUSTOMER (BILL TO)</span>
             </div>
             <div className="grid grid-cols-12 gap-y-1 text-slate-800">
               <span className="col-span-4 text-slate-600">ឈ្មោះអ្នកជួល៖</span>
               <span className="col-span-8 font-bold text-black">{invoice.tenantName || '—'}</span>
 
               <span className="col-span-4 text-slate-600">បន្ទប់ស្នាក់នៅ៖</span>
-              <span className="col-span-8 font-bold text-black">បន្ទប់លេខ {invoice.roomNumber || '—'}</span>
+              <span className="col-span-8 font-bold text-black">បន្ទប់លេខ <span className="doc-number">{invoice.roomNumber || '—'}</span></span>
 
               <span className="col-span-4 text-slate-600">អគារ/ទីតាំង៖</span>
               <span className="col-span-8 font-semibold text-black">{invoice.houseName || '—'}</span>
 
               <span className="col-span-4 text-slate-600">កិច្ចសន្យាលេខ៖</span>
-              <span className="col-span-8 font-mono text-slate-900">{invoice.contractNo || '—'}</span>
+              <span className="col-span-8 doc-number font-mono text-slate-900">{invoice.contractNo || '—'}</span>
             </div>
           </div>
 
           {/* Right Column: Period & Payment Terms */}
           <div className="col-span-5 p-3 space-y-1.5 bg-slate-50/50">
             <div className="font-bold text-[11px] uppercase tracking-wider text-black border-b border-slate-300 pb-1 mb-1">
-              លក្ខខណ្ឌទូទាត់ / BILLING TERMS
+              លក្ខខណ្ឌទូទាត់ / <span className="english-doc">BILLING TERMS</span>
             </div>
             <div className="grid grid-cols-12 gap-y-1 text-slate-800">
               <span className="col-span-6 text-slate-600">សម្រាប់រយៈពេល៖</span>
-              <span className="col-span-6 font-bold text-black">{billingMonth}</span>
+              <span className="col-span-6 font-bold text-black doc-number">{billingMonth}</span>
 
               <span className="col-span-6 text-slate-600">កាលបរិច្ឆេទចេញ៖</span>
               <span className="col-span-6 font-medium text-black">{formatKhmerDateText(invoice.createdAt)}</span>
@@ -245,17 +245,17 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
         <table className="w-full text-left border-collapse border border-black">
           <thead>
             <tr className="bg-slate-100 text-black text-[11.5px] border-b-2 border-black">
-              <th className="border border-black px-2 py-2 text-center w-10 font-bold">ល.រ<br/><span className="text-[9px] font-normal text-slate-600">No.</span></th>
-              <th className="border border-black px-3 py-2 font-bold">បរិយាយមុខទំនិញ / សេវាកម្ម<br/><span className="text-[9px] font-normal text-slate-600">Description of Items & Services</span></th>
-              <th className="border border-black px-2 py-2 text-center w-16 font-bold">បរិមាណ<br/><span className="text-[9px] font-normal text-slate-600">Qty</span></th>
-              <th className="border border-black px-3 py-2 text-right w-24 font-bold">តម្លៃឯកតា<br/><span className="text-[9px] font-normal text-slate-600">Unit Price</span></th>
-              <th className="border border-black px-3 py-2 text-right w-28 font-bold">ចំនួនទឹកប្រាក់<br/><span className="text-[9px] font-normal text-slate-600">Amount (USD)</span></th>
+              <th className="border border-black px-2 py-2 text-center w-10 font-bold">ល.រ<br/><span className="english-doc text-[10px] font-normal text-slate-600">No.</span></th>
+              <th className="border border-black px-3 py-2 font-bold">បរិយាយមុខទំនិញ / សេវាកម្ម<br/><span className="english-doc text-[10px] font-normal text-slate-600">Description of Items & Services</span></th>
+              <th className="border border-black px-2 py-2 text-center w-16 font-bold">បរិមាណ<br/><span className="english-doc text-[10px] font-normal text-slate-600">Qty</span></th>
+              <th className="border border-black px-3 py-2 text-right w-24 font-bold">តម្លៃឯកតា<br/><span className="english-doc text-[10px] font-normal text-slate-600">Unit Price</span></th>
+              <th className="border border-black px-3 py-2 text-right w-28 font-bold">ចំនួនទឹកប្រាក់<br/><span className="english-doc text-[10px] font-normal text-slate-600">Amount (USD)</span></th>
             </tr>
           </thead>
           <tbody className="text-[11.5px]">
             {items.map((item, idx) => (
               <tr key={item.id || idx} className="border-b border-black">
-                <td className="border border-black px-2 py-2.5 text-center font-mono">
+                <td className="doc-number font-mono border border-black px-2 py-2.5 text-center">
                   {idx + 1}
                 </td>
                 <td className="border border-black px-3 py-2.5">
@@ -263,18 +263,18 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
                     {invoiceItemName(item, ITEM_LABELS)}
                   </div>
                   {item.description && item.description !== invoiceItemName(item, ITEM_LABELS) && (
-                    <div className="text-[10.5px] text-slate-600 mt-0.5">
+                    <div className="english-doc text-[10.5px] text-slate-600 mt-0.5">
                       {item.description}
                     </div>
                   )}
                 </td>
-                <td className="border border-black px-2 py-2.5 text-center font-mono">
+                <td className="doc-number font-mono border border-black px-2 py-2.5 text-center">
                   {Number(item.quantity) || 1}
                 </td>
-                <td className="border border-black px-3 py-2.5 text-right font-mono">
+                <td className="doc-number font-mono border border-black px-3 py-2.5 text-right">
                   {formatUSD(item.unitPrice)}
                 </td>
-                <td className="border border-black px-3 py-2.5 text-right font-mono font-bold text-black">
+                <td className="doc-number font-mono font-bold border border-black px-3 py-2.5 text-right text-black">
                   {formatUSD(item.amount)}
                 </td>
               </tr>
@@ -297,58 +297,50 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
             <tr className="border-t-2 border-black">
               <td colSpan={3} rowSpan={4} className="border border-black p-3 align-top bg-slate-50/40">
                 <div className="space-y-2">
-                  <div>
-                    <span className="font-bold text-black text-[11px] uppercase tracking-wide">
-                      ចំនួនទឹកប្រាក់ជាអក្សរ / Amount in words:
-                    </span>
-                    <p className="italic font-medium text-slate-800 text-[11.5px] mt-0.5 underline">
-                      {numberToKhmerWords(invoice.totalAmount)}
-                    </p>
-                  </div>
-
+                 
                   <div className="pt-2 border-t border-slate-300 text-[11px] text-slate-700 space-y-0.5">
-                    <p className="font-bold text-black">ព័ត៌មាននៃការទូទាត់ប្រាក់ (Payment Info):</p>
-                    <p>• គណនីធនាគារ ABA / KHQR: <span className="font-mono font-bold text-black">000 123 456 (TeasJul)</span></p>
-                    <p>• សូមមេត្តាទូទាត់ប្រាក់ត្រឹមថ្ងៃទី៖ <span className="font-bold text-black">{formatDate(invoice.dueDate)}</span></p>
+                    <p className="font-bold text-black">ព័ត៌មាននៃការទូទាត់ប្រាក់ <span className="english-doc">(Payment Info):</span></p>
+                    <p>• គណនីធនាគារ ABA / KHQR: <span className="doc-number font-mono font-bold text-black">000 123 456 (TeasJul)</span></p>
+                    <p>• សូមមេត្តាទូទាត់ប្រាក់ត្រឹមថ្ងៃទី៖ <span className="doc-number font-bold text-black">{formatDate(invoice.dueDate)}</span></p>
                   </div>
                 </div>
               </td>
               <td className="border border-black px-3 py-1.5 text-right text-slate-700">
-                សរុបរង / Subtotal:
+                សរុបរង / <span className="english-doc">Subtotal:</span>
               </td>
-              <td className="border border-black px-3 py-1.5 text-right font-mono font-medium">
+              <td className="doc-number font-mono border border-black px-3 py-1.5 text-right font-medium">
                 {formatUSD(invoice.subtotal)}
               </td>
             </tr>
 
             <tr>
               <td className="border border-black px-3 py-1.5 text-right text-slate-700">
-                បញ្ចុះតម្លៃ / Discount:
+                បញ្ចុះតម្លៃ / <span className="english-doc">Discount:</span>
               </td>
-              <td className="border border-black px-3 py-1.5 text-right font-mono">
+              <td className="doc-number font-mono border border-black px-3 py-1.5 text-right">
                 {Number(invoice.discount) > 0 ? `-${formatUSD(invoice.discount)}` : '$0.00'}
               </td>
             </tr>
 
             <tr>
               <td className="border border-black px-3 py-1.5 text-right text-slate-700">
-                ថ្លៃយឺតយ៉ាវ / Late Fee:
+                ថ្លៃយឺតយ៉ាវ / <span className="english-doc">Late Fee:</span>
               </td>
-              <td className="border border-black px-3 py-1.5 text-right font-mono">
+              <td className="doc-number font-mono border border-black px-3 py-1.5 text-right">
                 {Number(invoice.lateFee) > 0 ? `+${formatUSD(invoice.lateFee)}` : '$0.00'}
               </td>
             </tr>
 
             <tr className="bg-slate-100 font-bold border-b-2 border-black">
               <td className="border border-black px-3 py-2 text-right text-black uppercase">
-                សរុបត្រូវបង់ / Total Due:
+                សរុបត្រូវបង់ / <span className="english-doc">Total Due:</span>
               </td>
               <td className="border border-black px-3 py-2 text-right">
-                <div className="font-mono text-sm text-black font-black leading-tight">
+                <div className="doc-number font-mono text-sm text-black font-black leading-tight">
                   {showUsd && formatUSD(invoice.totalAmount)}
                 </div>
                 {showKhr && (
-                  <div className="text-[10px] text-slate-600 font-normal">
+                  <div className="doc-number text-[10px] text-slate-600 font-normal">
                     ≈ {formatKHR(invoice.totalAmount, exchangeRate)}
                   </div>
                 )}
@@ -358,18 +350,18 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
             <tr>
               <td colSpan={3} className="border border-black bg-white"></td>
               <td className="border border-black px-3 py-1 text-right text-slate-700 font-medium">
-                បានបង់រួច / Paid:
+                បានបង់រួច / <span className="english-doc">Paid:</span>
               </td>
-              <td className="border border-black px-3 py-1 text-right font-mono font-bold text-black">
+              <td className="doc-number font-mono font-bold border border-black px-3 py-1 text-right text-black">
                 {formatUSD(invoice.paidAmount || 0)}
               </td>
             </tr>
             <tr>
               <td colSpan={3} className="border border-black bg-white"></td>
               <td className="border border-black px-3 py-1 text-right text-slate-700 font-medium">
-                នៅសល់ / Remaining:
+                នៅសល់ / <span className="english-doc">Remaining:</span>
               </td>
-              <td className="border border-black px-3 py-1 text-right font-mono font-bold text-black">
+              <td className="doc-number font-mono font-bold border border-black px-3 py-1 text-right text-black">
                 {formatUSD(invoice.remainingAmount != null
                   ? invoice.remainingAmount
                   : Math.max(Number(invoice.totalAmount || 0) - Number(invoice.paidAmount || 0), 0))}
@@ -387,7 +379,7 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
             <p className="font-bold text-black uppercase">
               ហត្ថលេខា និងឈ្មោះអ្នកបង់ប្រាក់
             </p>
-            <p className="text-[10px] text-slate-500 font-sans uppercase">
+            <p className="english-doc text-[11px] text-slate-600">
               Customer / Tenant's Signature
             </p>
             <p className="text-[10.5px] text-slate-500 pt-1">
@@ -406,7 +398,7 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
             <p className="font-bold text-black uppercase">
               ហត្ថលេខា និងឈ្មោះអ្នករៀបចំវិក្កយបត្រ
             </p>
-            <p className="text-[10px] text-slate-500 font-sans uppercase">
+            <p className="english-doc text-[11px] text-slate-600">
               Authorized Signature & Official Stamp
             </p>
             <p className="text-[10.5px] text-slate-500 pt-1">
@@ -424,11 +416,11 @@ const RealInvoiceDocument = forwardRef(function RealInvoiceDocument(
 
       {/* ── 5. FORMAL FOOTER NOTE ────────────────────────────────────────────── */}
       <div className="mt-10 pt-3 border-t border-slate-300 text-center text-[10.5px] text-slate-500 space-y-0.5">
-        <p>
+        <p className="khmer-doc">
           {footerNote}
         </p>
-        <p className="font-mono text-[9.5px]">
-          Generated by TeasJul Management System · Reference ID: {invoice.invoiceNo}
+        <p className="english-doc text-[10px] text-slate-500">
+          Generated by TeasJul Management System · <span className="doc-number font-mono">Reference ID: {invoice.invoiceNo}</span>
         </p>
       </div>
     </div>

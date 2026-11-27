@@ -1,16 +1,66 @@
 import { forwardRef } from 'react';
-import ContractDocument from './ContractDocument';
+import HouseLeaseAgreement from './HouseLeaseAgreement';
 import { Button } from '../../components/ui/index.js';
 import {
   RotateCcw,
   Printer,
   FileDown,
 } from 'lucide-react';
+import {
+  formatShortDate,
+  fullName,
+  genderLabel,
+  roomPrice,
+  ageFromDob,
+  resolveAddress,
+  durationInYears,
+} from './format';
 
 const ContractDetailView = forwardRef(function ContractDetailView(
-  { contract, landlord, house, room, roomType, roomAmenities, tenantsById, contractTenants, deposits, renewals, settings, onPrint, onDownload, onRefresh },
+  { contract, landlord, house, room, roomType, tenantsById, contractTenants, onPrint, onDownload, onRefresh },
   ref
 ) {
+  const sortedTenants = [...(contractTenants || [])].sort((a, b) =>
+    a.isPrimary === b.isPrimary ? 0 : a.isPrimary ? -1 : 1
+  );
+  const primaryTenant = sortedTenants[0] ? tenantsById?.[sortedTenants[0].tenantId] : null;
+
+  // Party A: Snapshot with legacy contract.ownerAddress fallback
+  const lessorAddress = resolveAddress(
+    {
+      houseNumber: contract?.ownerHouseNumber,
+      streetNumber: contract?.ownerStreetNumber,
+      sangkat: contract?.ownerSangkat,
+      khan: contract?.ownerKhan,
+      cityProvince: contract?.ownerCityProvince,
+    },
+    contract?.ownerAddress || landlord?.address
+  );
+
+  // Party B: Snapshot only; never fall back to live tenant profile
+  const lesseeAddress = resolveAddress(
+    {
+      houseNumber: contract?.tenantHouseNumber,
+      streetNumber: contract?.tenantStreetNumber,
+      sangkat: contract?.tenantSangkat,
+      khan: contract?.tenantKhan,
+      cityProvince: contract?.tenantCityProvince,
+    },
+    null
+  );
+
+  // Article 1: Rental property snapshot; never derive from Owner domicile or room/building names
+  const propertyAddressResolved = resolveAddress(
+    {
+      houseNumber: contract?.houseHouseNumber,
+      streetNumber: contract?.houseStreetNumber,
+      sangkat: contract?.houseSangkat,
+      khan: contract?.houseKhan,
+      cityProvince: contract?.houseCityProvince,
+    },
+    null
+  );
+
   return (
     <div className="space-y-4 print:space-y-0">
       {/* Toolbar - hidden on print */}
@@ -32,19 +82,39 @@ const ContractDetailView = forwardRef(function ContractDetailView(
       </div>
 
       {/* Document */}
-      <ContractDocument
+      <HouseLeaseAgreement
         ref={ref}
-        contract={contract}
-        landlord={landlord}
-        house={house}
-        room={room}
-        roomType={roomType}
-        roomAmenities={roomAmenities}
-        tenantsById={tenantsById}
-        contractTenants={contractTenants}
-        deposits={deposits}
-        renewals={renewals}
-        settings={settings}
+        documentNumber={contract?.contractNumber ? String(contract.contractNumber) : undefined}
+        contractNumber={contract?.contractNumber}
+        lessorName={landlord?.name}
+        lessorSex={genderLabel(landlord?.gender)}
+        lessorAge={ageFromDob(landlord?.dob)}
+        lessorHouseNumber={lessorAddress.houseNumber}
+        lessorStreetNumber={lessorAddress.streetNumber}
+        lessorSangkat={lessorAddress.sangkat}
+        lessorKhan={lessorAddress.khan}
+        lessorCityProvince={lessorAddress.cityProvince}
+        lesseeName={primaryTenant ? fullName(primaryTenant) : undefined}
+        lesseeSex={primaryTenant ? genderLabel(primaryTenant.gender) : undefined}
+        lesseeAge={ageFromDob(primaryTenant?.dateOfBirth ?? primaryTenant?.dob)}
+        lesseeHouseNumber={lesseeAddress.houseNumber}
+        lesseeStreetNumber={lesseeAddress.streetNumber}
+        lesseeSangkat={lesseeAddress.sangkat}
+        lesseeKhan={lesseeAddress.khan}
+        lesseeCityProvince={lesseeAddress.cityProvince}
+        houseNumber={propertyAddressResolved.houseNumber}
+        streetNumber={propertyAddressResolved.streetNumber}
+        sangkat={propertyAddressResolved.sangkat}
+        khan={propertyAddressResolved.khan}
+        houseCityProvince={propertyAddressResolved.cityProvince}
+        roomNumber={room?.roomNumber || room?.name}
+        floorNumber={room?.floorNumber}
+        propertyAddress={house?.address || house?.name}
+        roomTypeName={roomType?.name}
+        price={roomPrice(room, roomType)}
+        durationYears={durationInYears(contract)}
+        startDate={formatShortDate(contract?.startDate)}
+        endDate={formatShortDate(contract?.endDate)}
       />
     </div>
   );

@@ -91,6 +91,11 @@ const EMPTY_CONTRACT_PARTY = {
   nationality: "",
   nationalId: "",
   currentAddress: "",
+  houseNumber: "",
+  streetNumber: "",
+  sangkat: "",
+  khan: "",
+  cityProvince: "",
   phone: "",
   occupation: "",
 };
@@ -138,12 +143,22 @@ export default function SettingsPage() {
       dateOfBirth: (party.dateOfBirth || "").trim(),
       nationalId: (party.nationalId || "").trim(),
       currentAddress: (party.currentAddress || "").trim(),
+      houseNumber: (party.houseNumber || "").trim(),
+      streetNumber: (party.streetNumber || "").trim(),
+      sangkat: (party.sangkat || "").trim(),
+      khan: (party.khan || "").trim(),
+      cityProvince: (party.cityProvince || "").trim(),
       phone: (party.phone || "").trim(),
     };
 
     if (trimmed.fullName.length > 200) errs.fullName = "ឈ្មោះមិនត្រូវលើសពី 200 តួអក្សរ";
     if (trimmed.nationalId.length > 100) errs.nationalId = "លេខអត្តសញ្ញាណបថណ្ណលេខមិនត្រូវលើសពី 100 តួអក្សរ";
     if (trimmed.currentAddress.length > 255) errs.currentAddress = "អាសថយដ្ឋានមិនត្រូវលើសពី 255 តួអក្សរ";
+    if (trimmed.houseNumber.length > 100) errs.houseNumber = "ផ្ទះលេខមិនត្រូវលើសពី 100 តួអក្សរ";
+    if (trimmed.streetNumber.length > 100) errs.streetNumber = "ផ្លូវលេខមិនត្រូវលើសពី 100 តួអក្សរ";
+    if (trimmed.sangkat.length > 150) errs.sangkat = "សង្កាត់មិនត្រូវលើសពី 150 តួអក្សរ";
+    if (trimmed.khan.length > 150) errs.khan = "ខណ្ឌមិនត្រូវលើសពី 150 តួអក្សរ";
+    if (trimmed.cityProvince.length > 150) errs.cityProvince = "រាជធានី/ខេត្តមិនត្រូវលើសពី 150 តួអក្សរ";
     if (trimmed.phone.length > 30) errs.phone = "លេខទូរស័ព្ទមិនត្រូវលើសពី 30 តួអក្សរ";
     if (trimmed.dateOfBirth) {
       const dob = new Date(trimmed.dateOfBirth);
@@ -177,6 +192,11 @@ export default function SettingsPage() {
         nationality: party.nationality.trim(),
         nationalId: party.nationalId.trim(),
         currentAddress: party.currentAddress.trim(),
+        houseNumber: (party.houseNumber || "").trim(),
+        streetNumber: (party.streetNumber || "").trim(),
+        sangkat: (party.sangkat || "").trim(),
+        khan: (party.khan || "").trim(),
+        cityProvince: (party.cityProvince || "").trim(),
         phone: party.phone.trim(),
         occupation: party.occupation.trim(),
       },
@@ -592,9 +612,51 @@ function ContractPartySection({ party, onPartyChange, errors }) {
           error={errors.phone}
           leftIcon={<Phone className="h-4 w-4" />}
         />
+        <Input
+          label="ផ្ទះលេខ (House Number)"
+          value={party.houseNumber || ""}
+          onChange={(e) => onPartyChange("houseNumber", e.target.value)}
+          placeholder="ឧ. 12B"
+          error={errors.houseNumber}
+          leftIcon={<Hash className="h-4 w-4" />}
+        />
+        <Input
+          label="ផ្លូវលេខ (Street Number)"
+          value={party.streetNumber || ""}
+          onChange={(e) => onPartyChange("streetNumber", e.target.value)}
+          placeholder="ឧ. ផ្លូវ 271"
+          error={errors.streetNumber}
+          leftIcon={<MapPin className="h-4 w-4" />}
+        />
+        <Input
+          label="សង្កាត់/ឃុំ (Sangkat)"
+          value={party.sangkat || ""}
+          onChange={(e) => onPartyChange("sangkat", e.target.value)}
+          placeholder="ឧ. បឹងទំពុន"
+          error={errors.sangkat}
+          leftIcon={<MapPin className="h-4 w-4" />}
+        />
+        <Input
+          label="ខណ្ឌ/ស្រុក (Khan)"
+          value={party.khan || ""}
+          onChange={(e) => onPartyChange("khan", e.target.value)}
+          placeholder="ឧ. មានជ័យ"
+          error={errors.khan}
+          leftIcon={<MapPin className="h-4 w-4" />}
+        />
         <div className="md:col-span-2">
           <Input
-            label="ទីលំនៅបច្ចុប្បន្ន (Current Address)"
+            label="រាជធានី/ខេត្ត (City/Province)"
+            value={party.cityProvince || ""}
+            onChange={(e) => onPartyChange("cityProvince", e.target.value)}
+            placeholder="ឧ. រាជធានីភ្នំពេញ"
+            error={errors.cityProvince}
+            leftIcon={<Building2 className="h-4 w-4" />}
+          />
+        </div>
+        <div className="md:col-span-2">
+          <Input
+            label="ទីលំនៅបច្ចុប្បន្ន (Current Address / Legacy)"
             value={party.currentAddress}
             onChange={(e) => onPartyChange("currentAddress", e.target.value)}
             placeholder="រាជធានីភ្នំពេញ, ព្រះរាជាណាចក្រកម្ពុជា"

@@ -1,5 +1,6 @@
 // src/page/Room/Properties.jsx
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
   Building2,
@@ -23,6 +24,7 @@ import {
   CheckCircle2,
   Wrench,
   DoorOpen,
+  ChevronDown,
 } from "lucide-react";
 import { useHouses } from "../../hooks/useHouses";
 import { useMyRoles } from "../../hooks/useMyRoles";
@@ -40,7 +42,6 @@ import Modal from "../../components/ui/Modal";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import Table from "../../components/ui/Table";
 import Card from "../../components/ui/Card";
-import Dropdown from "../../components/ui/Dropdown";
 import CountUp from "../../components/ui/CountUp";
 
 const STATUS_OPTIONS = [
@@ -92,14 +93,16 @@ const EMPTY_FORM = {
   code: "",
   address: "",
   cityProvince: "",
+  houseNumber: "",
+  streetNumber: "",
+  sangkat: "",
+  khan: "",
   googleMapsUrl: "",
   postalCode: "",
   description: "",
   status: "ACTIVE",
 };
 
-// Slug is system-managed: derived from the house name so the user never types it.
-// Kept backend-compatible because CreateHouseRequest still requires a slug.
 const slugify = (value) =>
   (value || "")
     .toLowerCase()
@@ -134,6 +137,8 @@ const Properties = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [viewTarget, setViewTarget] = useState(null);
+  
+  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
 
   const [formModal, setFormModal] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -187,11 +192,14 @@ const Properties = () => {
   const openEdit = useCallback((house) => {
     setForm({
       name: house.name || "",
-      // Existing slug is preserved on edit so public URLs stay stable.
       slug: house.slug || "",
       code: house.code || "",
       address: house.address || "",
       cityProvince: house.cityProvince || "",
+      houseNumber: house.houseNumber || "",
+      streetNumber: house.streetNumber || "",
+      sangkat: house.sangkat || "",
+      khan: house.khan || "",
       googleMapsUrl: house.googleMapsUrl || "",
       postalCode: house.postalCode || "",
       description: house.description || "",
@@ -204,7 +212,6 @@ const Properties = () => {
   const handleFormChange = (field, value) => {
     setForm((prev) => {
       const next = { ...prev, [field]: value };
-      // Only auto-generate on create; edits preserve the existing slug.
       if (field === "name" && formModal === "create") {
         next.slug = slugify(value);
       }
@@ -244,8 +251,6 @@ const Properties = () => {
     if (!validate()) return;
     setFormLoading(true);
     try {
-      // Slug is system-managed. On create it is derived from the name; on edit
-      // the existing slug is sent unchanged to keep public URLs stable.
       const resolvedSlug =
         (formModal === "create" ? slugify(form.name) : form.slug) ||
         `house-${Date.now().toString(36)}`;
@@ -256,6 +261,10 @@ const Properties = () => {
         code: form.code.trim(),
         address: form.address.trim(),
         cityProvince: form.cityProvince.trim() || null,
+        houseNumber: form.houseNumber?.trim() || null,
+        streetNumber: form.streetNumber?.trim() || null,
+        sangkat: form.sangkat?.trim() || null,
+        khan: form.khan?.trim() || null,
         googleMapsUrl: form.googleMapsUrl.trim() || null,
         postalCode: form.postalCode.trim() || null,
         description: form.description.trim() || null,
@@ -313,7 +322,6 @@ const Properties = () => {
     }
   };
 
-  // Row actions shared by the grid menu and the table dropdown.
   const buildActions = useCallback(
     (house) => [
       {
@@ -445,18 +453,7 @@ const Properties = () => {
         className: "text-right",
         render: (h) => (
           <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
-            <Dropdown
-              trigger={
-                <button
-                  type="button"
-                  className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-gray-800 dark:hover:text-slate-300"
-                  aria-label="ម៉ឺនុយ"
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </button>
-              }
-              items={buildActions(h)}
-            />
+            <PropertyActionsMenu actions={buildActions(h)} />
           </div>
         ),
       },
@@ -464,7 +461,6 @@ const Properties = () => {
     [buildActions]
   );
 
-  /* ---------------- Loading ---------------- */
   if (loading) {
     return (
       <div className={`min-w-0 space-y-6 ${KH}`}>
@@ -509,6 +505,8 @@ const Properties = () => {
             គ្រប់គ្រងផ្ទះ និងបន្ទប់ជួលរបស់អ្នក។
           </p>
         </div>
+        
+        {/* Improved Header Actions */}
         <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
@@ -516,8 +514,40 @@ const Properties = () => {
             leftIcon={<RefreshCw className="h-4 w-4" />}
             onClick={fetchHouses}
           >
-            ធ្វើឱ្យស្រស់
+            <span className="hidden sm:inline">ធ្វើឱ្យស្រស់</span>
           </Button>
+          
+          <div className="relative">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              leftIcon={<MoreVertical className="h-4 w-4" />} 
+              rightIcon={<ChevronDown className="h-3 w-3" />}
+              onClick={() => setHeaderMenuOpen(!headerMenuOpen)}
+            >
+              ជម្រើសផ្សេងទៀត
+            </Button>
+            {headerMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setHeaderMenuOpen(false)} />
+                <div className="absolute right-0 top-full z-20 mt-1 w-56 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                  <button 
+                    onClick={() => { setHeaderMenuOpen(false); navigate(`${basePath}/properties/import`); }} 
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-gray-800"
+                  >
+                    <FileSpreadsheet className="h-3.5 w-3.5" /> នាំចូល CSV/Excel
+                  </button>
+                  <button 
+                    onClick={() => { setHeaderMenuOpen(false); navigate(`${basePath}/properties/onboarding/manual`); }} 
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-gray-800"
+                  >
+                    <Hand className="h-3.5 w-3.5" /> បញ្ចូលដោយដៃ
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+
           {!readOnly && (
             <Button
               leftIcon={<Plus className="h-4 w-4" />}
@@ -685,18 +715,7 @@ const Properties = () => {
 
                 {/* Actions menu */}
                 <div className="absolute right-2.5 top-2.5" onClick={(e) => e.stopPropagation()}>
-                  <Dropdown
-                    trigger={
-                      <button
-                        type="button"
-                        className="rounded-md bg-slate-900/45 p-1.5 text-white/90 backdrop-blur-sm transition-colors hover:bg-slate-900/65 hover:text-white"
-                        aria-label="ម៉ឺនុយ"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-                    }
-                    items={buildActions(house)}
-                  />
+                  <PropertyActionsMenu actions={buildActions(house)} isGrid />
                 </div>
 
                 {/* City */}
@@ -831,6 +850,30 @@ const Properties = () => {
                 onChange={(e) =>
                   handleFormChange("cityProvince", e.target.value)
                 }
+              />
+              <Input
+                label="ផ្ទះលេខ (House No.)"
+                placeholder="ឧ. 12B"
+                value={form.houseNumber}
+                onChange={(e) => handleFormChange("houseNumber", e.target.value)}
+              />
+              <Input
+                label="ផ្លូវលេខ (Street No.)"
+                placeholder="ឧ. 2004"
+                value={form.streetNumber}
+                onChange={(e) => handleFormChange("streetNumber", e.target.value)}
+              />
+              <Input
+                label="សង្កាត់/ឃុំ (Sangkat)"
+                placeholder="ឧ. ទឹកថ្លា"
+                value={form.sangkat}
+                onChange={(e) => handleFormChange("sangkat", e.target.value)}
+              />
+              <Input
+                label="ខណ្ឌ/ស្រុក (Khan)"
+                placeholder="ឧ. សែនសុខ"
+                value={form.khan}
+                onChange={(e) => handleFormChange("khan", e.target.value)}
               />
               <div className="sm:col-span-2">
                 <Input
@@ -1061,6 +1104,20 @@ const Properties = () => {
                 value={viewTarget.address}
                 icon={MapPin}
               />
+              {(viewTarget.houseNumber || viewTarget.streetNumber || viewTarget.sangkat || viewTarget.khan) && (
+                <DetailField
+                  label="អាសយដ្ឋានលម្អិត"
+                  value={[
+                    viewTarget.houseNumber && `ផ្ទះលេខ ${viewTarget.houseNumber}`,
+                    viewTarget.streetNumber && `ផ្លូវ ${viewTarget.streetNumber}`,
+                    viewTarget.sangkat && `សង្កាត់ ${viewTarget.sangkat}`,
+                    viewTarget.khan && `ខណ្ឌ ${viewTarget.khan}`,
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}
+                  icon={MapPin}
+                />
+              )}
               <DetailField
                 label="លេខកូដប្រៃសណីយ៍"
                 value={viewTarget.postalCode || "—"}
@@ -1250,5 +1307,82 @@ const DetailField = ({ label, value, icon: Icon }) => (
     </p>
   </div>
 );
+
+/* ======================= Custom Dropdown Menu ======================= */
+const PropertyActionsMenu = ({ actions, isGrid = false }) => {
+  const [open, setOpen] = useState(false);
+  const buttonRef = useRef(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+
+  const handleOpen = (e) => {
+    e.stopPropagation();
+    if (!open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom + 4,
+        left: rect.right - 192, // 192px is w-48 width
+      });
+    }
+    setOpen(!open);
+  };
+
+  const close = () => setOpen(false);
+
+  return (
+    <>
+      <div ref={buttonRef}>
+        <button
+          type="button"
+          onClick={handleOpen}
+          className={`rounded-md transition-colors ${
+            isGrid 
+              ? "bg-slate-900/45 p-1.5 text-white/90 backdrop-blur-sm hover:bg-slate-900/65 hover:text-white" 
+              : "p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-gray-800 dark:hover:text-slate-300"
+          }`}
+          aria-label="ម៉ឺនុយ"
+        >
+          <MoreVertical className="h-4 w-4" />
+        </button>
+      </div>
+
+      {open && createPortal(
+        <>
+          <div className="fixed inset-0 z-[100]" onClick={(e) => { e.stopPropagation(); close(); }} />
+          <div 
+            className="fixed z-[101] w-48 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-900"
+            style={{ top: coords.top, left: coords.left }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {actions.map((action, i) => {
+              if (action.divider) {
+                return <div key={i} className="my-1 border-t border-slate-100 dark:border-gray-800" />;
+              }
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    close();
+                    action.onClick();
+                  }}
+                  className={`flex w-full items-center gap-2 px-3 py-2 text-left text-xs transition-colors ${
+                    action.danger
+                      ? "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                      : "text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  {action.icon}
+                  {action.label}
+                </button>
+              );
+            })}
+          </div>
+        </>,
+        document.body
+      )}
+    </>
+  );
+};
 
 export default Properties;

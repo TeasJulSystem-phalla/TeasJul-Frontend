@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Save, UserRound, FileText, IdCard } from 'lucide-react';
+import { ArrowLeft, Save, UserRound, FileText, IdCard, MapPin } from 'lucide-react';
 import { useTenants } from '../../hooks/useTenants.js';
 import { useBasePath } from '../../hooks/useBasePath.js';
 import { useToast } from '../../components/ui/Toast.jsx';
@@ -44,6 +44,11 @@ const EMPTY_FORM = {
   idType: '',
   idNumber: '',
   address: '',
+  houseNumber: '',
+  streetNumber: '',
+  sangkat: '',
+  khan: '',
+  cityProvince: '',
 };
 
 const fullName = (t) => `${t.firstName || ''} ${t.lastName || ''}`.trim() || `អ្នកជួល #${t.id}`;
@@ -105,6 +110,11 @@ export default function TenantFormPage() {
           idType: t.idType || '',
           idNumber: t.idNumber || '',
           address: t.address || '',
+          houseNumber: t.houseNumber || '',
+          streetNumber: t.streetNumber || '',
+          sangkat: t.sangkat || '',
+          khan: t.khan || '',
+          cityProvince: t.cityProvince || '',
         });
       } catch (err) {
         if (cancelled) return;
@@ -164,6 +174,11 @@ export default function TenantFormPage() {
       idType: form.idType.trim() || null,
       idNumber: form.idNumber.trim() || null,
       address: form.address.trim() || null,
+      houseNumber: form.houseNumber?.trim() || null,
+      streetNumber: form.streetNumber?.trim() || null,
+      sangkat: form.sangkat?.trim() || null,
+      khan: form.khan?.trim() || null,
+      cityProvince: form.cityProvince?.trim() || null,
     };
 
     setSubmitting(true);
@@ -342,11 +357,29 @@ export default function TenantFormPage() {
             title="សាលារៀន / ក្រុមហ៊ុន និងអត្តសញ្ញាណ"
             subtitle="កន្លែងធ្វើការ ឬសិក្សា និងឯកសារសម្គាល់អត្តសញ្ញាណ។"
           >
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <Input label="សាលារៀន ឬក្រុមហ៊ុន" name="schoolOrCompany" value={form.schoolOrCompany} onChange={handleFormChange} />
               <Input label="ប្រភេទអត្តសញ្ញាណប័ណ្ណ" name="idType" value={form.idType} onChange={handleFormChange} placeholder="ឧ. NIK លិខិតឆ្លងដែន" />
               <Input label="លេខអត្តសញ្ញាណប័ណ្ណ" name="idNumber" value={form.idNumber} onChange={handleFormChange} />
-              <Textarea label="អាសយដ្ឋាន" name="address" value={form.address} onChange={handleFormChange} rows={2} placeholder="អាសយដ្ឋានបច្ចុប្បន្ន..." />
+            </div>
+          </SectionCard>
+
+          <SectionCard
+            icon={<MapPin className="h-5 w-5" />}
+            title="អាសយដ្ឋាន (Address)"
+            subtitle="ព័ត៌មានលម្អិតអំពីទីលំនៅរបស់អ្នកជួល។"
+          >
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <Input label="ផ្ទះលេខ (House No.)" name="houseNumber" value={form.houseNumber} onChange={handleFormChange} placeholder="ឧ. 12B" />
+              <Input label="ផ្លូវលេខ (Street No.)" name="streetNumber" value={form.streetNumber} onChange={handleFormChange} placeholder="ឧ. ផ្លូវ 271" />
+              <Input label="សង្កាត់/ឃុំ (Sangkat)" name="sangkat" value={form.sangkat} onChange={handleFormChange} placeholder="ឧ. បឹងទំពុន" />
+              <Input label="ខណ្ឌ/ស្រុក (Khan)" name="khan" value={form.khan} onChange={handleFormChange} placeholder="ឧ. មានជ័យ" />
+              <div className="sm:col-span-2 lg:col-span-4">
+                <Input label="រាជធានី/ខេត្ត (City/Province)" name="cityProvince" value={form.cityProvince} onChange={handleFormChange} placeholder="ឧ. រាជធានីភ្នំពេញ" />
+              </div>
+              <div className="sm:col-span-2 lg:col-span-4">
+                <Textarea label="អាសយដ្ឋានពេញលេញ (Full / Legacy Address)" name="address" value={form.address} onChange={handleFormChange} rows={2} placeholder="អាសយដ្ឋានបច្ចុប្បន្ន..." />
+              </div>
             </div>
           </SectionCard>
         </form>

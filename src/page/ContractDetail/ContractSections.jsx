@@ -9,12 +9,13 @@ import {
   roomLabel,
   contractDuration,
   roomPrice,
+  MISSING_INFO_LABEL,
+  isBlank,
 } from './format';
 
 /* ---------- Shared Primitives ---------- */
 
-const display = (value) =>
-  value === undefined || value === null || value === '' ? '—' : value;
+const display = (value) => (isBlank(value) ? MISSING_INFO_LABEL : value);
 
 const Field = ({ label, value, span }) => (
   <div className={`min-w-0 ${span === 3 ? 'col-span-3' : span ? 'col-span-2' : ''}`}>
@@ -129,7 +130,7 @@ export const KhmerPartySection = ({ landlord, primaryTenant }) => {
     ? [
         { label: 'ឈ្មោះ', value: fullName(primaryTenant) },
         { label: 'ភេទ', value: genderLabel(primaryTenant.gender) },
-        { label: 'ថ្ងៃខែឆ្នាំកំណើត', value: primaryTenant?.dob },
+        { label: 'ថ្ងៃខែឆ្នាំកំណើត', value: primaryTenant?.dateOfBirth ?? primaryTenant?.dob },
         { label: 'សញ្ជាតិ', value: primaryTenant?.nationality || 'ខ្មែរ' },
         { label: 'អត្តសញ្ញាណប័ណ្ណលេខ', value: primaryTenant?.idNumber, span: 2 },
         { label: 'ទីលំនៅបច្ចុប្បន្ន', value: primaryTenant?.address, span: 2 },
@@ -199,7 +200,8 @@ export const KhmerAgreementSection = ({ contract, room, house, roomAmenities }) 
     <div className="columns-2 gap-x-[6mm] rounded border border-slate-400 px-2.5 py-[1.5mm] text-[9px] leading-[1.45]">
       <Clause n="១">
         ម្ចាស់ផ្ទះបានយល់ព្រមជួលផ្ទះ ទៅអោយអ្នកទទួលជួលផ្ទះជាន់ទី {room?.floorNumber || '1'}{' '}
-        (ជាន់ / ផ្នែក) នៃផ្ទះដែលមាន អាស័យដ្ឋាន {house?.address || '—'} {room?.name || '—'}{' '}
+        (ជាន់ / ផ្នែក) នៃផ្ទះដែលមាន អាស័យដ្ឋាន{' '}
+        {house?.address || MISSING_INFO_LABEL} {room?.name || MISSING_INFO_LABEL}{' '}
         សម្រាប់រយៈពេល {contractDuration(contract) || '—'} ដោយគិតចាប់ពីថ្ងៃទី{' '}
         <strong className="text-slate-900">{formatShortDate(contract?.startDate)}</strong> ដល់{' '}
         <strong className="text-slate-900">{formatShortDate(contract?.endDate)}</strong>។
@@ -337,9 +339,9 @@ export const KhmerDepositSection = ({ deposits }) => {
 
 export const KhmerSignatureSection = ({ landlord, primaryTenant, contract }) => {
   const signers = [
-    { role: 'ម្ចាស់ផ្ទះ', name: landlord?.name || '—' },
+    { role: 'ម្ចាស់ផ្ទះ', name: landlord?.name || MISSING_INFO_LABEL },
     { role: 'សាក្សី', name: '________________' },
-    { role: 'អ្នកជួលផ្ទះ', name: primaryTenant ? fullName(primaryTenant) : '—' },
+    { role: 'អ្នកជួលផ្ទះ', name: primaryTenant ? fullName(primaryTenant) || MISSING_INFO_LABEL : MISSING_INFO_LABEL },
   ];
 
   return (
